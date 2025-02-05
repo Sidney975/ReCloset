@@ -1,0 +1,172 @@
+@Backend_HostAddress = https://localhost:7016
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiI2IiwidW5pcXVlX25hbWUiOiJUZXN0VXNlcm5hbWU0IiwiZW1haWwiOiJ1c2VybmFtZTRAZ21haWwuY29tIiwibmJmIjoxNzM2OTA5NDI4LCJleHAiOjE3Mzk1MDE0MjgsImlhdCI6MTczNjkwOTQyOH0.MWfKogG04J5tZt5dI4wdlUQno-PtKh7gnAqpyzhw2uU
+
+###
+
+GET {{Backend_HostAddress}}/user/auth
+Authorization: Bearer {{token}}
+
+###
+
+POST {{Backend_HostAddress}}/user/login
+Content-Type: application/json
+
+{
+  "Email": "jelat@gmail.com",
+  "Password": "Password123"
+}
+
+###
+
+POST {{Backend_HostAddress}}/user/register
+Content-Type: application/json
+
+{
+  "Name": "Jelat",
+  "Email": "jelat@gmail.com",
+  "Password": "Password123"
+}
+
+###
+
+GET {{Backend_HostAddress}}/checkout
+
+###
+
+POST {{Backend_HostAddress}}/checkout
+Content-Type: application/json
+Authorization: Bearer {{token}}
+{
+  "DeliveryOption": 1,
+  "PaymentId": 1,
+  "OrderItems": [
+    {
+      "ProductId": 1,
+      "Quantity": 2,
+      "itemPrice": 50.00 
+    },
+    {
+      "ProductId": 2,
+      "Quantity": 1,
+      "itemPrice": 30.00
+    }
+  ]
+}
+
+
+###
+
+
+DELETE {{Backend_HostAddress}}/checkout/1
+
+###
+
+GET {{Backend_HostAddress}}/checkout/1
+Authorization: Bearer {{token}}
+###
+
+PUT {{Backend_HostAddress}}/checkout/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+{
+  //UpdateOrderRequestDto
+}
+
+###
+
+GET {{Backend_HostAddress}}/orderitem
+
+###
+
+POST {{Backend_HostAddress}}/orderitem
+Content-Type: application/json
+
+{
+  "OrderItem_Id": 1,
+  "Order_Id": 1,
+  "Product_Id": 1,
+  "Quantity": 2,
+  "Price": 50
+}
+
+###
+
+DELETE {{Backend_HostAddress}}/orderitem/1
+
+###
+
+GET {{Backend_HostAddress}}/orderitem/1
+
+###
+
+PUT {{Backend_HostAddress}}/orderitem/1
+Content-Type: application/json
+
+{
+  "OrderItem_Id": 1,
+  "Order_Id": 1,
+  "Product_Id": 1,
+  "Quantity": 3,
+  "Price": 75
+}
+
+###
+
+
+GET {{Backend_HostAddress}}/payment
+Authorization: Bearer {{token}}
+###
+
+POST {{Backend_HostAddress}}/payment
+Content-Type: application/json
+Authorization: Bearer {{token}}
+{
+  "Payment_Id": 1,
+  "Amount": 100,
+  "Payment_Date": "2023-10-01T10:00:00",
+  "PaymentMethod": "CreditCard",
+  "CardNumber": "1234567812345678",
+  "CVV": "123",
+  "BillingZip": "123456",
+  "BillingAddress": "123 Main St, Anytown, USA"
+}
+
+###
+
+DELETE {{Backend_HostAddress}}/payment/1
+
+###
+
+GET {{Backend_HostAddress}}/payment/1
+Authorization: Bearer {{token}}
+###
+
+PUT {{Backend_HostAddress}}/payment/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+{
+  "Payment_Id": 1,
+  "Order_Id": 1,
+  "Amount": 150,
+  "Payment_Date": "2023-10-02T10:00:00",
+  "Payment_Method": "PayPal"
+}
+
+###
+
+GET {{Backend_HostAddress}}/User/auth
+
+###
+
+GET {{Backend_HostAddress}}/admin/auth
+
+###
+
+POST {{Backend_HostAddress}}/admin/register
+Content-Type: application/json
+
+{
+  //RegisterRequest
+}
+
+###
