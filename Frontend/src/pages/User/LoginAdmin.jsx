@@ -10,12 +10,12 @@ import AdminContext from "../../contexts/AdminContext";
 
 function LoginAdmin() {
   const navigate = useNavigate();
-  const { setAdmin } = useContext(AdminContext);
+  const { admin, setAdmin } = useContext(AdminContext);
 
   const formik = useFormik({
     initialValues: {
-      email: "Jelat@gmail.com",
-      password: "P1234567",
+      email: "Jerald@gmail.com",
+      password: "P@ssw0rd",
     },
     validationSchema: yup.object({
       email: yup

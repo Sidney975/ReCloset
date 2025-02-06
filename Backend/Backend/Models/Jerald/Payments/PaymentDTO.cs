@@ -15,7 +15,5 @@ namespace Backend.Models.Jerald.Payments
         public string Status { get; set; } = string.Empty; // Active/Inactive
         public int UserId { get; set; }
         public bool IsDeleted { get; set; } // Include IsDeleted if you want to expose this information
-        [Required]
-        public User UserDetails { get; set; } = new User(); // User who made the order
     }
 }

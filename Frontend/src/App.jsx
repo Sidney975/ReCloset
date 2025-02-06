@@ -66,7 +66,7 @@ function App() {
             <AdminAppBar />
           )
           }
-          {!admin && (
+          {!admin &&  (
             <CustomerAppBar />
           )}
 
