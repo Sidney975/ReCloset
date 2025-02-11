@@ -48,6 +48,7 @@ function Products() {
         getProducts();
     };
 
+    console.log("products:", productList);
     const handleCartClick = (e, product) => {
         e.preventDefault(); // Prevent navigating to product page
     

@@ -1,4 +1,4 @@
-@Backend_HostAddress = https://localhost:11291
+@Backend_HostAddress = https://localhost:53827
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJhZG1pbk9uZSIsImVtYWlsIjoiZW1haWxAZW1haWwuY29tIiwibmJmIjoxNzM5MTc0ODE0LCJleHAiOjE3NDE3NjY4MTQsImlhdCI6MTczOTE3NDgxNH0.M0rAY3iC-iqC2crVVJKCHZEQg8qik2fBeyQXMt48ePg
 ###
 
@@ -183,8 +183,8 @@ POST {{Backend_HostAddress}}/user/login
 Content-Type: application/json
 
 {
-  "Email":"user@email.com",
-  "Password":"password1!"
+  "Email":"jeraldliu@gmail.com",
+  "Password":"P@ssw0rd!"
 }
 
 ###
@@ -203,5 +203,41 @@ Content-Type: application/json
 ###
 
 DELETE {{Backend_HostAddress}}/user/delete/{{id}}
+
+###
+
+POST {{Backend_HostAddress}}/user/register
+Content-Type: application/json
+
+{
+    "Email":"jeraldliu@gmail.com",
+  "Username":"Jerald",
+  "Password":"P@ssw0rd!"
+}
+
+###
+
+POST {{Backend_HostAddress}}/api/product
+Content-Type: application/json
+
+{
+ 
+  
+    "Name": "Warm Wool Sweater",
+    "Image": "https://example.com/images/sweater.jpg",
+    "Description": "A cozy wool sweater designed for warmth and comfort.",
+    "SustainabilityNotes": "Made from ethically sourced wool.",
+    "SizingChart": "https://example.com/sizing-chart/sweater",
+    "Price": 49.99,
+    "Quality": true,
+    "Brand": "GreenThreads",
+    "Available": true,
+    "CategoryId": 2,
+    "WarehouseId": 1
+  
+ 
+ 
+
+}
 
 ###
