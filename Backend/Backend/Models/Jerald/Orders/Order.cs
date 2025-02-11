@@ -21,7 +21,6 @@ namespace Backend.Models.Jerald.Orders
         Cancelled = 3
     }
 
-
     public class Order
     {
         [Key]
@@ -39,16 +38,17 @@ namespace Backend.Models.Jerald.Orders
         [Required]
         public ShipmentStatus ShipmentStatus { get; set; } = ShipmentStatus.Pending;
 
+        // ✅ Payment relationship (optional)
         [ForeignKey("PaymentId")]
         public Payment? Payment { get; set; }
 
+        // ✅ Fixed User relationship to allow nullable FK
         [ForeignKey("UserId")]
-        public int UserId { get; set; }
-        public User User { get; set; }
+        public int? UserId { get; set; }  // 🔥 Make this nullable
+        public User? User { get; set; }    // 🔥 Allow nullable User
 
-        // Corrected navigation property
+        // ✅ Corrected navigation property
         [JsonIgnore]
         public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }
-
 }

@@ -218,6 +218,50 @@ namespace ReCloset.Controllers
             return Ok(new { message = "User deleted successfully." });
         }
 
+        [HttpPut("admin/update-user/{id}"), Authorize(Roles = "Admin")] // 🔥 Admins can update any user
+        public IActionResult UpdateUser(int id, UpdateUserRequest request)
+        {
+            var foundUser = _context.Users.FirstOrDefault(x => x.Id == id);
+            if (foundUser == null)
+            {
+                return NotFound(new { message = "User not found." });
+            }
+
+            // ✅ Admin can update any user
+            foundUser.Username = request.Username ?? foundUser.Username;
+            foundUser.Password = request.Password != null ? BCrypt.Net.BCrypt.HashPassword(request.Password) : foundUser.Password;
+            foundUser.Phone_number = request.Phone_number ?? foundUser.Phone_number;
+            foundUser.Address = request.Address ?? foundUser.Address;
+            foundUser.Status = request.Status ?? foundUser.Status; // 🔥 Admin can modify Status
+            foundUser.UpdatedAt = DateTime.UtcNow;
+
+            _context.Users.Update(foundUser);
+            _context.SaveChanges();
+
+            return Ok(new { message = "User updated successfully by Admin." });
+        }
+
+
+        [HttpDelete("soft-delete/{id}"), Authorize(Roles = "Admin")]
+        public IActionResult SoftDeleteUser(int id)
+        {
+            var foundUser = _context.Users.FirstOrDefault(x => x.Id == id);
+            if (foundUser == null)
+            {
+                return NotFound(new { message = "User not found." });
+            }
+
+            // Soft delete by updating status instead of removing from DB
+            foundUser.Status = "Inactive"; // Mark user as inactive
+            foundUser.UpdatedAt = DateTime.UtcNow;
+
+            _context.Users.Update(foundUser);
+            _context.SaveChanges();
+
+            return Ok(new { message = "User has been soft deleted (deactivated)." });
+        }
+
+
 
         private string CreateToken(User user)
         {
@@ -270,6 +314,10 @@ namespace ReCloset.Controllers
 
         // Assuming Preferences are serialized as a string or JSON
         public string? Preferences { get; set; }
+
+        [MaxLength(50)]
+        public string? Status { get; set; } // 🔥 Fix for your error
+
     }
 }
 

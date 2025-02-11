@@ -14,7 +14,7 @@ using Backend.Models.Sarah.Admins;
 namespace ReCloset.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("admin")]
     public class AdminController : ControllerBase
     {
         private readonly MyDbContext _context;
@@ -90,22 +90,14 @@ namespace ReCloset.Controllers
             return Ok(new { admin, accessToken });
         }
 
-        [HttpGet("auth"), Authorize]
+        [HttpGet("auth"), Authorize(Roles = "Admin")]
         public async Task<IActionResult> Auth()
         {
-            // Extract admin information from claims
             var tokenAdminId = Convert.ToInt32(User.Claims
                 .Where(c => c.Type == ClaimTypes.NameIdentifier)
                 .Select(c => c.Value)
                 .SingleOrDefault());
 
-            // Ensure the authenticated admin can only access their own information
-            //if (tokenAdminId != id)
-            //{
-            //    return Unauthorized(new { message = "You can only view your own information." });
-            //}
-
-            // Fetch admin data from the database
             var admin = await _context.Admins.FindAsync(tokenAdminId);
 
             if (admin == null)
@@ -113,12 +105,10 @@ namespace ReCloset.Controllers
                 return NotFound(new { message = $"Admin with ID {tokenAdminId} not found." });
             }
 
-            // Build a response with all admin information
             var adminResponse = new
             {
                 admin.Id,
                 admin.Username,
-                admin.Password, // Include password only if necessary; otherwise, exclude it for security
                 admin.First_name,
                 admin.Last_name,
                 admin.Email,
@@ -127,34 +117,32 @@ namespace ReCloset.Controllers
                 admin.Role,
                 admin.Status,
                 admin.CreatedAt,
-                admin.UpdatedAt,
-                admin.HireDate,
-                admin.Permissions,
-                admin.ManagedUsers,
-                admin.SystemAccess
+                admin.UpdatedAt
             };
 
             return Ok(new { admin = adminResponse });
         }
 
 
-        [HttpPut("update/{id}"), Authorize]
+        [HttpPut("update/{id}"), Authorize(Roles = "Admin")]
         public IActionResult Update(int id, UpdateAdminRequest request)
         {
-            // Find the admin by ID
+            // Get the logged-in admin ID from JWT token
+            var tokenAdminId = Convert.ToInt32(User.Claims
+                .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value);
+
+            if (tokenAdminId != id)
+            {
+                return Unauthorized(new { message = "You cannot update another admin's account." });
+            }
+
             var foundAdmin = _context.Admins.FirstOrDefault(x => x.Id == id);
             if (foundAdmin == null)
             {
                 return NotFound(new { message = "Admin not found." });
             }
 
-            // Only allow admins to update their own information
-            if (foundAdmin.Id != id)
-            {
-                return Unauthorized(new { message = "You cannot update another admin's information." });
-            }
-
-            // Update admin fields
+            // Update fields if new values are provided
             foundAdmin.Username = request.Username ?? foundAdmin.Username;
             foundAdmin.Password = request.Password != null ? BCrypt.Net.BCrypt.HashPassword(request.Password) : foundAdmin.Password;
             foundAdmin.First_name = request.First_name ?? foundAdmin.First_name;
@@ -163,45 +151,36 @@ namespace ReCloset.Controllers
             foundAdmin.Address = request.Address ?? foundAdmin.Address;
             foundAdmin.UpdatedAt = DateTime.UtcNow;
 
-            // Update the admin in the database
             _context.Admins.Update(foundAdmin);
             _context.SaveChanges();
 
             return Ok(new { message = "Admin information updated successfully." });
         }
 
-        [HttpDelete("delete/{id}"), Authorize]
+
+        [HttpDelete("delete/{id}"), Authorize(Roles = "Admin")]
         public IActionResult Delete(int id)
         {
-            // Extract the admin's ID from the token claims
             var tokenAdminId = Convert.ToInt32(User.Claims
                 .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value);
 
-            // Validate the extracted admin ID
-            if (tokenAdminId == 0)
-            {
-                return Unauthorized(new { message = "Invalid token. Access denied." });
-            }
-
-            // Ensure the authenticated admin can only delete their own account
             if (tokenAdminId != id)
             {
                 return Unauthorized(new { message = "You cannot delete another admin's account." });
             }
 
-            // Find the admin by ID in the database
             var foundAdmin = _context.Admins.FirstOrDefault(x => x.Id == id);
             if (foundAdmin == null)
             {
                 return NotFound(new { message = "Admin not found." });
             }
 
-            // Delete the admin
             _context.Admins.Remove(foundAdmin);
             _context.SaveChanges();
 
             return Ok(new { message = "Admin deleted successfully." });
         }
+
 
         private string CreateToken(Admin admin)
         {
@@ -217,18 +196,19 @@ namespace ReCloset.Controllers
             {
                 Subject = new ClaimsIdentity(
                     new[] {
-                        new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString()),
-                        new Claim(ClaimTypes.Name, admin.Username),
-                        new Claim(ClaimTypes.Email, admin.Email)
+                new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString()),
+                new Claim(ClaimTypes.Name, admin.Username),
+                new Claim(ClaimTypes.Email, admin.Email),
+                new Claim(ClaimTypes.Role, "Admin") // ✅ Ensures admin is authenticated as an admin
                     }),
                 Expires = DateTime.UtcNow.AddDays(tokenExpiresDays),
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var securityToken = tokenHandler.CreateToken(tokenDescriptor);
-            string token = tokenHandler.WriteToken(securityToken);
-            return token;
+            return tokenHandler.WriteToken(securityToken);
         }
+
     }
 
     // DTO class for admin update request

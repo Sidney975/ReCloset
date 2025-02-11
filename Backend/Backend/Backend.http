@@ -1,6 +1,5 @@
-@Backend_HostAddress = https://localhost:11291
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJhZG1pbk9uZSIsImVtYWlsIjoiZW1haWxAZW1haWwuY29tIiwibmJmIjoxNzM5MTc0ODE0LCJleHAiOjE3NDE3NjY4MTQsImlhdCI6MTczOTE3NDgxNH0.M0rAY3iC-iqC2crVVJKCHZEQg8qik2fBeyQXMt48ePg
-###
+@Backend_HostAddress = http://localhost:11291
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIyIiwidW5pcXVlX25hbWUiOiJ1c2VyT25lIiwiZW1haWwiOiJ1c2VyQGVtYWlsLmNvbSIsIm5iZiI6MTczOTI5Njc0NSwiZXhwIjoxNzQxODg4NzQ1LCJpYXQiOjE3MzkyOTY3NDV9.BQ4lljjXdcX_CydkEpZByowp2r6lo3EUjKmvlEo7lZw
 
 GET {{Backend_HostAddress}}/checkout
 
@@ -129,44 +128,6 @@ Authorization: Bearer {{token}}
 
 
 
-POST {{Backend_HostAddress}}/admin/register
-Content-Type: application/json
-
-{
-  "Username":"adminTwo",
-  "Email":"admin2@email.com",
-  "Password":"password1!"
-}
-
-###
-
-POST {{Backend_HostAddress}}/admin/login
-Content-Type: application/json
-
-{
-  "Email":"admin2@email.com",
-  "Password":"password1!"
-}
-
-###
-
-GET {{Backend_HostAddress}}/admin/auth
-
-###
-
-@id=0
-PUT {{Backend_HostAddress}}/admin/update/{{id}}
-Content-Type: application/json
-
-{
-  //UpdateAdminRequest
-}
-
-###
-
-DELETE {{Backend_HostAddress}}/admin/delete/{{id}}
-
-###
 
 POST {{Backend_HostAddress}}/user/register
 Content-Type: application/json
@@ -203,5 +164,58 @@ Content-Type: application/json
 ###
 
 DELETE {{Backend_HostAddress}}/user/delete/{{id}}
+###
+
+
+
+@id=0
+PUT {{Backend_HostAddress}}/user/update/{{id}}
+Content-Type: application/json
+
+{
+  //UpdateUserRequest
+}
+
+###
+
+DELETE {{Backend_HostAddress}}/user/soft-delete/{{id}}
+
+###
+
+POST {{Backend_HostAddress}}/admin/register
+Content-Type: application/json
+
+{
+  "Username":"adminOne",
+  "Email":"admin@email.com",
+  "Password":"password1!"
+}
+
+###
+
+POST {{Backend_HostAddress}}/admin/login
+Content-Type: application/json
+
+{
+  "Email":"admin@email.com",
+  "Password":"password1!"
+}
+
+###
+
+GET {{Backend_HostAddress}}/admin/auth
+
+###
+
+PUT {{Backend_HostAddress}}/admin/update/{{id}}
+Content-Type: application/json
+
+{
+  
+}
+
+###
+
+DELETE {{Backend_HostAddress}}/admin/delete/{{id}}
 
 ###

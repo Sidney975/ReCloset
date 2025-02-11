@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useContext } from "react";
 import {
   AppBar as MuiAppBar,
   Toolbar,
@@ -19,12 +19,11 @@ const AdminAppBar = () => {
   const logout = () => {
     localStorage.removeItem("accessToken");
     setAdmin(null);
-    navigate("/loginadmin");
+    navigate("/admin/login");
   };
 
   return (
     <>
-      {/* Top Navigation Bar */}
       <MuiAppBar
         position="static"
         sx={{ backgroundColor: "white", color: "black", boxShadow: 1, width: "100%" }}
@@ -44,7 +43,7 @@ const AdminAppBar = () => {
             {/* Admin Icons */}
             <Box sx={{ display: "flex", alignItems: "center" }}>
               {admin && (
-                <IconButton component={Link} to="/admin-dashboard" sx={{ color: "black", "&:hover": { color: "gray" } }}>
+                <IconButton component={Link} to="/admin/profile" sx={{ color: "black", "&:hover": { color: "gray" } }}>
                   <AccountCircleIcon />
                   <Typography variant="body2" sx={{ ml: 0.5 }}>{admin.username}</Typography>
                 </IconButton>
@@ -60,12 +59,12 @@ const AdminAppBar = () => {
 
       {/* Navigation Tabs */}
       <Box sx={{ display: "flex", justifyContent: "center", bgcolor: "#a67c52", py: 1, width: "100%" }}>
-        <NavItem to="/admin-dashboard" label="Dashboard" />
-        <NavItem to="/adminProducts" label="Products" />
-        <NavItem to="/admin-orders" label="Orders" />
-        <NavItem to="/vouchers" label="Vouchers" />
-        <NavItem to="/delivery" label="Delivery" />
-        <NavItem to="/users" label="Users" />
+        <NavItem to="/admin/dashboard" label="Dashboard" />
+        <NavItem to="/admin/products" label="Products" />
+        <NavItem to="/admin/orders" label="Orders" />
+        <NavItem to="/admin/vouchers" label="Vouchers" />
+        <NavItem to="/admin/delivery" label="Delivery" />
+        <NavItem to="/admin/users" label="Users" />
       </Box>
     </>
   );
