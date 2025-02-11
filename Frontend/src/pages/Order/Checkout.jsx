@@ -70,7 +70,8 @@ function CheckoutPage() {
   const fetchBillingCountry = async (paymentId) => {
     try {
       const response = await http.get(`/Payment/${paymentId}`); // Calls GetPaymentById API
-      setBillingCountry(response.data.billingAddress); // Set billing country from API
+      var CombinebillingAddress = response.data.billingAddress + " " + response.data.billingZip; // Set billing country from API
+      setBillingCountry(CombinebillingAddress); // Set billing country from API
     } catch (err) {
       toast.error("Failed to retrieve billing address.");
     }
