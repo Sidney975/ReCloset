@@ -6,9 +6,11 @@ import * as yup from 'yup';
 import http from '../../http';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+// Corrected imports
 import Login from './Login';
-import RegisterAdmin from './RegisterAdmin';
-import LoginAdmin from './LoginAdmin';
+import RegisterAdmin from '../Admin/RegisterAdmin';
+import LoginAdmin from '../Admin/LoginAdmin';
 
 function Register() {
     const navigate = useNavigate();
@@ -24,7 +26,7 @@ function Register() {
                 .min(3, 'Name must be at least 3 characters')
                 .max(50, 'Name must be at most 50 characters')
                 .required('Name is required')
-                .matches(/^[a-zA-Z '-,.]+$/, "Name only allow letters, spaces and characters: ' - , ."),
+                .matches(/^[a-zA-Z '-,.]+$/, "Name only allows letters, spaces, and characters: ' - , ."),
             password: yup.string().trim()
                 .min(8, 'Password must be at least 8 characters')
                 .max(50, 'Password must be at most 50 characters')
@@ -36,24 +38,20 @@ function Register() {
                 .required('Email is required')
         }),
         onSubmit: (data) => {
-            // Debugging: log the form data before submitting
             console.log("Form data before submit:", data);
 
             data.username = data.username.trim();
             data.password = data.password.trim();
             data.email = data.email.trim().toLowerCase();
 
-            // Debugging: log the modified data before making the API call
             console.log("Cleaned form data:", data);
 
             http.post("/user/register", data)
                 .then((res) => {
-                    // Debugging: log the response from the API
                     console.log("API Response:", res.data);
                     navigate("/login");
                 })
                 .catch(function (err) {
-                    // Debugging: log the error response
                     console.error("Error response:", err);
                     toast.error(`${err.response ? err.response.data.message : 'Unknown error occurred'}`);
                 });
@@ -110,10 +108,10 @@ function Register() {
             <Button onClick={() => navigate("/login")} sx={{ mt: 2 }}>
                 Login
             </Button>
-            <Button onClick={() => navigate("/loginadmin")} sx={{ mt: 2 }}>
+            <Button onClick={() => navigate("/admin/login")} sx={{ mt: 2 }}>
                 Login Admin
             </Button>
-            <Button onClick={() => navigate("/registeradmin")} sx={{ mt: 2 }}>
+            <Button onClick={() => navigate("/admin/register")} sx={{ mt: 2 }}>
                 Register Admin
             </Button>
             <ToastContainer />

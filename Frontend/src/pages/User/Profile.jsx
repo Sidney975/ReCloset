@@ -1,6 +1,9 @@
 import React, { useContext } from 'react';
-import UserContext from '../../contexts/UserContext';
 import { useNavigate } from 'react-router-dom';
+import { Box, Typography, IconButton } from '@mui/material';
+import { Edit } from '@mui/icons-material';
+import UserContext from '../../contexts/UserContext';
+import Sidebar from './Sidebar';
 
 const Profile = () => {
     const { user } = useContext(UserContext);
@@ -11,99 +14,63 @@ const Profile = () => {
     }
 
     return (
-        <div style={styles.container}>
-            <div style={styles.profileCard}>
-                <h2 style={styles.title}>Profile</h2>
-                <div style={styles.content}>
-                    {/* Sidebar on the Left */}
-                    <div style={styles.sidebar}>
-                        <button style={styles.button} onClick={() => navigate('/Payments')}>
-                            Payment
-                        </button>
-                        <br></br>
-                        <br></br>
-                        <button style={styles.button} onClick={() => navigate('/ViewOrder')}>
-                            Orders
-                        </button>
-                    </div>
-
-                    {/* Profile Information */}
-                    <div style={styles.profileInfo}>
-                        <p><strong>Name:</strong> {user.username}</p>
-                        <p><strong>Email:</strong> {user.email}</p>
-                        <p><strong>Phone:</strong> {user.phone_number || "Not provided"}</p>
-                        <p><strong>Role:</strong> {user.role || "User"}</p>
-                        <p><strong>Loyalty Points:</strong> {user.loyaltyPoints || 0}</p>
-                        <p><strong>Status:</strong> {user.status || "Active"}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <Box sx={styles.container}>
+            <Sidebar activeTab="profile" />
+            <Box sx={styles.profileContent}>
+                <Typography variant="h5" sx={styles.sectionTitle}>
+                    Profile Information
+                    <IconButton onClick={() => navigate('/edit-profile')} sx={styles.editButton}>
+                        <Edit />
+                    </IconButton>
+                </Typography>
+                <Box sx={styles.profileDetails}>
+                    <Typography sx={styles.label}><strong>First Name:</strong> {user.first_name || "Not provided"}</Typography>
+                    <Typography sx={styles.label}><strong>Last Name:</strong> {user.last_name || "Not provided"}</Typography>
+                    <Typography sx={styles.label}><strong>Email:</strong> {user.email}</Typography>
+                    <Typography sx={styles.label}><strong>Phone Number:</strong> {user.phone_number || "Not provided"}</Typography>
+                    <Typography sx={styles.label}><strong>Address:</strong> {user.address || "Not provided"}</Typography>
+                </Box>
+            </Box>
+        </Box>
     );
 };
 
-// Styles
 const styles = {
     container: {
         display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
         height: '100vh',
-        backgroundColor: '#f4f4f4',
+        backgroundColor: '#f4f4f4', // Light gray background for contrast
     },
-    profileCard: {
-        width: '450px',
-        padding: '20px',
-        borderRadius: '10px',
-        backgroundColor: '#fff',
-        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-        textAlign: 'center',
-    },
-    title: {
-        fontSize: '24px',
-        marginBottom: '15px',
-        color: '#333',
-        borderBottom: '2px solid #ddd',
-        paddingBottom: '10px',
-    },
-    content: {
-        display: 'flex',
-        alignItems: 'flex-start',
-    },
-    sidebar: {
-        width: '150px',
-        textAlign: 'center',
-        marginRight: '20px',
-        borderRight: '2px solid #ddd',
-        paddingRight: '10px',
-    },
-    sidebarTitle: {
-        fontSize: '18px',
-        marginTop: '10px',
-        color: '#555',
-    },
-    profileInfo: {
-        textAlign: 'left',
+    profileContent: {
         flex: 1,
+        padding: '50px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
     },
-    button: {
-        backgroundColor: '#007bff',
-        color: '#fff',
-        border: 'none',
-        padding: '10px 15px',
-        borderRadius: '5px',
+    sectionTitle: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        fontSize: '22px',
+        fontWeight: 'bold',
+        marginBottom: '20px',
+        color: '#333', // Darker text for readability
+    },
+    profileDetails: {
+        backgroundColor: '#fff', // White card background
+        padding: '25px',
+        borderRadius: '8px',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', // Subtle shadow for depth
+    },
+    label: {
+        fontSize: '16px',
+        color: '#444', // Slightly darker gray for clarity
+        marginBottom: '10px',
+    },
+    editButton: {
         cursor: 'pointer',
-        fontSize: '14px',
-        transition: 'background 0.3s',
-        width: '100%',
-    },
-    buttonHover: {
-        backgroundColor: '#0056b3',
-    },
-    message: {
-        textAlign: 'center',
-        fontSize: '18px',
-        marginTop: '50px',
+        color: '#007bff', // Matches Material UI primary color
     },
 };
 

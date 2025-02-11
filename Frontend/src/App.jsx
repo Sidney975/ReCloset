@@ -23,12 +23,16 @@ import OrderDetails from './pages/Order/OrderDetail';
 import MyForm from './pages/User/MyForm';
 import Login from './pages/User/Login';
 import Register from './pages/User/Register';
-import RegisterAdmin from './pages/User/RegisterAdmin';
-import LoginAdmin from './pages/User/LoginAdmin';
+import RegisterAdmin from './pages/Admin/RegisterAdmin';
+import LoginAdmin from './pages/Admin/LoginAdmin';
 import Profile from './pages/User/Profile';
+import EditProfile from './pages/User/EditProfile';
+import ChangePassword from './pages/User/ChangePassword';
 import http from './http';
 import UserContext from './contexts/UserContext';
 import AdminContext from './contexts/AdminContext';
+import AdminDashboard from "./pages/Admin/AdminDashboard";
+
 
 {/* Sophie's Imports */ }
 import Products from './pages/Product/Products';
@@ -89,11 +93,15 @@ function App() {
               <Route path={"/register"} element={<Register />} />
               <Route path={"/login"} element={<Login />} />
               <Route path={"/form"} element={<MyForm />} />
+              <Route path="/change-password" element={<ChangePassword />} />
               {/* Admin Pages */}
               <Route path={"/registeradmin"} element={<RegisterAdmin />} />
               <Route path={"/loginadmin"} element={<LoginAdmin />} />
-              <Route path="/profile" element={<Profile />} />
-              \
+              <Route path={"/profile"} element={<Profile />} />
+              <Route path={"/edit-profile"} element={<EditProfile />} />
+              <Route path={"/admindashboard"} element={<AdminDashboard />} />
+              
+
               {/* Sophie's Route */}
               {/* Product Pages */}
               <Route path="/adminProducts" element={<AdminProducts/>} />

@@ -18,8 +18,8 @@ function Login() {
 
     const formik = useFormik({
         initialValues: {
-            email: "Jeraldliu@gmail.com",
-            password: "P@ssw0rd"
+            email: "user@email.com",
+            password: "password1!"
         },
         validationSchema: yup.object({
             email: yup.string().trim()

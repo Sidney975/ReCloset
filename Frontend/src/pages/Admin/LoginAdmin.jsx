@@ -14,8 +14,8 @@ function LoginAdmin() {
 
   const formik = useFormik({
     initialValues: {
-      email: "Jelat@gmail.com",
-      password: "P1234567",
+      email: "admin@email.com",
+      password: "password1!",
     },
     validationSchema: yup.object({
       email: yup
@@ -39,19 +39,14 @@ function LoginAdmin() {
         .then((res) => {
           if (res && res.data) {
             localStorage.setItem("accessToken", res.data.accessToken);
-            setAdmin(res.data.admin); // Ensure `setAdmin` is the correct function
-            navigate("/");
+            setAdmin(res.data.admin);
+            navigate("/admindashboard"); // Redirect to the dashboard
           } else {
             toast.error("Unexpected response format");
           }
         })
-        .catch(function (err) {
-          // Check if the error response exists
-          if (err.response && err.response.data) {
-            toast.error(`${err.response.data.message}`);
-          } else {
-            toast.error("An error occurred. Please try again.");
-          }
+        .catch((err) => {
+          toast.error(err.response?.data?.message || "An error occurred.");
         });
     },
   });
