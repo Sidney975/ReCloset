@@ -6,7 +6,7 @@ import * as yup from 'yup';
 import http from '../../http';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import LoginAdmin from './LoginAdmin';
+import LoginAdmin from '../Admin/LoginAdmin';
 
 function RegisterAdmin() {
     const navigate = useNavigate();

@@ -21,18 +21,25 @@ instance.interceptors.request.use(function (config) {
 });
 
 // Add a response interceptor
-instance.interceptors.response.use(function (response) {
-    // Any status code that lie within the range of 2xx cause this function to trigger
-    // Do something with response data
-    return response;
-}, function (error) {
-    // Any status codes that falls outside the range of 2xx cause this function to trigger
-    // Do something with response error
-    if (error.response.status === 401 || error.response.status === 403) {
-        localStorage.clear();
-        window.location = "/login";
+instance.interceptors.response.use(
+    function (response) {
+        return response;
+    },
+    function (error) {
+        console.error("Error details:", error);
+        if (error.response) {
+            console.error("Response error:", error.response);
+        } else {
+            console.error("No response received:", error.message);
+        }
+        // Optional: Add a fallback to handle network issues gracefully
+        if (error.message.includes("Network Error")) {
+            alert("Unable to connect to the server. Please try again later.");
+        }
+        return Promise.reject(error);
     }
-    return Promise.reject(error);
-});
+);
+
+
 
 export default instance;
