@@ -25,6 +25,12 @@ namespace Backend.Models.Jerald.Payments
 
         public PaymentStatus? Status { get; set; }
 
+        [MaxLength(100)]
+        public string Country { get; set; }
+
+        [MaxLength(100)]
+        public string City { get; set; }
+
         public bool? DefaultPreference { get; set; }
     }
 }

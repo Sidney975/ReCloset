@@ -39,6 +39,12 @@ namespace Backend.Models.Jerald.Payments
         [Required, Range(100000, 999999, ErrorMessage = "Billing ZIP must be a valid 6-digit code.")]
         public int BillingZip { get; set; }
 
+        [Required, MaxLength(100)]
+        public string Country { get; set; } = string.Empty;
+
+        [Required, MaxLength(100)]
+        public string City { get; set; } = string.Empty;
+
         [Required]
         public PaymentStatus Status { get; set; } = PaymentStatus.Inactive;
 

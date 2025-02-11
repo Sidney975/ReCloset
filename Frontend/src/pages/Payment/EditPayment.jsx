@@ -79,6 +79,8 @@ function EditPayment() {
                     billingZip: response.data.billingZip,
                     status: response.data.status,
                     defaultPreference: response.data.isDefault || false,
+                    country: response.data.country,  // 🔹 Added country
+                    city: response.data.city     // 🔹 Added city
                 });
                 setIsCurrentDefault(response.data.isDefault);
                 console.log("Payment details loaded:", response.data);
@@ -131,6 +133,8 @@ function EditPayment() {
                 .matches(/^\d{6}$/, "Billing ZIP must be a valid 6-digit code")
                 .required("Billing ZIP is required"),
             status: yup.string().required("Status is required"),
+            country: yup.string().trim().required("Country is required"),  // 🔹 Added validation
+            city: yup.string().trim().required("City is required"),        // 🔹 Added validation
         }),
         validateOnBlur: true,
         validateOnChange: true,
@@ -324,6 +328,31 @@ function EditPayment() {
                     onBlur={formik.handleBlur}
                     error={formik.touched.billingZip && Boolean(formik.errors.billingZip)}
                     helperText={formik.touched.billingZip && formik.errors.billingZip}
+                />
+                {/* 🔹 Country */}
+                <TextField
+                    fullWidth
+                    margin="dense"
+                    label="Country"
+                    name="country"
+                    value={formik.values.country}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={formik.touched.country && Boolean(formik.errors.country)}
+                    helperText={formik.touched.country && formik.errors.country}
+                />
+
+                {/* 🔹 City */}
+                <TextField
+                    fullWidth
+                    margin="dense"
+                    label="City"
+                    name="city"
+                    value={formik.values.city}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={formik.touched.city && Boolean(formik.errors.city)}
+                    helperText={formik.touched.city && formik.errors.city}
                 />
                 <TextField
                     select

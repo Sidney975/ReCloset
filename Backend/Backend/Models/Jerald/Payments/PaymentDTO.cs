@@ -13,6 +13,8 @@ namespace Backend.Models.Jerald.Payments
         public string ExpiryDate { get; set; } = string.Empty; // Expiry Date in MM/YY format
         public bool IsDefault { get; set; } // Indicates if it's the default payment method
         public string Status { get; set; } = string.Empty; // Active/Inactive
+        public string Country { get; set; } = string.Empty; // Active/Inactive
+        public string City { get; set; } = string.Empty; // Active/Inactive
         public int UserId { get; set; }
         public bool IsDeleted { get; set; } // Include IsDeleted if you want to expose this information 
     }

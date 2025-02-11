@@ -1,7 +1,6 @@
 import React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
-
-const OrderPDF = ({ order }) => (
+const OrderPDF = ({ order, user }) => (
     <Document>
         <Page size="A4" style={styles.page}>
             {/* Header Section */}
@@ -9,7 +8,6 @@ const OrderPDF = ({ order }) => (
                 <Text style={styles.companyName}>ReCloset</Text>
                 <Text style={styles.companyAddress}>123 Orchard Road, #10-01, ReCloset Building, Singapore 238888</Text>
             </View>
-
             {/* Order Details Section */}
             <View style={styles.orderDetails}>
                 <View>
@@ -25,13 +23,12 @@ const OrderPDF = ({ order }) => (
                     <Text>12/03/2025</Text>
                 </View>
             </View>
-
             {/* Billing & Shipping Section */}
             <View style={styles.billingShippingContainer}>
                 <View style={styles.billingShippingBox}>
                     <Text style={styles.boldText}>BILL TO</Text>
-                    <Text>{order.userDetails?.name || "Customer Name"}</Text>
-                    <Text>{order.userDetails?.email || "customer@email.com"}</Text>
+                    <Text>{user.username || "Customer Name"}</Text>
+                    <Text>{user.email || "customer@email.com"}</Text>
                 </View>
                 <View style={styles.billingShippingBox}>
                     <Text style={styles.boldText}>SHIP TO</Text>
@@ -39,14 +36,12 @@ const OrderPDF = ({ order }) => (
                     <Text>Customer's Shipping Address</Text>
                 </View>
             </View>
-
             {/* Payment Details */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Payment Details</Text>
                 <Text>Payment Method: {order.paymentDetails?.paymentMethod || "N/A"}</Text>
                 <Text>Card Info: {order.paymentDetails?.maskedCardNumber || "**** **** **** 5678"}</Text>
             </View>
-
             {/* Order Summary */}
             <View style={styles.orderSummary}>
                 <View>
@@ -62,7 +57,6 @@ const OrderPDF = ({ order }) => (
                     <Text>{order.status || "Pending"}</Text>
                 </View>
             </View>
-
             {/* Order Items Table */}
             <View style={styles.table}>
                 <View style={styles.tableHeader}>
@@ -80,7 +74,6 @@ const OrderPDF = ({ order }) => (
                     </View>
                 ))}
             </View>
-
             {/* Footer Section */}
             <View style={styles.footer}>
                 <Text style={styles.termsTitle}>TERMS & CONDITIONS</Text>
@@ -91,7 +84,6 @@ const OrderPDF = ({ order }) => (
         </Page>
     </Document>
 );
-
 // Styling
 const styles = StyleSheet.create({
     page: {
@@ -187,5 +179,4 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
 });
-
 export default OrderPDF;

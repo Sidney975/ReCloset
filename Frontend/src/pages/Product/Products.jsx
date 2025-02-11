@@ -1,13 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Box, Typography, Grid, Card, CardContent, CardMedia, Input, IconButton, Container } from '@mui/material';
 import { Search, Clear, FavoriteBorder, ShoppingCart } from '@mui/icons-material';
 import http from '../../http';
+import CartContext from '../../contexts/CartContext';
+import UserContext from '../../contexts/UserContext';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function Products() {
     const [productList, setProductList] = useState([]);
     const [search, setSearch] = useState('');
     const navigate = useNavigate();
+    const { addToCart } = useContext(CartContext);
+    const { user } = useContext(UserContext);
 
     useEffect(() => {
         getProducts();
@@ -49,34 +55,16 @@ function Products() {
     };
 
     console.log("products:", productList);
+
     const handleCartClick = (e, product) => {
         e.preventDefault(); // Prevent navigating to product page
-    
-        let cartItems = JSON.parse(localStorage.getItem("CartItems")) || [];
-    
-        // Check if the product is already in the cart
-        const existingItem = cartItems.find(item => item.productId === product.productId);
-    
-        if (!existingItem) {
-            // Ensure full product details are stored
-            const newCartItem = {
-                productId: product.productId,  // ✅ Ensure productId is stored
-                name: product.name,            // ✅ Store product name
-                price: product.price,          // ✅ Store product price
-                image: product.image,          // ✅ Store product image
-                quantity: 1                    // ✅ Default quantity 1
-            };
-    
-            cartItems.push(newCartItem);
-    
-            localStorage.setItem("CartItems", JSON.stringify(cartItems));
-            alert("Item added to cart!");
-        } else {
-            alert("Item is already in the cart!");
+        if (!user) {
+            toast.error("You must be logged in to add items to the cart.");
+            return;
         }
+        addToCart(product);
+        toast.success("Item added to cart!");
     };
-    
-    
 
     return (
         <Box sx={{ backgroundColor: '#f4f4f4', minHeight: '100vh' }}>

@@ -10,25 +10,21 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import http from '../http';
 import UserContext from '../contexts/UserContext';
 import AdminContext from '../contexts/AdminContext';
+import CartContext from '../contexts/CartContext';
 import { Badge, ListItemAvatar, Avatar } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteIcon from '@mui/icons-material/Delete';
-
 
 const CustomerAppBar = () => {
   const [cartOpen, setCartOpen] = useState(false);
   const navigate = useNavigate();
   const { user, setUser } = useContext(UserContext);
   const { admin, setAdmin } = useContext(AdminContext);
+  const { cartItems, addToCart, removeFromCart, updateQuantity, clearCart } = useContext(CartContext);
 
-  console.log("User = ",user);
-  console.log("Admin = ",admin);
- 
-
-  // Inside your component
-  const [cartItems, setCartItems] = useState([]);
-
+  console.log("User = ", user);
+  console.log("Admin = ", admin);
 
   const logout = () => {
     localStorage.removeItem("accessToken");
@@ -38,46 +34,12 @@ const CustomerAppBar = () => {
     window.location = "/";
   };
 
-  useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem("CartItems")) || [];
-    setCartItems(storedCart);
-  }, [cartOpen]);
-
   // Calculate total cart quantity
   const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   // Calculate total price
   const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
 
-  // Function to update quantity
-  const updateQuantity = (productId, amount) => {
-    let updatedCart = cartItems.map(item => {
-      if (item.productId === productId) {
-        const newQuantity = item.quantity + amount;
-        return newQuantity > 0
-          ? { ...item, quantity: newQuantity }
-          : null; // Remove if quantity reaches 0
-      }
-      return item;
-    }).filter(Boolean); // Remove items with zero quantity
-
-    setCartItems(updatedCart);
-    localStorage.setItem("CartItems", JSON.stringify(updatedCart));
-  };
-
-
-  // Function to remove item completely
-  const removeItem = (productId) => {
-    let updatedCart = cartItems.filter(item => item.productId !== productId);
-    setCartItems(updatedCart);
-    localStorage.setItem("CartItems", JSON.stringify(updatedCart));
-  };
-
-  // Function to clear cart
-  const clearCart = () => {
-    setCartItems([]);
-    localStorage.removeItem("CartItems");
-  };
   return (
     <>
       <MuiAppBar position="static" sx={{ backgroundColor: 'white', color: 'black', boxShadow: 1, width: '100%' }}>
@@ -107,8 +69,7 @@ const CustomerAppBar = () => {
                   <AccountCircleIcon />
                   <Typography variant="body2" sx={{ ml: 0.5 }}>{user.username}</Typography>
                 </IconButton>
-              )
-              }
+              )}
               {user == null && (
                 <>
                   <IconButton component={Link} to="/login" sx={{ color: 'black', '&:hover': { color: 'gray' } }}>
@@ -117,10 +78,6 @@ const CustomerAppBar = () => {
                   </IconButton>
                 </>
               )}
-              {/* <IconButton component={Link} to="/login" sx={{ color: 'black', '&:hover': { color: 'gray' } }}>
-                <AccountCircleIcon />
-                <Typography variant="body2" sx={{ ml: 0.5 }}>Login</Typography>
-              </IconButton> */}
               <IconButton component={Link} to="/wishlist" sx={{ color: 'black', '&:hover': { color: 'gray' } }}>
                 <FavoriteBorderIcon />
                 <Typography variant="body2" sx={{ ml: 0.5 }}>Wishlist</Typography>
@@ -274,7 +231,7 @@ const CustomerAppBar = () => {
                       <IconButton onClick={() => updateQuantity(item.productId, 1)} sx={{ color: 'black' }}>
                         <AddIcon />
                       </IconButton>
-                      <IconButton onClick={() => removeItem(item.productId)} sx={{ color: 'red', textAlign: 'right', ml: 'auto' }}>
+                      <IconButton onClick={() => removeFromCart(item.productId)} sx={{ color: 'red', textAlign: 'right', ml: 'auto' }}>
                         <DeleteIcon />
                       </IconButton>
                     </Box>
@@ -298,7 +255,7 @@ const CustomerAppBar = () => {
             variant="contained"
             sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred' }, fontWeight: 'bold', mt: 2 }}
             disabled={cartItems.length === 0}
-            onClick={clearCart}
+            onClick={() => clearCart()}
           >
             Clear Cart
           </Button>

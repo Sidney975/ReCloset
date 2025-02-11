@@ -9,7 +9,8 @@ import MyTheme from './themes/MyTheme';
 import HomePage from './pages/Homepage';
 import CustomerAppBar from './AppBar/CustomerAppBar';
 import AdminAppBar from './AppBar/AdminAppBar';
-
+// Import CartProvider
+import { CartProvider } from './contexts/CartContext';
 
 {/* Jerald's Imports */ }
 import Checkout from './pages/Order/Checkout';
@@ -64,59 +65,61 @@ function App() {
 
   return (
     <UserContext.Provider value={{ user, setUser }}>
-      <Router>
-        <ThemeProvider theme={MyTheme}>
-          {admin && (
-            <AdminAppBar />
-          )
-          }
-          {!admin &&  (
-            <CustomerAppBar />
-          )}
+      <CartProvider>
+        <Router>
+          <ThemeProvider theme={MyTheme}>
+            {admin && (
+              <AdminAppBar />
+            )
+            }
+            {!admin && (
+              <CustomerAppBar />
+            )}
 
-          <ToastContainer />
-          <Container>
-            <Routes>
-              {/* Jerald's Routes */}
-              <Route path="/" element={<HomePage />} />
-              <Route path="/Login" element={<Login />} />
-              <Route path="/Register" element={<Register />} />
-              <Route path="/Checkout" element={<Checkout />} />
-              <Route path="/Payments" element={<ViewPayments />} />
-              <Route path="/AddPayment" element={<AddPayment />} />
-              <Route path="/EditPayment/:id" element={<EditPayment />} />
-              <Route path="/ViewOrder" element={<ViewOrder />} />
-              <Route path="/OrderDetails/:orderId" element={<OrderDetails />} />
+            <ToastContainer />
+            <Container>
+              <Routes>
+                {/* Jerald's Routes */}
+                <Route path="/" element={<HomePage />} />
+                <Route path="/Login" element={<Login />} />
+                <Route path="/Register" element={<Register />} />
+                <Route path="/Checkout" element={<Checkout />} />
+                <Route path="/Payments" element={<ViewPayments />} />
+                <Route path="/AddPayment" element={<AddPayment />} />
+                <Route path="/EditPayment/:id" element={<EditPayment />} />
+                <Route path="/ViewOrder" element={<ViewOrder />} />
+                <Route path="/OrderDetails/:orderId" element={<OrderDetails />} />
 
-              {/* Sarah's Routes */}
-              {/* Login Routes */}
-              <Route path={"/register"} element={<Register />} />
-              <Route path={"/login"} element={<Login />} />
-              <Route path={"/form"} element={<MyForm />} />
-              <Route path="/change-password" element={<ChangePassword />} />
-              {/* Admin Pages */}
-              <Route path={"/registeradmin"} element={<RegisterAdmin />} />
-              <Route path={"/loginadmin"} element={<LoginAdmin />} />
-              <Route path={"/profile"} element={<Profile />} />
-              <Route path={"/edit-profile"} element={<EditProfile />} />
-              <Route path={"/admindashboard"} element={<AdminDashboard />} />
-              
+                {/* Sarah's Routes */}
+                {/* Login Routes */}
+                <Route path={"/register"} element={<Register />} />
+                <Route path={"/login"} element={<Login />} />
+                <Route path={"/form"} element={<MyForm />} />
+                <Route path="/change-password" element={<ChangePassword />} />
+                {/* Admin Pages */}
+                <Route path={"/registeradmin"} element={<RegisterAdmin />} />
+                <Route path={"/loginadmin"} element={<LoginAdmin />} />
+                <Route path={"/profile"} element={<Profile />} />
+                <Route path={"/edit-profile"} element={<EditProfile />} />
+                <Route path={"/admindashboard"} element={<AdminDashboard />} />
 
-              {/* Sophie's Route */}
-              {/* Product Pages */}
-              <Route path="/adminProducts" element={<AdminProducts/>} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/addproduct" element={<AddProduct />} />
-              <Route path="/editproduct/:id" element={<EditProduct />} />
-              <Route path="/sustainabilitycertifications" element={<Certifications />} />
-              <Route path="/addcertification" element={<AddCertification />} />
 
-              {/* Fallback Route */}
-              <Route path="*" element={<p>404 - Page Not Found</p>} />
-            </Routes>
-          </Container>
-        </ThemeProvider>
-      </Router>
+                {/* Sophie's Route */}
+                {/* Product Pages */}
+                <Route path="/adminProducts" element={<AdminProducts />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/addproduct" element={<AddProduct />} />
+                <Route path="/editproduct/:id" element={<EditProduct />} />
+                <Route path="/sustainabilitycertifications" element={<Certifications />} />
+                <Route path="/addcertification" element={<AddCertification />} />
+
+                {/* Fallback Route */}
+                <Route path="*" element={<p>404 - Page Not Found</p>} />
+              </Routes>
+            </Container>
+          </ThemeProvider>
+        </Router>
+      </CartProvider>
     </UserContext.Provider>
   );
 }
