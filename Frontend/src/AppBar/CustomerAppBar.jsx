@@ -24,15 +24,19 @@ const CustomerAppBar = () => {
 
   console.log("User = ",user);
   console.log("Admin = ",admin);
+ 
+
+  // Inside your component
+  const [cartItems, setCartItems] = useState([]);
+
+
   const logout = () => {
     localStorage.removeItem("accessToken");
     setUser(null);
     setAdmin(null);
+    localStorage.removeItem("CartItems");
     window.location = "/";
   };
-
-  // Inside your component
-  const [cartItems, setCartItems] = useState([]);
 
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("CartItems")) || [];
