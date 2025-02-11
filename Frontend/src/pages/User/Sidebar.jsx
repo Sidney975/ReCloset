@@ -26,7 +26,7 @@ const Sidebar = ({ activeTab }) => {
                     <ListItemIcon><Notifications /></ListItemIcon>
                     <ListItemText primary="Notifications" />
                 </ListItem>
-                <ListItem button selected={activeTab === 'orders'} onClick={() => navigate('/orders')}>
+                <ListItem button selected={activeTab === 'ViewOrder'} onClick={() => navigate('/ViewOrder')}>
                     <ListItemIcon><Receipt /></ListItemIcon>
                     <ListItemText primary="Orders" />
                 </ListItem>

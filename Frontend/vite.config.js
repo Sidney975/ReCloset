@@ -8,15 +8,16 @@ export default defineConfig({
     port: 5055,
     proxy: {
       '/user': {
-        target: 'http://localhost:11291',
+        target: 'http://localhost:5055', // Ensure HTTP is used
         changeOrigin: true,
         secure: false,
       },
       '/admin': {
-        target: 'http://localhost:11291',
+        target: 'http://localhost:5055',
         changeOrigin: true,
         secure: false,
       },
     },
   },
 });
+
