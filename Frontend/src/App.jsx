@@ -43,6 +43,14 @@ import Certifications from './pages/Product/Certifications';
 import AddCertification from './pages/Product/AddCertification';
 import AdminProducts from './pages/Product/AdminProduct';
 
+{/* Sidney's Imports */ }
+import Vouchers from './pages/Voucher/Vouchers';
+import AddVoucher from './pages/Voucher/AddVouchers';
+import EditVoucher from './pages/Voucher/EditVouchers';
+import ClaimVoucher from './pages/Voucher/ClaimVoucher';
+import UseVoucher from './pages/Voucher/UseVouchers';
+import DeliveryAdmin from './pages/Delivery/Delivery';
+
 function App() {
   const [user, setUser] = useState(null);
   const [admin, setAdmin] = useState(null);
@@ -115,6 +123,16 @@ function App() {
 
                 {/* Fallback Route */}
                 <Route path="*" element={<p>404 - Page Not Found</p>} />
+
+                {/* Sidney's Route */}
+                {/* Voucher Pages */}
+                <Route path={"/voucher"} element={<Vouchers />} />
+                <Route path={"/addvoucher"} element={<AddVoucher />} />
+                <Route path={"/claimvoucher"} element={<ClaimVoucher />} />
+                <Route path={"/usevoucher"} element={<UseVoucher />} />
+                <Route path={"/editvoucher/:id"} element={<EditVoucher />} />
+                {/* Delivery Pages */}
+                <Route path={"/admin/delivery"} element={<DeliveryAdmin />} />
               </Routes>
             </Container>
           </ThemeProvider>

@@ -3,6 +3,7 @@ using Backend.Models.Jerald.Payments;
 using Backend.Models.Sarah.Admins;
 using Backend.Models.Sarah.Users;
 using Microsoft.EntityFrameworkCore;
+using ReCloset.Models;
 using ReCloset.Models.Sophie;
 
 public class MyDbContext(IConfiguration configuration) : DbContext
@@ -30,6 +31,11 @@ public class MyDbContext(IConfiguration configuration) : DbContext
     public required DbSet<Warehouse> Warehouses { get; set; }
     public required DbSet<SustainabilityCertification> SustainabilityCertifications { get; set; }
     public required DbSet<UpcyclingRequest> UpcyclingRequests { get; set; }
+
+    public required DbSet<Voucher> Vouchers { get; set; }
+    public required DbSet<UserVoucher> UserVouchers { get; set; }
+    public DbSet<Delivery> Deliveries { get; set; } // Register the Delivery model
+
     // Configure global query filters
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -55,6 +61,28 @@ public class MyDbContext(IConfiguration configuration) : DbContext
 				new SustainabilityCertification { CertId = 1, Name = "Fair Trade", Description = "Certified Fair Trade standard for ethical sourcing.", QRCodeUrl = "fairtrade.png" },
 				new SustainabilityCertification { CertId = 2, Name = "Global Organic Textile Standard (GOTS)", Description = "Ensures organic fibers and environmental responsibility.", QRCodeUrl = "gots.png" }
 			);
+
+        modelBuilder.Entity<UserVoucher>()
+    .HasKey(uv => new { uv.UserId, uv.VoucherId });
+
+        // Configure the relationships for UserVoucher
+        modelBuilder.Entity<UserVoucher>()
+            .HasOne(uv => uv.User)
+            .WithMany(u => u.UserVouchers)
+            .HasForeignKey(uv => uv.UserId);
+
+        modelBuilder.Entity<UserVoucher>()
+            .HasOne(uv => uv.Voucher)
+            .WithMany(v => v.UserVouchers)
+            .HasForeignKey(uv => uv.VoucherId);
+
+        modelBuilder.Entity<Order>()
+                .HasOne(o => o.Delivery)
+                .WithOne(d => d.Order)
+                .HasForeignKey<Delivery>(d => d.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+        base.OnModelCreating(modelBuilder);
 
         base.OnModelCreating(modelBuilder);
     }

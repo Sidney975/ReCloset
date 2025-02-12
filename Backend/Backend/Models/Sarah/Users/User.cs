@@ -1,5 +1,6 @@
 ﻿using Backend.Models.Jerald.Orders;
 using Backend.Models.Jerald.Payments;
+using ReCloset.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
@@ -50,5 +51,7 @@ namespace Backend.Models.Sarah.Users
         public List<Order>? Orders { get; set; }
         [JsonIgnore]
         public List<Payment>? Payments { get; set; }
+        [JsonIgnore]
+        public ICollection<UserVoucher>? UserVouchers { get; set; }
     }
 }
