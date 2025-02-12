@@ -2,8 +2,8 @@ using Backend.Models.Jerald.Orders;
 using Backend.Models.Jerald.Payments;
 using Backend.Models.Sarah.Admins;
 using Backend.Models.Sarah.Users;
-using Backend.Models.Sophie;
 using Microsoft.EntityFrameworkCore;
+using ReCloset.Models.Sophie;
 
 public class MyDbContext(IConfiguration configuration) : DbContext
 {
@@ -40,21 +40,21 @@ public class MyDbContext(IConfiguration configuration) : DbContext
 
         // Seed data for Warehouses
         modelBuilder.Entity<Warehouse>().HasData(
-            new Warehouse { WarehouseId = 1, LocationName = "Central Warehouse", Street = "123 Green St", City = "Singapore", State = "SG", PostalCode = "123456", Country = "Singapore", ContactNo = "12345678" },
-            new Warehouse { WarehouseId = 2, LocationName = "East Warehouse", Street = "456 Blue St", City = "Singapore", State = "SG", PostalCode = "654321", Country = "Singapore", ContactNo = "87654321" }
-        );
+				new Warehouse { WarehouseId = 1, LocationName = "Northeast Warehouse", Street = "38 Ang Mo Kio Ind Park 2", City = "Singapore", State = "SG", PostalCode = "569511", Country = "Singapore", ContactNo = "12345678", Latitude = 1.3765864094476026, Longitude = 103.8659848158459 },
+				new Warehouse { WarehouseId = 2, LocationName = "Central Warehouse", Street = "20 Depot Rd", City = "Singapore", State = "SG", PostalCode = "109677", Country = "Singapore", ContactNo = "87654321", Latitude = 1.281216720946465, Longitude = 103.81405834338983 }
+			);
 
-        // Seed data for Categories
-        modelBuilder.Entity<Category>().HasData(
-            new Category { CategoryId = 1, Name = "Clothing", Description = "Second-hand fashion items" },
-            new Category { CategoryId = 2, Name = "Accessories", Description = "Jewelry, bags, belts, etc." }
-        );
+			// Seed data for Categories
+			modelBuilder.Entity<Category>().HasData(
+				new Category { CategoryId = 1, Name = "Clothing", Description = "Second-hand fashion items" },
+				new Category { CategoryId = 2, Name = "Accessories", Description = "Jewelry, bags, belts, etc." }
+			);
 
-        // Seed data for Sustainability Certifications
-        modelBuilder.Entity<SustainabilityCertification>().HasData(
-            new SustainabilityCertification { CertId = 1, Name = "Fair Trade", Description = "Certified Fair Trade standard for ethical sourcing." },
-            new SustainabilityCertification { CertId = 2, Name = "Global Organic Textile Standard (GOTS)", Description = "Ensures organic fibers and environmental responsibility." }
-        );
+			// Seed data for Sustainability Certifications
+			modelBuilder.Entity<SustainabilityCertification>().HasData(
+				new SustainabilityCertification { CertId = 1, Name = "Fair Trade", Description = "Certified Fair Trade standard for ethical sourcing.", QRCodeUrl = "fairtrade.png" },
+				new SustainabilityCertification { CertId = 2, Name = "Global Organic Textile Standard (GOTS)", Description = "Ensures organic fibers and environmental responsibility.", QRCodeUrl = "gots.png" }
+			);
 
         base.OnModelCreating(modelBuilder);
     }

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Typography, TextField, Button, Grid2 } from '@mui/material';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import http from '../../http';
+import http from "../../http";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -14,6 +14,8 @@ function AddCertification() {
         initialValues: {
             name: "",
             description: "",
+            qrCodeUrl: "", // Optional QR code URL
+
         },
         validationSchema: yup.object({
             name: yup.string()
@@ -23,6 +25,9 @@ function AddCertification() {
                 .required('Name is required'),
             description: yup.string()
                 .max(255, 'Description must be at most 255 characters'),
+            qrCodeUrl: yup.string()
+                .url('Must be a valid URL').max(255),
+
         }),
         onSubmit: (data) => {
             http.post("/api/sustainabilitycertification", data)
@@ -69,6 +74,18 @@ function AddCertification() {
                             error={formik.touched.description && Boolean(formik.errors.description)}
                             helperText={formik.touched.description && formik.errors.description}
                         />
+                        <TextField
+                            fullWidth
+                            margin="dense"
+                            label="QR Code URL (optional)"
+                            name="qrCodeUrl"
+                            value={formik.values.qrCodeUrl}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.qrCodeUrl && Boolean(formik.errors.qrCodeUrl)}
+                            helperText={formik.touched.qrCodeUrl && formik.errors.qrCodeUrl}
+                        />
+
                     </Grid2>
                 </Grid2>
                 <Box sx={{ mt: 2 }}>

@@ -2,7 +2,7 @@
 
 namespace ReCloset.Models.Sophie
 {
-	public class ProductDto
+	public class ProductDetailDto
 	{
 		[Required, MaxLength(100)]
 		public string Name { get; set; }
@@ -36,5 +36,11 @@ namespace ReCloset.Models.Sophie
 		public int WarehouseId { get; set; }
 
 		public int? CertId { get; set; }
+
+		// New properties for display purposes
+		public string CategoryName { get; set; } // Human-readable category name
+		public string WarehouseName { get; set; } // Human-readable warehouse name
+		public string SustainabilityCertificationName { get; set; } // Human-readable sustainability certification name
+		public string SustainabilityCertificationQRCode { get; set; } // QR code url
 	}
 }

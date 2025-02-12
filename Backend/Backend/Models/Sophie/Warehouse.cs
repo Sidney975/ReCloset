@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Backend.Models.Sophie
+namespace ReCloset.Models.Sophie
 {
 	public class Warehouse
 	{
@@ -28,6 +28,8 @@ namespace Backend.Models.Sophie
 
 		[MaxLength(10)]
 		public string ContactNo { get; set; }
+		public double Latitude { get; set; }
+		public double Longitude { get; set; }
 
 		// Computed property
 		[NotMapped]

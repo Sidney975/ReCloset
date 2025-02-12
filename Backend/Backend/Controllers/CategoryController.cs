@@ -1,6 +1,6 @@
-﻿using Backend.Models.Sophie;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ReCloset.Models.Sophie;
 
 namespace ReCloset.Controllers
 {

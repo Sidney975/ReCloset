@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace Backend.Models.Sophie
+namespace ReCloset.Models.Sophie
 {
 	public class UpcyclingRequest
 	{

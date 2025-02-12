@@ -1,7 +1,7 @@
-﻿using Backend.Models.Sophie;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ReCloset.Models.Sophie;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,19 +34,21 @@ namespace ReCloset.Controllers
 		}
 
 
-		// GET: api/Product/5
 		[HttpGet("{id}")]
-		public async Task<ActionResult<ProductDto>> GetProduct(int id)
+		public async Task<ActionResult<ProductDetailDto>> GetProduct(int id)
 		{
-			var product = await _context.Products.FindAsync(id);
+			var product = await _context.Products
+				.Include(p => p.Category)
+				.Include(p => p.Warehouse)
+				.Include(p => p.SustainabilityCertification)
+				.FirstOrDefaultAsync(p => p.ProductId == id);
 
 			if (product == null)
 			{
 				return NotFound();
 			}
 
-			// Map Product to ProductDto
-			var productDto = new ProductDto
+			var productDto = new ProductDetailDto
 			{
 				Name = product.Name,
 				Image = product.Image,
@@ -59,11 +61,16 @@ namespace ReCloset.Controllers
 				Available = product.Available,
 				CategoryId = product.CategoryId,
 				WarehouseId = product.WarehouseId,
-				CertId = product.CertId
+				CertId = product.CertId,
+				CategoryName = product.Category.Name,
+				WarehouseName = product.Warehouse.LocationName,
+				SustainabilityCertificationName = product.SustainabilityCertification?.Name,
+				SustainabilityCertificationQRCode = product.SustainabilityCertification?.QRCodeUrl 
 			};
 
 			return Ok(productDto);
 		}
+
 
 
 		// POST: api/Product
@@ -95,7 +102,7 @@ namespace ReCloset.Controllers
 				Available = productDto.Available,
 				CategoryId = productDto.CategoryId,
 				WarehouseId = productDto.WarehouseId,
-				CertId = productDto.CertId
+				CertId = productDto.CertId,
 			};
 
 			// Add product to the database
