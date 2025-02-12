@@ -32,8 +32,13 @@ import ChangePassword from './pages/User/ChangePassword';
 import http from './http';
 import UserContext from './contexts/UserContext';
 import AdminContext from './contexts/AdminContext';
+// Admin Dashboard Components
 import AdminDashboard from "./pages/Admin/AdminDashboard";
-
+import ManageUsers from "./pages/Admin/ManageUsers";
+import ManageOrders from "./pages/Admin/ManageOrders";
+import AdminProfile from "./pages/Admin/AdminProfile";
+import EditAdminProfile from "./pages/Admin/EditAdminProfile";
+import ChangeAdminPassword from "./pages/Admin/ChangePasswordAdmin";
 
 {/* Sophie's Imports */ }
 import Products from './pages/Product/Products';
@@ -73,71 +78,69 @@ function App() {
 
   return (
     <UserContext.Provider value={{ user, setUser }}>
-      <CartProvider>
-        <Router>
-          <ThemeProvider theme={MyTheme}>
-            {admin && (
-              <AdminAppBar />
-            )
-            }
-            {!admin && (
-              <CustomerAppBar />
-            )}
+      <AdminContext.Provider value={{ admin, setAdmin }}>
+        <CartProvider>
+          <Router>
+            <ThemeProvider theme={MyTheme}>
+              {admin ? <AdminAppBar /> : <CustomerAppBar />}
 
-            <ToastContainer />
-            <Container>
-              <Routes>
-                {/* Jerald's Routes */}
-                <Route path="/" element={<HomePage />} />
-                <Route path="/Login" element={<Login />} />
-                <Route path="/Register" element={<Register />} />
-                <Route path="/Checkout" element={<Checkout />} />
-                <Route path="/Payments" element={<ViewPayments />} />
-                <Route path="/AddPayment" element={<AddPayment />} />
-                <Route path="/EditPayment/:id" element={<EditPayment />} />
-                <Route path="/ViewOrder" element={<ViewOrder />} />
-                <Route path="/OrderDetails/:orderId" element={<OrderDetails />} />
+              <ToastContainer />
+              <Container>
+                <Routes>
+                  {/* Jerald's Routes */}
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/Login" element={<Login />} />
+                  <Route path="/Register" element={<Register />} />
+                  <Route path="/Checkout" element={<Checkout />} />
+                  <Route path="/Payments" element={<ViewPayments />} />
+                  <Route path="/AddPayment" element={<AddPayment />} />
+                  <Route path="/EditPayment/:id" element={<EditPayment />} />
+                  <Route path="/ViewOrder" element={<ViewOrder />} />
+                  <Route path="/OrderDetails/:orderId" element={<OrderDetails />} />
 
-                {/* Sarah's Routes */}
-                {/* Login Routes */}
-                <Route path={"/register"} element={<Register />} />
-                <Route path={"/login"} element={<Login />} />
-                <Route path={"/form"} element={<MyForm />} />
-                <Route path="/change-password" element={<ChangePassword />} />
-                {/* Admin Pages */}
-                <Route path={"/registeradmin"} element={<RegisterAdmin />} />
-                <Route path={"/loginadmin"} element={<LoginAdmin />} />
-                <Route path={"/profile"} element={<Profile />} />
-                <Route path={"/edit-profile"} element={<EditProfile />} />
-                <Route path={"/admindashboard"} element={<AdminDashboard />} />
+                  {/* Sarah's Routes */}
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/form" element={<MyForm />} />
+                  <Route path="/change-password" element={<ChangePassword />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/edit-profile" element={<EditProfile />} />
+                  
+                  {/* Admin Pages */}
+                  <Route path="/admin/login" element={<LoginAdmin />} />
+                  <Route path="/admin/register" element={<RegisterAdmin />} />
+                  <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                  <Route path="/admin/users" element={<ManageUsers />} />
+                  <Route path="/admin/orders" element={<ManageOrders />} />
+                  <Route path="/admin/products" element={<AdminProducts />} />
+                  <Route path="/admin/profile" element={<AdminProfile />} />
+                  <Route path="/admin/edit-profile" element={<EditAdminProfile />} />
+                  <Route path="/admin/change-password" element={<ChangeAdminPassword />} />
 
+                  {/* Sophie's Routes */}
+                  <Route path="/adminProducts" element={<AdminProducts />} />
+                  <Route path="/products" element={<Products />} />
+                  <Route path="/addproduct" element={<AddProduct />} />
+                  <Route path="/editproduct/:id" element={<EditProduct />} />
+                  <Route path="/sustainabilitycertifications" element={<Certifications />} />
+                  <Route path="/addcertification" element={<AddCertification />} />
 
-                {/* Sophie's Route */}
-                {/* Product Pages */}
-                <Route path="/adminProducts" element={<AdminProducts />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/addproduct" element={<AddProduct />} />
-                <Route path="/editproduct/:id" element={<EditProduct />} />
-                <Route path="/sustainabilitycertifications" element={<Certifications />} />
-                <Route path="/addcertification" element={<AddCertification />} />
+                  {/* Sidney's Routes */}
+                  <Route path="/voucher" element={<Vouchers />} />
+                  <Route path="/addvoucher" element={<AddVoucher />} />
+                  <Route path="/claimvoucher" element={<ClaimVoucher />} />
+                  <Route path="/usevoucher" element={<UseVoucher />} />
+                  <Route path="/editvoucher/:id" element={<EditVoucher />} />
+                  <Route path="/admin/delivery" element={<DeliveryAdmin />} />
 
-                {/* Fallback Route */}
-                <Route path="*" element={<p>404 - Page Not Found</p>} />
-
-                {/* Sidney's Route */}
-                {/* Voucher Pages */}
-                <Route path={"/voucher"} element={<Vouchers />} />
-                <Route path={"/addvoucher"} element={<AddVoucher />} />
-                <Route path={"/claimvoucher"} element={<ClaimVoucher />} />
-                <Route path={"/usevoucher"} element={<UseVoucher />} />
-                <Route path={"/editvoucher/:id"} element={<EditVoucher />} />
-                {/* Delivery Pages */}
-                <Route path={"/admin/delivery"} element={<DeliveryAdmin />} />
-              </Routes>
-            </Container>
-          </ThemeProvider>
-        </Router>
-      </CartProvider>
+                  {/* Fallback Route */}
+                  <Route path="*" element={<p>404 - Page Not Found</p>} />
+                </Routes>
+              </Container>
+            </ThemeProvider>
+          </Router>
+        </CartProvider>
+      </AdminContext.Provider>
     </UserContext.Provider>
   );
 }
