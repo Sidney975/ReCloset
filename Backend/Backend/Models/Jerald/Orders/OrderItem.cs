@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using ReCloset.Models.Sophie;
+using Backend.Models.Sophie;
 
 namespace Backend.Models.Jerald.Orders
 {

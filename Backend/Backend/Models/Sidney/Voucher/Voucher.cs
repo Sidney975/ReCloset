@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 
-namespace ReCloset.Models
+namespace Backend.Models.Sidney.Voucher
 {
     public enum VoucherTypeEnum
     {

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ReCloset.Models.Sophie
+namespace Backend.Models.Sophie
 {
 	public class CollectionPoint
 	{

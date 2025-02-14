@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
 using QRCoder.Core;
-using ReCloset.Models.Sophie;
+using Backend.Models.Sophie;
 using Microsoft.Extensions.Hosting;
 
 namespace ReCloset.Controllers

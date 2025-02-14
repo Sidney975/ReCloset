@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ReCloset.Models
+namespace Backend.Models.Sidney.Delivery
 {
     public class Delivery
     {

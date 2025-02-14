@@ -1,4 +1,4 @@
-﻿namespace ReCloset.Models
+﻿namespace Backend.Models.Sidney.Delivery
 {
     public class DeliveryUpdateDto
     {

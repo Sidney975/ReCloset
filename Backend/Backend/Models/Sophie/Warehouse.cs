@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ReCloset.Models.Sophie
+namespace Backend.Models.Sophie
 {
 	public class Warehouse
 	{

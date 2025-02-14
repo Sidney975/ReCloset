@@ -1,6 +1,6 @@
 ﻿using Backend.Models.Jerald.Orders;
 using Backend.Models.Jerald.Payments;
-using ReCloset.Models;
+using Backend.Models.Sidney.Voucher;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;

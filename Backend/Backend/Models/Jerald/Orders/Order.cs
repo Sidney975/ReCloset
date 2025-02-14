@@ -3,7 +3,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Backend.Models.Jerald.Payments;
 using Backend.Models.Sarah.Users;
-using ReCloset.Models;
+using Backend.Models.Sidney.Delivery;
+using Backend.Models.Sidney.Voucher;
 
 namespace Backend.Models.Jerald.Orders
 {

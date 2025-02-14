@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
-namespace ReCloset.Models
+namespace Backend.Models.Sidney.Voucher
 {
     public class UserVoucher
     {

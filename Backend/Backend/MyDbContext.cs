@@ -3,9 +3,9 @@ using Backend.Models.Jerald.Payments;
 using Backend.Models.Sarah.Admins;
 using Backend.Models.Sarah.Users;
 using Microsoft.EntityFrameworkCore;
-using ReCloset.Models;
-using ReCloset.Models.Sophie;
-
+using Backend.Models.Sophie;
+using Backend.Models.Sidney.Voucher;
+using Backend.Models.Sidney.Delivery;
 public class MyDbContext(IConfiguration configuration) : DbContext
 {
     private readonly IConfiguration _configuration = configuration;
