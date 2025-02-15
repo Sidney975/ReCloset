@@ -149,7 +149,7 @@ const CustomerAppBar = () => {
             Men’s Clothing
           </Link>
           <Link
-            to="/repair"
+            to="/claimvoucher"
             style={{
               textDecoration: 'none',
               color: 'white',
@@ -161,7 +161,7 @@ const CustomerAppBar = () => {
             onMouseEnter={(e) => e.target.style.backgroundColor = '#8d6238'}
             onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
           >
-            Repair
+            Voucher
           </Link>
           <Link
             to="/consultations"

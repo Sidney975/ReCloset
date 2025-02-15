@@ -82,7 +82,13 @@ public class MyDbContext(IConfiguration configuration) : DbContext
                 .HasForeignKey<Delivery>(d => d.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-        base.OnModelCreating(modelBuilder);
+		modelBuilder.Entity<Voucher>()
+				.HasOne(v => v.Category)
+				.WithMany(c => c.Vouchers)
+				.HasForeignKey(v => v.CategoryId)
+				.OnDelete(DeleteBehavior.Cascade);
+
+		base.OnModelCreating(modelBuilder);
 
         base.OnModelCreating(modelBuilder);
     }
