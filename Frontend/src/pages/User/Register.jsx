@@ -31,7 +31,7 @@ function Register() {
                 .min(8, 'Password must be at least 8 characters')
                 .max(50, 'Password must be at most 50 characters')
                 .required('Password is required')
-                .matches(/^(?=.[a-zA-Z])(?=.[0-9]).{8,}$/, "Password must have at least 1 letter and 1 number"),
+                .matches(/^(?=.*[a-zA-Z])(?=.*[0-9]).{8,}$/, "Password must have at least 1 letter and 1 number"),
             email: yup.string().trim()
                 .email('Enter a valid email')
                 .max(50, 'Email must be at most 50 characters')

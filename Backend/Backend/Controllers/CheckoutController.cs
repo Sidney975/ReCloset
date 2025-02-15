@@ -100,8 +100,9 @@ namespace Backend.Controllers
                 OrderDate = DateTime.Now,
                 DeliveryOption = (DeliveryOption)createOrderRequest.DeliveryOption,
                 Payment = payment,
-                TotalPrice = createOrderRequest.OrderItems.Sum(item => item.ItemPrice * item.Quantity),
-                UserId = userId,
+                TotalPrice = createOrderRequest.TotalPrice,
+                VoucherId = createOrderRequest.VoucherId,
+				UserId = userId,
                 User = user
             };
 

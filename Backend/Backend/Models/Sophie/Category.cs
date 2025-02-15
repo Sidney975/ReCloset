@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Backend.Models.Sidney.Voucher;
+using System.ComponentModel.DataAnnotations;
 
 namespace Backend.Models.Sophie
 {
@@ -12,5 +13,8 @@ namespace Backend.Models.Sophie
 
 		[MaxLength(100)]
 		public string Description { get; set; }
+
+		public virtual ICollection<Voucher>? Vouchers { get; set; } = new List<Voucher>();
+
 	}
 }
