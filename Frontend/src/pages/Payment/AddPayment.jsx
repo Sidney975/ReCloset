@@ -65,50 +65,38 @@ function AddPayment() {
       expiryDate: "",
       billingAddress: "",
       billingZip: "",
-      status: "Inactive", // Default to "Inactive"
+      status: "Inactive",
       defaultPreference: false,
+      country: "",  // 🔹 Added country
+      city: ""      // 🔹 Added city
     },
     validationSchema: yup.object({
-      paymentMethod: yup.string().trim().required("Payment Method is required").max(50, "Maximum 50 characters"),
-      cardNumber: yup
-        .string()
-        .trim()
-        .matches(/^\d{16}$/, "Card Number must be 16 digits")
-        .required("Card Number is required"),
-      cvv: yup
-        .string()
-        .trim()
-        .matches(/^\d{3,4}$/, "CVV must be 3 or 4 digits")
-        .required("CVV is required"),
-      expiryDate: yup
-        .date()
-        .required("Expiry Date is required")
-        .test("is-future-date", "Card is Expired", (value) => {
-          return value && new Date(value) > new Date();
-        }),
-      billingAddress: yup.string().trim().max(200, "Maximum 200 characters").required("Billing Address is required"),
-      billingZip: yup
-        .string()
-        .matches(/^\d{6}$/, "Billing ZIP must be exactly 6 digits")
-        .required("Billing ZIP is required"),
+      paymentMethod: yup.string().trim().required("Payment Method is required").max(50),
+      cardNumber: yup.string().trim().matches(/^\d{16}$/, "Card Number must be 16 digits").required("Card Number is required"),
+      cvv: yup.string().trim().matches(/^\d{3,4}$/, "CVV must be 3 or 4 digits").required("CVV is required"),
+      expiryDate: yup.date().required("Expiry Date is required").test("is-future-date", "Card is Expired", (value) => value && new Date(value) > new Date()),
+      billingAddress: yup.string().trim().max(200).required("Billing Address is required"),
+      billingZip: yup.string().matches(/^\d{6}$/, "Billing ZIP must be exactly 6 digits").required("Billing ZIP is required"),
       status: yup.string().required("Status is required"),
       defaultPreference: yup.boolean(),
+      country: yup.string().trim().required("Country is required"),  // 🔹 Added validation
+      city: yup.string().trim().required("City is required"),        // 🔹 Added validation
     }),
     onSubmit: (data) => {
       const payload = {
         ...data,
-        billingZip: parseInt(data.billingZip, 10), // Convert to integer
-        status: data.status === "Active" ? 1 : 0, // Map to enum values
+        billingZip: parseInt(data.billingZip, 10),
+        status: data.status === "Active" ? 1 : 0
       };
 
       http.post("/payment", payload)
-        .then((res) => {
+        .then(() => {
           toast.success("Payment Added Successfully!");
           navigate("/payments");
         })
         .catch((err) => {
           console.error(err);
-          toast.error("Error in adding payment, please try again!");
+          toast.error("Error adding payment, please try again.");
         });
     },
   });
@@ -261,6 +249,32 @@ function AddPayment() {
           onBlur={formik.handleBlur}
           error={formik.touched.billingZip && Boolean(formik.errors.billingZip)}
           helperText={formik.touched.billingZip && formik.errors.billingZip}
+        />
+
+        {/* 🔹 Country */}
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Country"
+          name="country"
+          value={formik.values.country}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.country && Boolean(formik.errors.country)}
+          helperText={formik.touched.country && formik.errors.country}
+        />
+
+        {/* 🔹 City */}
+        <TextField
+          fullWidth
+          margin="dense"
+          label="City"
+          name="city"
+          value={formik.values.city}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.city && Boolean(formik.errors.city)}
+          helperText={formik.touched.city && formik.errors.city}
         />
 
         <TextField

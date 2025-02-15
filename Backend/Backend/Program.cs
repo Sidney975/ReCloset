@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
-
 using ReCloset;
+using Microsoft.AspNetCore.Diagnostics;
+using AutoMapper;
+using Backend;
 //check back here again
 
 
@@ -13,6 +15,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddDbContext<MyDbContext>();
+
+// Auto Mapper
+var mappingConfig = new MapperConfiguration(mc =>
+{
+    mc.AddProfile(new MappingProfile());
+});
+IMapper mapper = mappingConfig.CreateMapper();
+builder.Services.AddSingleton(mapper);
 
 // Add CORS policy
 var allowedOrigins = builder.Configuration.GetSection(
@@ -28,7 +38,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(allowedOrigins)
     .AllowAnyMethod()
-    .AllowAnyHeader();
+    .AllowAnyHeader()
+    .AllowCredentials();
     });
 });
 
@@ -89,15 +100,32 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+app.Use(async (context, next) =>
+{
+    Console.WriteLine($"Request: {context.Request.Method} {context.Request.Path}");
+    await next.Invoke();
+});
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var error = context.Features.Get<IExceptionHandlerFeature>();
+        Console.WriteLine($"Unhandled Exception: {error?.Error}");
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsJsonAsync(new { message = "Internal Server Error" });
+    });
+});
+
 
 app.UseCors();
-
+app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();

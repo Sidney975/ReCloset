@@ -26,7 +26,6 @@ namespace Backend
                 .ForMember(dest => dest.PaymentDetails, opt => opt.MapFrom(src => src.Payment));
 
             CreateMap<Payment, PaymentDTO>()
-                .ForMember(dest => dest.UserDetails, opt => opt.MapFrom(src => src.User)) // Ensure UserDetails is mapped
                 .ForMember(dest => dest.MaskedCardNumber, opt => opt.MapFrom(src => $"**** **** **** {src.LastFourDigits}"))
                 .ForMember(dest => dest.ExpiryDate, opt => opt.MapFrom(src => src.ExpiryDate.ToString("MM/yy")))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))

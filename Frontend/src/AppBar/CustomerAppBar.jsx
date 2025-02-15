@@ -10,30 +10,35 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import http from '../http';
 import UserContext from '../contexts/UserContext';
 import AdminContext from '../contexts/AdminContext';
+import CartContext from '../contexts/CartContext';
+import { Badge, ListItemAvatar, Avatar } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const CustomerAppBar = () => {
   const [cartOpen, setCartOpen] = useState(false);
-  // Inside your component
   const navigate = useNavigate();
   const { user, setUser } = useContext(UserContext);
   const { admin, setAdmin } = useContext(AdminContext);
+  const { cartItems, addToCart, removeFromCart, updateQuantity, clearCart } = useContext(CartContext);
 
-  // Sample cart items
-  const cartItems = [
-    { id: 1, name: 'Vintage Denim Jacket', price: '$45' },
-    { id: 2, name: 'Eco-Friendly T-Shirt', price: '$20' },
-    { id: 3, name: 'Recycled Leather Bag', price: '$75' },
-  ];
+  console.log("User = ", user);
+  console.log("Admin = ", admin);
 
-
-  console.log(user);
-  console.log(admin);
   const logout = () => {
     localStorage.removeItem("accessToken");
     setUser(null);
     setAdmin(null);
+    localStorage.removeItem("CartItems");
     window.location = "/";
   };
+
+  // Calculate total cart quantity
+  const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+
+  // Calculate total price
+  const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
 
   return (
     <>
@@ -64,8 +69,7 @@ const CustomerAppBar = () => {
                   <AccountCircleIcon />
                   <Typography variant="body2" sx={{ ml: 0.5 }}>{user.username}</Typography>
                 </IconButton>
-              )
-              }
+              )}
               {user == null && (
                 <>
                   <IconButton component={Link} to="/login" sx={{ color: 'black', '&:hover': { color: 'gray' } }}>
@@ -74,10 +78,6 @@ const CustomerAppBar = () => {
                   </IconButton>
                 </>
               )}
-              {/* <IconButton component={Link} to="/login" sx={{ color: 'black', '&:hover': { color: 'gray' } }}>
-                <AccountCircleIcon />
-                <Typography variant="body2" sx={{ ml: 0.5 }}>Login</Typography>
-              </IconButton> */}
               <IconButton component={Link} to="/wishlist" sx={{ color: 'black', '&:hover': { color: 'gray' } }}>
                 <FavoriteBorderIcon />
                 <Typography variant="body2" sx={{ ml: 0.5 }}>Wishlist</Typography>
@@ -87,8 +87,9 @@ const CustomerAppBar = () => {
                 <Typography variant="body2" sx={{ ml: 0.5 }}>Trade-In</Typography>
               </IconButton>
               <IconButton onClick={() => setCartOpen(true)} sx={{ color: 'black', '&:hover': { color: 'gray' } }}>
-                <ShoppingCartIcon />
-                <Typography variant="body2" sx={{ ml: 0.5 }}>Cart</Typography>
+                <Badge badgeContent={cartItemCount} color="error">
+                  <ShoppingCartIcon />
+                </Badge>
               </IconButton>
               {user != null && (
                 <IconButton onClick={logout} sx={{ color: 'black', '&:hover': { color: 'gray' } }}>
@@ -100,7 +101,6 @@ const CustomerAppBar = () => {
           </Toolbar>
         </Container>
 
-        {/* Navigation Tabs */}
         {/* Navigation Tabs */}
         <Box sx={{ display: 'flex', justifyContent: 'center', bgcolor: '#a67c52', py: 1, width: '100%' }}>
           <Link
@@ -198,27 +198,73 @@ const CustomerAppBar = () => {
 
       {/* Cart Drawer */}
       <Drawer anchor="right" open={cartOpen} onClose={() => setCartOpen(false)}>
-        <Box sx={{ width: 300, p: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <Box sx={{ width: 320, p: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
           <Typography variant="h6" sx={{ textAlign: 'center', fontWeight: 'bold' }}>Your Cart</Typography>
           <Divider sx={{ my: 2 }} />
 
           <List sx={{ flexGrow: 1 }}>
-            {cartItems.map((item) => (
-              <ListItem key={item.id}>
-                <ListItemText primary={item.name} secondary={item.price} />
-              </ListItem>
-            ))}
+            {cartItems.length > 0 ? (
+              cartItems.map((item) => (
+                <ListItem key={item.productId} sx={{ display: 'flex', alignItems: 'center' }}>
+                  <ListItemAvatar>
+                    <Avatar src={item.image || "/default-product.jpg"} alt={item.name} />
+                  </ListItemAvatar>
+
+                  <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    {/* First Row: Title & Price */}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="body1" sx={{ fontWeight: 'bold' }}>{item.name}</Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'black' }}>
+                        ${(item.price * item.quantity).toFixed(2)}
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'black' }}>
+                        Qty: {(item.quantity)}
+                      </Typography>
+                    </Box>
+
+                    {/* Second Row: Quantity & Counter */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                      <IconButton onClick={() => updateQuantity(item.productId, -1)} sx={{ color: 'black' }}>
+                        <RemoveIcon />
+                      </IconButton>
+                      <Typography variant="body2" sx={{ mx: 1 }}>{item.quantity}</Typography>
+                      <IconButton onClick={() => updateQuantity(item.productId, 1)} sx={{ color: 'black' }}>
+                        <AddIcon />
+                      </IconButton>
+                      <IconButton onClick={() => removeFromCart(item.productId)} sx={{ color: 'red', textAlign: 'right', ml: 'auto' }}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                </ListItem>
+              ))
+            ) : (
+              <Typography variant="body2" sx={{ textAlign: 'center', color: 'gray', mt: 2 }}>
+                Your cart is empty.
+              </Typography>
+            )}
           </List>
 
+          {/* Display Total Price */}
+          <Typography variant="h6" sx={{ textAlign: 'center', fontWeight: 'bold', mt: 2 }}>
+            Total: ${totalPrice.toFixed(2)}
+          </Typography>
+
+          {/* Clear Cart Button */}
           <Button
             variant="contained"
-            sx={{
-              backgroundColor: '#a67c52',
-              color: 'white',
-              '&:hover': { backgroundColor: '#8d6238' },
-              fontWeight: 'bold',
-              mt: 2
-            }}
+            sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred' }, fontWeight: 'bold', mt: 2 }}
+            disabled={cartItems.length === 0}
+            onClick={() => clearCart()}
+          >
+            Clear Cart
+          </Button>
+
+          {/* Checkout Button */}
+          <Button
+            variant="contained"
+            sx={{ backgroundColor: '#a67c52', color: 'white', '&:hover': { backgroundColor: '#8d6238' }, fontWeight: 'bold', mt: 2 }}
+            disabled={cartItems.length === 0}
             onClick={() => {
               navigate('/checkout');
               setCartOpen(false);

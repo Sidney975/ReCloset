@@ -33,6 +33,12 @@ namespace Backend.Models.Jerald.Payments
         [Required]
         public PaymentStatus Status { get; set; }
 
+        [Required, MaxLength(100)]
+        public string Country { get; set; } = string.Empty;
+
+        [Required, MaxLength(100)]
+        public string City { get; set; } = string.Empty;
+
         [Required]
         public User User { get; set; } = new User(); // User who made the order
     }
