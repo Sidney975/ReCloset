@@ -29,6 +29,7 @@ function ClaimVoucher() {
           voucherTypeEnum: convertEnumToString(voucher.voucherTypeEnum),
         }));
         setVouchers(vouchers);
+        console.log(vouchers);
       })
       .catch((err) => {
         console.error('Failed to fetch vouchers:', err);
@@ -93,7 +94,7 @@ function ClaimVoucher() {
       </Typography>
       <Grid container spacing={3}>
         {vouchers.map((voucher) => (
-          <Grid item xs={12} sm={6} md={4} key={voucher.id}>
+          <Grid item xs={12} sm={6} md={4} key={voucher.voucherId}>
             <Card
               sx={{
                 borderRadius: '16px',
@@ -124,13 +125,13 @@ function ClaimVoucher() {
                 {user ? (
                   <Button
                     variant="contained"
-                    startIcon={claimedVouchers.includes(voucher.id) ? <CheckCircle /> : <Redeem />}
-                    color={claimedVouchers.includes(voucher.id) ? 'success' : 'primary'}
-                    onClick={() => claimVoucher(voucher.id)}
-                    disabled={claimedVouchers.includes(voucher.id)}
+                    startIcon={claimedVouchers.includes(voucher.voucherId) ? <CheckCircle /> : <Redeem />}
+                    color={claimedVouchers.includes(voucher.voucherId) ? 'success' : 'primary'}
+                    onClick={() => claimVoucher(voucher.voucherId)}
+                    disabled={claimedVouchers.includes(voucher.voucherId)}
                     sx={{ borderRadius: '8px', px: 3 }}
                   >
-                    {claimedVouchers.includes(voucher.id) ? 'Claimed' : 'Claim'}
+                    {claimedVouchers.includes(voucher.voucherId) ? 'Claimed' : 'Claim'}
                   </Button>
                 ) : (
                   <Typography color="error">Login to claim vouchers</Typography>
