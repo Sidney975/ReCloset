@@ -8,6 +8,8 @@ import UserContext from '../../contexts/UserContext';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
 function Products() {
     const [productList, setProductList] = useState([]);
     const [search, setSearch] = useState('');
@@ -15,12 +17,14 @@ function Products() {
     const [nearestWarehouse, setNearestWarehouse] = useState(null);
     const [userLocation, setUserLocation] = useState(null);
     const [showMap, setShowMap] = useState(false);
+
     const navigate = useNavigate();
     const { addToCart } = useContext(CartContext);
     const { user } = useContext(UserContext);
 
     useEffect(() => {
         getProducts();
+        getWarehouses();
     }, []);
 
     const getProducts = () => {
@@ -29,6 +33,15 @@ function Products() {
         }).catch((err) => {
             console.error("Error fetching products:", err);
         });
+    };
+
+    const getWarehouses = async () => {
+        try {
+            const res = await http.get('/api/warehouse');
+            setWarehouses(res.data);
+        } catch (error) {
+            console.error("Error fetching warehouses:", error);
+        }
     };
 
     const searchProducts = () => {
