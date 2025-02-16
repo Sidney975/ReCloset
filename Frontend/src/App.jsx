@@ -125,6 +125,8 @@ function App() {
                   <Route path="/sustainabilitycertifications" element={<Certifications />} />
                   <Route path="/addcertification" element={<AddCertification />} />
 
+                  <Route path="women’s-clothing" element={<Products />} />
+
                   {/* Sidney's Routes */}
                   <Route path="/voucher" element={<Vouchers />} />
                   <Route path="/addvoucher" element={<AddVoucher />} />
