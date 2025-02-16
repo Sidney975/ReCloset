@@ -19,6 +19,7 @@ import AddPayment from './pages/Payment/AddPayment';
 import EditPayment from './pages/Payment/EditPayment';
 import ViewOrder from './pages/Order/ViewOrder';
 import OrderDetails from './pages/Order/OrderDetail';
+import AdminOrder from './pages/Order/AdminOrder';
 
 {/* Sarah's Imports */ }
 import MyForm from './pages/User/MyForm';
@@ -111,7 +112,7 @@ function App() {
                   <Route path="/admin/register" element={<RegisterAdmin />} />
                   <Route path="/admin/dashboard" element={<AdminDashboard />} />
                   <Route path="/admin/users" element={<ManageUsers />} />
-                  <Route path="/admin/orders" element={<ManageOrders />} />
+                  <Route path="/admin/orders" element={<AdminOrder />} />
                   <Route path="/admin/products" element={<AdminProducts />} />
                   <Route path="/admin/profile" element={<AdminProfile />} />
                   <Route path="/admin/edit-profile" element={<EditAdminProfile />} />

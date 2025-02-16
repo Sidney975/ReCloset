@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Mysqlx.Crud;
 using Backend.Models.Jerald.Orders;
+using Shippo.Models.Requests;
 
 namespace Backend.Controllers
 {
@@ -88,12 +89,14 @@ namespace Backend.Controllers
             {
                 return BadRequest("Invalid or deleted payment method.");
             }
+
             var userId = GetUserId();
             var user = _context.Users.FirstOrDefault(u => u.Id == userId);
             if (user == null)
             {
                 return BadRequest("Invalid user.");
             }
+
             // Create the Order
             var order = new Models.Jerald.Orders.Order
             {
@@ -102,24 +105,24 @@ namespace Backend.Controllers
                 Payment = payment,
                 TotalPrice = createOrderRequest.TotalPrice,
                 VoucherId = createOrderRequest.VoucherId,
-				UserId = userId,
+                UserId = userId,
                 User = user
             };
 
-            Console.WriteLine($"Order {order.OrderId}: UserId={order.UserId}, UserDetails={order.User?.First_name}");
-
-            // Save the Order to generate OrderId
             _context.Orders.Add(order);
-            _context.SaveChanges();
+            _context.SaveChanges(); // Generate OrderId
 
-            // Add OrderItems
+            // Add OrderItems with TimeBought set to the current date
             var orderItems = createOrderRequest.OrderItems.Select(item => new OrderItem
             {
                 OrderId = order.OrderId,
-                ProductId = item.ProductId,
+                ProductName = item.ProductName,
+                ProductCategory = item.ProductCategory,
                 Quantity = item.Quantity,
-                ItemPrice = item.ItemPrice
+                ItemPrice = item.ItemPrice,
+                TimeBought = DateTime.UtcNow // Stores date and time
             }).ToList();
+
             _context.OrderItems.AddRange(orderItems);
             _context.SaveChanges();
 
@@ -128,11 +131,6 @@ namespace Backend.Controllers
 
             return CreatedAtAction(nameof(GetOrderById), new { id = order.OrderId }, orderDto);
         }
-
-
-
-
-
 
 
         // PUT: Update an existing order
@@ -169,22 +167,44 @@ namespace Backend.Controllers
                 order.ShipmentStatus = (ShipmentStatus)updateOrderRequest.ShipmentStatus.Value;
             }
 
-            // Update the OrderItems if provided
             if (updateOrderRequest.OrderItems != null && updateOrderRequest.OrderItems.Any())
             {
-                // Remove existing OrderItems
-                _context.OrderItems.RemoveRange(order.OrderItems);
+                // Process existing and new order items
+                var updatedOrderItems = updateOrderRequest.OrderItems.ToDictionary(i => i.OrderItemId);
+                var existingOrderItems = order.OrderItems.ToDictionary(i => i.OrderItemId);
 
-                // Add updated OrderItems
-                var updatedOrderItems = updateOrderRequest.OrderItems.Select(itemDto => new OrderItem
+                // Update existing items
+                foreach (var item in existingOrderItems)
                 {
-                    OrderId = order.OrderId, // Associate with the existing Order
-                    ProductId = itemDto.ProductId,
-                    Quantity = itemDto.Quantity,
-                    ItemPrice = itemDto.ItemPrice
-                }).ToList();
+                    if (updatedOrderItems.TryGetValue(item.Key, out var updatedItem))
+                    {
+                        item.Value.Quantity = updatedItem.Quantity;
+                        item.Value.ItemPrice = updatedItem.ItemPrice;
+                        item.Value.ProductName = updatedItem.ProductName;
+                        item.Value.ProductCategory = updatedItem.ProductCategory;
+                        item.Value.TimeBought = updatedItem.TimeBought;
+                        updatedOrderItems.Remove(item.Key);
+                    }
+                    else
+                    {
+                        _context.OrderItems.Remove(item.Value);
+                    }
+                }
 
-                _context.OrderItems.AddRange(updatedOrderItems);
+                // Add new items
+                foreach (var newItem in updatedOrderItems.Values)
+                {
+                    var newOrderItem = new OrderItem
+                    {
+                        OrderId = order.OrderId,
+                        ProductName = newItem.ProductName,
+                        ProductCategory = newItem.ProductCategory,
+                        Quantity = newItem.Quantity,
+                        ItemPrice = newItem.ItemPrice,
+                        TimeBought = newItem.TimeBought
+                    };
+                    _context.OrderItems.Add(newOrderItem);
+                }
             }
 
             // Save changes to the database
@@ -199,14 +219,17 @@ namespace Backend.Controllers
                 TotalPrice = order.OrderItems.Sum(item => item.Quantity * item.ItemPrice),
                 OrderItems = order.OrderItems.Select(item => new BasicOrderItemDTO
                 {
+                    ProductName = item.ProductName,
+                    ProductCategory = item.ProductCategory,
                     Quantity = item.Quantity,
-                    ItemPrice = item.ItemPrice
+                    ItemPrice = item.ItemPrice,
+                    TimeBought = item.TimeBought
                 }).ToList()
             };
 
-            // Return the updated order
             return Ok(updatedOrderDto);
         }
+
 
 
 

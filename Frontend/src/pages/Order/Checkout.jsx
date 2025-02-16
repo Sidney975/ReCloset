@@ -22,7 +22,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import useUserIP from "../../hooks/useUserIp"; // Import IP detection hook
 import http from "../../http";
-import CartContext from '../../contexts/CartContext';
+import CartContext from "../../contexts/CartContext";
 
 function CheckoutPage() {
   const { userIP, userLocation, error: ipError } = useUserIP(); // Get IP & location
@@ -40,11 +40,19 @@ function CheckoutPage() {
   const steps = ["Delivery Address", "Payment Information", "Review Order"];
   const { cartItems, clearCart } = useContext(CartContext);
 
+  // Voucher popup and applied voucher states
+  const [voucherPopupOpen, setVoucherPopupOpen] = useState(false);
+  const [claimedVouchers, setClaimedVouchers] = useState([]);
+  const [availableVouchers, setAvailableVouchers] = useState([]);
+  const [manualVoucherCode, setManualVoucherCode] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState(null);
+  const [alteredPrice, setAlteredPrice] = useState(0);
+
   useEffect(() => {
     // Load cart from localStorage
-    const storedCart = JSON.parse(localStorage.getItem("CartItems")) || [];
-    setCartItems(storedCart);
-    setTotal(storedCart.reduce((sum, item) => sum + item.price * item.quantity, 0));
+    setTotal(
+      cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    );
 
     // Fetch payment methods
     async function fetchPaymentMethods() {
@@ -101,13 +109,6 @@ function CheckoutPage() {
   }, [userLocation, billingCountry]);
 
   const handlePlaceOrder = async () => {
-    if (isSuspicious) {
-      toast.error(
-        "Transaction blocked: Your IP location does not match the billing country of the selected payment method."
-      );
-      return;
-    }
-
     if (!selectedPaymentMethod) {
       toast.error("Please select a payment method before placing your order.");
       return;
@@ -115,24 +116,28 @@ function CheckoutPage() {
 
     const finalTotal = appliedVoucher ? alteredPrice : total;
 
-
     const payload = {
       deliveryOption: 1,
       paymentId: selectedPaymentMethod,
       orderItems: cartItems.map((item) => ({
-        ProductId: item.productId,
-        Quantity: item.quantity,
-        ItemPrice: item.price,
+        productName: item.productName,
+        productCategory: item.productCategory,
+        quantity: item.quantity,
+        itemPrice: item.price,
+        timeBought: new Date().toISOString().split('T')[0] // Send only the date
       })),
       voucherId: appliedVoucher ? appliedVoucher.voucherId : null,
       totalPrice: finalTotal,
-
     };
 
     try {
       setLoading(true);
       await http.post("/checkout", payload);
       toast.success("Order placed successfully!");
+      if (appliedVoucher) {
+        await http.post(`/voucher/${appliedVoucher.voucherId}/redeem`);
+        toast.success("Voucher redeemed successfully!");
+      }
       clearCart();
       navigate("/");
     } catch (err) {
@@ -141,6 +146,7 @@ function CheckoutPage() {
       setLoading(false);
     }
   };
+
 
   // Voucher fetching function
   const fetchVouchers = async () => {
@@ -317,11 +323,11 @@ function CheckoutPage() {
                   <Typography variant="body2">
                     Discount:{" "}
                     {appliedVoucher.VoucherTypeEnum === 0 &&
-                    appliedVoucher.DiscountValue < 1
+                      appliedVoucher.DiscountValue < 1
                       ? `${(appliedVoucher.DiscountValue * 100).toFixed(0)}%`
                       : appliedVoucher.VoucherTypeEnum === 0
-                      ? `$${appliedVoucher.DiscountValue}`
-                      : "Free Shipping"}
+                        ? `$${appliedVoucher.DiscountValue}`
+                        : "Free Shipping"}
                   </Typography>
                   <Typography variant="body2">
                     New Total: ${alteredPrice.toFixed(2)}
@@ -398,12 +404,12 @@ function CheckoutPage() {
                   <Typography variant="body2">
                     Discount: {voucher.discountValue}{" "}
                     {voucher.voucherTypeEnum === 0 &&
-                    voucher.discountValue < 1
+                      voucher.discountValue < 1
                       ? "(Percentage)"
                       : voucher.voucherTypeEnum === 0 &&
-                      voucher.discountValue >= 1
-                      ? "(Flat)"
-                      : "(Free Shipping)"}
+                        voucher.discountValue >= 1
+                        ? "(Flat)"
+                        : "(Free Shipping)"}
                   </Typography>
                 </Box>
                 <Button

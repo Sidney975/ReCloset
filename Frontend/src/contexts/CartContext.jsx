@@ -22,7 +22,8 @@ export const CartProvider = ({ children }) => {
             const existingItem = prevCart.find(item => item.productId === product.productId);
 
             if (!existingItem) {
-                return [...prevCart, { ...product, quantity: 1 }];
+                return [...prevCart, { ...product, quantity: 1, productName: product.name, 
+                    productCategory: product.category }];
             }
 
             return prevCart.map(item =>
