@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using Backend.Models.Sophie;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 
@@ -19,7 +20,10 @@ namespace Backend.Models.Sidney.Voucher
         [Required, MinLength(3), MaxLength(100)]
         public string VoucherName { get; set; } = string.Empty;
 
-        [Required]
+		[Required, MinLength(8)]
+		public string VoucherCode { get; set; } = string.Empty;
+
+		[Required]
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public VoucherTypeEnum VoucherTypeEnum { get; set; }
 
@@ -43,5 +47,11 @@ namespace Backend.Models.Sidney.Voucher
         [JsonIgnore]
         public ICollection<UserVoucher>? UserVouchers { get; set; }
 
-    }
+		public int CategoryId { get; set; } // Foreign Key
+
+		// **Navigation Property**
+		[ForeignKey("CategoryId")]
+		public virtual Category? Category { get; set; }
+
+	}
 }

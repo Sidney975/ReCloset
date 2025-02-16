@@ -6,6 +6,8 @@
 
         public string VoucherName { get; set; } = string.Empty;
 
+        public string VoucherCode { get; set; }
+
         public VoucherTypeEnum VoucherTypeEnum { get; set; }
 
         public decimal DiscountValue { get; set; }

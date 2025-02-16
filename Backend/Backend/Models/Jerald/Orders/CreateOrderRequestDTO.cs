@@ -19,5 +19,10 @@ namespace Backend.Models.Jerald.Orders
 
         [Required]
         public List<BasicOrderItemDTO> OrderItems { get; set; } = new List<BasicOrderItemDTO>(); // List of order items
-    }
+
+		public decimal TotalPrice { get; set; }
+
+		public int? VoucherId { get; set; } // Make nullable if no voucher is applied
+
+	}
 }
