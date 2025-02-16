@@ -38,6 +38,7 @@ function CheckoutPage() {
   const [isSuspicious, setIsSuspicious] = useState(false); // Flag if IP doesn't match billing address
   const navigate = useNavigate();
   const steps = ["Delivery Address", "Payment Information", "Review Order"];
+  const { cartItems, clearCart } = useContext(CartContext);
 
   useEffect(() => {
     // Load cart from localStorage
@@ -132,7 +133,7 @@ function CheckoutPage() {
       setLoading(true);
       await http.post("/checkout", payload);
       toast.success("Order placed successfully!");
-      localStorage.removeItem("CartItems");
+      clearCart();
       navigate("/");
     } catch (err) {
       toast.error("Failed to place the order.");
