@@ -42,6 +42,7 @@ import ChangeAdminPassword from "./pages/Admin/ChangePasswordAdmin";
 
 {/* Sophie's Imports */ }
 import Products from './pages/Product/Products';
+import ProductDetail from './pages/Product/ProductDetail';
 import AddProduct from './pages/Product/AddProduct';
 import EditProduct from './pages/Product/EditProduct';
 import Certifications from './pages/Product/Certifications';
@@ -118,8 +119,8 @@ function App() {
                   <Route path="/admin/change-password" element={<ChangeAdminPassword />} />
 
                   {/* Sophie's Routes */}
-                  <Route path="/adminProducts" element={<AdminProducts />} />
                   <Route path="/products" element={<Products />} />
+                  <Route path="/product/:productId" element={<ProductDetail />} />
                   <Route path="/addproduct" element={<AddProduct />} />
                   <Route path="/editproduct/:id" element={<EditProduct />} />
                   <Route path="/sustainabilitycertifications" element={<Certifications />} />
