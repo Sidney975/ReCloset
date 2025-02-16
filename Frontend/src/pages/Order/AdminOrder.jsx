@@ -1,20 +1,33 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Bar } from "react-chartjs-2";
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { Bar, Pie } from "react-chartjs-2";
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
 import {
     Box, Typography, FormControl, InputLabel, Select, MenuItem, Paper, CircularProgress,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Input, TablePagination, TableSortLabel
 } from '@mui/material';
 import { saveAs } from "file-saver";
 import http from "../../http";
+import ClearIcon from "@mui/icons-material/Clear"; // Import Clear Icon
+import IconButton from "@mui/material/IconButton"; // Import IconButton
 
 // Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
+
+// Function to generate distinct colors
+const generateColors = (numColors) => {
+    const colors = [];
+    for (let i = 0; i < numColors; i++) {
+        const hue = (i * 360 / numColors) % 360;
+        colors.push(`hsl(${hue}, 70%, 50%)`);
+    }
+    return colors;
+};
 
 const OrderItemsGraph = () => {
     const [chartData, setChartData] = useState(null);
     const [orderItems, setOrderItems] = useState([]);
     const [filterBy, setFilterBy] = useState("product");
+    const [displayType, setDisplayType] = useState("totalRevenue"); // New state for display type
     const [file, setFile] = useState(null);
     const [fileError, setFileError] = useState("");
     const [page, setPage] = useState(0);
@@ -22,27 +35,55 @@ const OrderItemsGraph = () => {
     const [sortColumn, setSortColumn] = useState("id");
     const [sortDirection, setSortDirection] = useState("asc");
     const chartRef = useRef(null);
+    const fileInputRef = useRef(null); // Ref for file input
 
     useEffect(() => {
         fetchData();
         fetchOrderItemsList();
-    }, [filterBy]);
+    }, [filterBy, displayType]); // Refetch when filter or display type changes
 
     // Fetch data for the chart
     const fetchData = () => {
         http.get(`orderitem/graph?filterBy=${filterBy}`)
             .then(response => {
                 const data = response.data;
-                setChartData({
-                    labels: data.map(item => filterBy === "product" ? item.productName : item.categoryName),
-                    datasets: [
-                        { label: "Total Quantity Sold", data: data.map(item => item.totalQuantity), backgroundColor: "rgba(75,192,192,0.6)" },
-                        { label: "Total Sales ($)", data: data.map(item => item.totalSales), backgroundColor: "rgba(255,99,132,0.6)" }
-                    ]
-                });
+
+                // Apply filter to the dataset before updating chart
+                const filteredData = data.map(item => ({
+                    label: filterBy === "product" ? item.productName : item.categoryName,
+                    totalQuantity: item.totalQuantity,
+                    totalSales: item.totalSales
+                }));
+
+                const colors = generateColors(filteredData.length);
+
+                if (displayType === "quantitySold") {
+                    setChartData({
+                        labels: filteredData.map(item => item.label),
+                        datasets: [
+                            {
+                                label: "Total Quantity Sold",
+                                data: filteredData.map(item => item.totalQuantity),
+                                backgroundColor: colors
+                            }
+                        ]
+                    });
+                } else {
+                    setChartData({
+                        labels: filteredData.map(item => item.label),
+                        datasets: [
+                            {
+                                label: "Total Sales ($)",
+                                data: filteredData.map(item => item.totalSales),
+                                backgroundColor: colors
+                            }
+                        ]
+                    });
+                }
             })
             .catch(error => console.error("Error fetching order items data", error));
     };
+
 
     // Fetch data for the table
     const fetchOrderItemsList = () => {
@@ -102,6 +143,15 @@ const OrderItemsGraph = () => {
         }
     };
 
+    // Clear selected file
+    const clearFile = () => {
+        setFile(null);
+        setFileError("");
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""; // Reset file input field
+        }
+    };
     // Upload Excel File to Backend
     const importExcel = () => {
         if (!file) {
@@ -127,7 +177,6 @@ const OrderItemsGraph = () => {
             .then(response => saveAs(response.data, "OrderItems.xlsx"))
             .catch(error => alert("Error exporting file:", error));
     };
-    
 
     return (
         <Box sx={{ p: 3 }}>
@@ -143,15 +192,41 @@ const OrderItemsGraph = () => {
                     <MenuItem value="category">Filter by Category</MenuItem>
                 </Select>
             </FormControl>
+            {/* Dropdown for selecting display type */}
+            <FormControl variant="outlined" sx={{ mb: 3, minWidth: 200, ml: 2 }}>
+                <InputLabel>Display Type</InputLabel>
+                <Select value={displayType} onChange={(e) => setDisplayType(e.target.value)} label="Display Type">
+                    <MenuItem value="quantitySold">Quantity Sold</MenuItem>
+                    <MenuItem value="totalRevenue">Total Revenue</MenuItem>
+                </Select>
+            </FormControl>
 
             {/* Graph */}
             <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-                {chartData ? <Bar ref={chartRef} data={chartData} /> : <CircularProgress />}
+                {chartData ? (
+                    displayType === "quantitySold" ? (
+                        <Pie ref={chartRef} data={chartData} />
+                    ) : (
+                        <Bar ref={chartRef} data={chartData} />
+                    )
+                ) : (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+                        <CircularProgress />
+                    </Box>
+                )}
             </Paper>
 
             {/* File Upload Section - Now Below the Graph */}
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                <Input type="file" onChange={handleFileChange} />
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    {/* File Input */}
+                    <Input type="file" inputRef={fileInputRef} onChange={handleFileChange} />
+
+                    {/* Clear File Icon Button */}
+                    <IconButton onClick={clearFile} color="error">
+                        <ClearIcon />
+                    </IconButton>
+                </Box>
                 {fileError && <Typography color="error">{fileError}</Typography>}
                 <Box sx={{ display: "flex", gap: 2 }}>
                     <Button variant="contained" color="primary" onClick={importExcel} disabled={!file}>Import Excel</Button>
@@ -183,7 +258,7 @@ const OrderItemsGraph = () => {
                             <TableRow key={item.id}>
                                 <TableCell>{item.id}</TableCell>
                                 <TableCell>{item.productName}</TableCell>
-                                <TableCell>{item.productCategory}</TableCell>
+                                <TableCell>{item.categoryName}</TableCell>
                                 <TableCell>{item.quantityBought}</TableCell>
                                 <TableCell>${item.totalSales.toFixed(2)}</TableCell>
                                 <TableCell>{item.timeBought}</TableCell>
