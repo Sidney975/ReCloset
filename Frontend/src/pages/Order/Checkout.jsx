@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   Box,
   Typography,
@@ -18,12 +18,12 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import useUserIP from "../../hooks/useUserIp"; // Import IP detection hook
 import http from "../../http";
+import CartContext from '../../contexts/CartContext';
 
 function CheckoutPage() {
   const { userIP, userLocation, error: ipError } = useUserIP(); // Get IP & location
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [cartItems, setCartItems] = useState([]);
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [total, setTotal] = useState(0);
@@ -34,12 +34,11 @@ function CheckoutPage() {
   const [isSuspicious, setIsSuspicious] = useState(false); // Flag if IP doesn't match billing address
   const navigate = useNavigate();
   const steps = ["Delivery Address", "Payment Information", "Review Order"];
+  const { cartItems, clearCart } = useContext(CartContext);
 
   useEffect(() => {
     // Load cart from localStorage
-    const storedCart = JSON.parse(localStorage.getItem("CartItems")) || [];
-    setCartItems(storedCart);
-    setTotal(storedCart.reduce((sum, item) => sum + item.price * item.quantity, 0));
+    setTotal(cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0));
 
     // Fetch payment methods
     async function fetchPaymentMethods() {
@@ -113,7 +112,7 @@ function CheckoutPage() {
       setLoading(true);
       await http.post("/checkout", payload);
       toast.success("Order placed successfully!");
-      localStorage.removeItem("CartItems");
+      clearCart();
       navigate("/");
     } catch (err) {
       toast.error("Failed to place the order.");
