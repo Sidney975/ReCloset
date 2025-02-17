@@ -177,7 +177,7 @@ function Products() {
     };
 
     return (
-        <Box sx={{ backgroundColor: '#f4f4f4', minHeight: '100vh', padding: 4 }}>
+        <Box sx={{ minHeight: '100vh', padding: 4, width: '100%' }}>
             <Container>
                 <Typography variant="h3" sx={{ textAlign: 'center', fontWeight: 'bold', color: '#333', mb: 4 }}>
                     Explore the Future of Sustainable Fashion
@@ -205,38 +205,58 @@ function Products() {
 
                         <Grid container spacing={3}>
                             {productList.map((product) => (
-                                <Grid item xs={12} sm={6} md={4} lg={3} key={product.productId}>
-                                    <Card sx={{ borderRadius: 3, boxShadow: 4, transition: '0.3s', '&:hover': { boxShadow: 8, transform: 'scale(1.02)' } }}>
+                                <Grid item xs={12} sm={6} md={4} lg={4} key={product.productId}>
+                                    <Card sx={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'space-between',
+                                        height: '430px',  // Shorten card height
+                                        maxHeight: '430px', // Restrict max height
+                                        borderRadius: 3,
+                                        boxShadow: 4,
+                                        transition: '0.3s',
+                                        '&:hover': { boxShadow: 8, transform: 'scale(1.02)' }
+                                    }}>
                                         <Link to={`/product/${product.productId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                                             {product.image && (
                                                 <CardMedia
                                                     component="img"
-                                                    height="250"
+                                                    height="200"
                                                     image={`${import.meta.env.VITE_FILE_BASE_URL}${product.image}`}
                                                     alt={product.name}
                                                     sx={{ borderTopLeftRadius: 3, borderTopRightRadius: 3 }}
                                                 />
                                             )}
                                         </Link>
-                                        <CardContent>
+                                        <CardContent sx={{ flexGrow: 1, overflow: 'hidden', paddingBottom: 1}}>
                                             <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>
                                                 {product.name}
                                             </Typography>
                                             <Typography sx={{ color: '#00796b', fontWeight: 'bold', mb: 1 }}>
                                                 ${product.price.toFixed(2)}
                                             </Typography>
-                                            <Typography sx={{ whiteSpace: 'pre-wrap', color: 'text.secondary', mb: 1 }}>
-                                                {product.description.length > 80 ? `${product.description.substring(0, 80)}...` : product.description}
+                                            <Typography
+                                                sx={{
+                                                    color: 'text.secondary',
+                                                    fontSize: '0.85rem',
+                                                    display: '-webkit-box',
+                                                    WebkitBoxOrient: 'vertical',
+                                                    WebkitLineClamp: 2,  // Limit to 2 lines
+                                                    overflow: 'hidden'
+                                                }}
+                                            >
+                                                {product.description}
                                             </Typography>
-                                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                <IconButton color="primary" onClick={(e) => handleCartClick(e, product)}>
-                                                    <ShoppingCart />
-                                                </IconButton>
-                                                <IconButton color="secondary">
-                                                    <FavoriteBorder />
-                                                </IconButton>
-                                            </Box>
                                         </CardContent>
+
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 2, mt: 'auto' }}>
+                                            <IconButton color="primary" onClick={(e) => handleCartClick(e, product)}>
+                                                <ShoppingCart />
+                                            </IconButton>
+                                            <IconButton color="secondary">
+                                                <FavoriteBorder />
+                                            </IconButton>
+                                        </Box>
                                     </Card>
                                 </Grid>
                             ))}
@@ -250,13 +270,25 @@ function Products() {
                                 Nearest Warehouse
                             </Typography>
                             {showMap && nearestWarehouse && userLocation ? (
-                                <iframe
-                                    width="100%"
-                                    height="300"
-                                    src={`https://www.google.com/maps/embed/v1/directions?key=${GOOGLE_MAPS_API_KEY}&origin=${userLocation.lat},${userLocation.lng}&destination=${nearestWarehouse.latitude},${nearestWarehouse.longitude}`}
-                                    allowFullScreen
-                                    style={{ borderRadius: 10 }}
-                                ></iframe>
+                                <>
+                                    <iframe
+                                        width="100%"
+                                        height="300"
+                                        src={`https://www.google.com/maps/embed/v1/directions?key=${GOOGLE_MAPS_API_KEY}&origin=${userLocation.lat},${userLocation.lng}&destination=${nearestWarehouse.latitude},${nearestWarehouse.longitude}`}
+                                        allowFullScreen
+                                        style={{ borderRadius: 10 }}
+                                    ></iframe>
+
+                                    {/* 🚀 New Section: Display Warehouse Details */}
+                                    <Box sx={{ mt: 2, p: 2, border: '1px solid #ddd', borderRadius: 2 }}>
+                                        <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+                                            Warehouse Details
+                                        </Typography>
+                                        <Typography><strong>Name:</strong> {nearestWarehouse.locationName}</Typography>
+                                        <Typography><strong>Address:</strong> {nearestWarehouse.street}, {nearestWarehouse.city}, {nearestWarehouse.state}, {nearestWarehouse.postalCode}, {nearestWarehouse.country}</Typography>
+                                        <Typography><strong>Contact:</strong> {nearestWarehouse.contactNo}</Typography>
+                                    </Box>
+                                </>
                             ) : (
                                 <Button variant="contained" color="primary" fullWidth onClick={getUserLocation}>
                                     Find Nearest Warehouse
