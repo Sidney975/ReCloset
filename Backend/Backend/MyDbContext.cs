@@ -51,11 +51,6 @@ public class MyDbContext(IConfiguration configuration) : DbContext
             .HasForeignKey(p => p.CertId);
 
 
-        modelBuilder.Entity<Product>()
-            .Property(p => p.Available)
-            .HasDefaultValue(true);  // Set default to `true`
-
-
         // Seed data for Warehouses
         modelBuilder.Entity<Warehouse>().HasData(
             new Warehouse { WarehouseId = 1, LocationName = "Northeast Warehouse", Street = "38 Ang Mo Kio Ind Park 2", City = "Singapore", State = "SG", PostalCode = "569511", Country = "Singapore", ContactNo = "12345678", Latitude = 1.3765864094476026, Longitude = 103.8659848158459 },

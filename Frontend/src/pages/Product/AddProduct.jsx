@@ -21,7 +21,7 @@ function AddProduct() {
             price: "",
             quality: false,
             brand: "",
-            available: false,
+            available: true,
             categoryId: "",
             warehouseId: "",
             certId: "",
@@ -73,7 +73,7 @@ function AddProduct() {
 
             http.post("/api/product", data)
                 .then(() => {
-                    navigate("/adminproducts");
+                    navigate("/admin/products");
                 })
                 .catch((error) => {
                     console.error("API Error:", error.response?.data || error.message);
