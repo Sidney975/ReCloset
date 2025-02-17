@@ -2,9 +2,10 @@
 using Backend.Models.Jerald.Payments;
 using Backend.Models.Sarah.Admins;
 using Backend.Models.Sarah.Users;
-using Backend.Models.Sophie;
 using Microsoft.EntityFrameworkCore;
-
+using Backend.Models.Sophie;
+using Backend.Models.Sidney.Voucher;
+using Backend.Models.Sidney.Delivery;
 public class MyDbContext(IConfiguration configuration) : DbContext
 {
     private readonly IConfiguration _configuration = configuration;
@@ -31,7 +32,11 @@ public class MyDbContext(IConfiguration configuration) : DbContext
     public required DbSet<SustainabilityCertification> SustainabilityCertifications { get; set; }
     public required DbSet<UpcyclingRequest> UpcyclingRequests { get; set; }
 
-    // ✅ Configure Global Query Filters & Relationships
+    public required DbSet<Voucher> Vouchers { get; set; }
+    public required DbSet<UserVoucher> UserVouchers { get; set; }
+    public DbSet<Delivery> Deliveries { get; set; } // Register the Delivery model
+
+    // Configure global query filters
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Exclude soft-deleted payments
@@ -58,10 +63,16 @@ public class MyDbContext(IConfiguration configuration) : DbContext
             .HasForeignKey(u => u.ManagedByAdminId)
             .OnDelete(DeleteBehavior.SetNull); // If an Admin is deleted, Users remain
 
-        // ✅ Seed data for Warehouses
+
+        modelBuilder.Entity<Product>()
+            .HasOne(p => p.SustainabilityCertification)
+            .WithMany()
+            .HasForeignKey(p => p.CertId);
+
+        // Seed data for Warehouses
         modelBuilder.Entity<Warehouse>().HasData(
-            new Warehouse { WarehouseId = 1, LocationName = "Central Warehouse", Street = "123 Green St", City = "Singapore", State = "SG", PostalCode = "123456", Country = "Singapore", ContactNo = "12345678" },
-            new Warehouse { WarehouseId = 2, LocationName = "East Warehouse", Street = "456 Blue St", City = "Singapore", State = "SG", PostalCode = "654321", Country = "Singapore", ContactNo = "87654321" }
+            new Warehouse { WarehouseId = 1, LocationName = "Northeast Warehouse", Street = "38 Ang Mo Kio Ind Park 2", City = "Singapore", State = "SG", PostalCode = "569511", Country = "Singapore", ContactNo = "12345678", Latitude = 1.3765864094476026, Longitude = 103.8659848158459 },
+            new Warehouse { WarehouseId = 2, LocationName = "Central Warehouse", Street = "20 Depot Rd", City = "Singapore", State = "SG", PostalCode = "109677", Country = "Singapore", ContactNo = "87654321", Latitude = 1.281216720946465, Longitude = 103.81405834338983 }
         );
 
         // ✅ Seed data for Categories
@@ -72,10 +83,37 @@ public class MyDbContext(IConfiguration configuration) : DbContext
 
         // ✅ Seed data for Sustainability Certifications
         modelBuilder.Entity<SustainabilityCertification>().HasData(
-            new SustainabilityCertification { CertId = 1, Name = "Fair Trade", Description = "Certified Fair Trade standard for ethical sourcing." },
-            new SustainabilityCertification { CertId = 2, Name = "Global Organic Textile Standard (GOTS)", Description = "Ensures organic fibers and environmental responsibility." }
+            new SustainabilityCertification { CertId = 1, Name = "Fair Trade", Description = "Certified Fair Trade standard for ethical sourcing.", QRCodeUrl = "fairtrade.png" },
+            new SustainabilityCertification { CertId = 2, Name = "Global Organic Textile Standard (GOTS)", Description = "Ensures organic fibers and environmental responsibility.", QRCodeUrl = "gots.png" }
         );
 
-        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<UserVoucher>().HasKey(uv => new { uv.UserId, uv.VoucherId });
+
+        // Configure the relationships for UserVoucher
+        modelBuilder.Entity<UserVoucher>()
+            .HasOne(uv => uv.User)
+            .WithMany(u => u.UserVouchers)
+            .HasForeignKey(uv => uv.UserId);
+
+        modelBuilder.Entity<UserVoucher>()
+            .HasOne(uv => uv.Voucher)
+            .WithMany(v => v.UserVouchers)
+            .HasForeignKey(uv => uv.VoucherId);
+
+        modelBuilder.Entity<Order>()
+                .HasOne(o => o.Delivery)
+                .WithOne(d => d.Order)
+                .HasForeignKey<Delivery>(d => d.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+        modelBuilder.Entity<Voucher>()
+            .HasOne(v => v.Category)
+            .WithMany(c => c.Vouchers)
+            .HasForeignKey(v => v.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+            base.OnModelCreating(modelBuilder);
+         
     }
 }

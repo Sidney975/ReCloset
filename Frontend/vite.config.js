@@ -1,19 +1,18 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
     port: 5055,
     proxy: {
       '/user': {
-        target: 'http://localhost:11291',
+        target: 'https://localhost:53827', // Ensure HTTPS is used
         changeOrigin: true,
-        secure: false,
+        secure: false, // Accept self-signed SSL in local development
       },
       '/admin': {
-        target: 'http://localhost:11291',
+        target: 'https://localhost:53827',
         changeOrigin: true,
         secure: false,
       },

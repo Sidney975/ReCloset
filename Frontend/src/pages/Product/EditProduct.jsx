@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Box, Typography, TextField, Button, Grid, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
-import http from '../../http';
+import http from "../../http";
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { ToastContainer, toast } from 'react-toastify';
@@ -83,7 +83,7 @@ function EditProduct() {
             }
             data.name = data.name.trim();
             http.put(`/api/product/${id}`, data)
-                .then(() => navigate("/products"))
+                .then(() => navigate("/adminproducts"))
                 .catch((err) => console.error(err));
         },
     });
@@ -113,7 +113,7 @@ function EditProduct() {
 
     const deleteProduct = () => {
         http.delete(`/api/product/${id}`)
-            .then(() => navigate("/products"))
+            .then(() => navigate("/adminproducts"))
             .catch((err) => console.error(err));
     };
 
@@ -137,7 +137,6 @@ function EditProduct() {
                                 error={formik.touched.name && Boolean(formik.errors.name)}
                                 helperText={formik.touched.name && formik.errors.name}
                             />
-                            {/* Add other fields here similarly */}
                             <TextField
                                 fullWidth
                                 margin="dense"
@@ -151,8 +150,89 @@ function EditProduct() {
                                 error={formik.touched.description && Boolean(formik.errors.description)}
                                 helperText={formik.touched.description && formik.errors.description}
                             />
-                            {/* Add the remaining fields (sustainabilityNotes, price, etc.) */}
+                            <TextField
+                                fullWidth
+                                margin="dense"
+                                label="Sustainability Notes"
+                                name="sustainabilityNotes"
+                                value={formik.values.sustainabilityNotes}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.sustainabilityNotes && Boolean(formik.errors.sustainabilityNotes)}
+                                helperText={formik.touched.sustainabilityNotes && formik.errors.sustainabilityNotes}
+                            />
+                            <TextField
+                                fullWidth
+                                margin="dense"
+                                label="Sizing Chart"
+                                name="sizingChart"
+                                value={formik.values.sizingChart}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.sizingChart && Boolean(formik.errors.sizingChart)}
+                                helperText={formik.touched.sizingChart && formik.errors.sizingChart}
+                            />
+                            <TextField
+                                fullWidth
+                                margin="dense"
+                                label="Price"
+                                name="price"
+                                type="number"
+                                value={formik.values.price}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.price && Boolean(formik.errors.price)}
+                                helperText={formik.touched.price && formik.errors.price}
+                            />
+                            <TextField
+                                fullWidth
+                                margin="dense"
+                                label="Brand"
+                                name="brand"
+                                value={formik.values.brand}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.brand && Boolean(formik.errors.brand)}
+                                helperText={formik.touched.brand && formik.errors.brand}
+                            />
+                            <TextField
+                                fullWidth
+                                margin="dense"
+                                label="Category ID"
+                                name="categoryId"
+                                type="number"
+                                value={formik.values.categoryId}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.categoryId && Boolean(formik.errors.categoryId)}
+                                helperText={formik.touched.categoryId && formik.errors.categoryId}
+                            />
+                            <TextField
+                                fullWidth
+                                margin="dense"
+                                label="Warehouse ID"
+                                name="warehouseId"
+                                type="number"
+                                value={formik.values.warehouseId}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.warehouseId && Boolean(formik.errors.warehouseId)}
+                                helperText={formik.touched.warehouseId && formik.errors.warehouseId}
+                            />
+                            <TextField
+                                fullWidth
+                                margin="dense"
+                                label="Certification ID (Optional)"
+                                name="certId"
+                                type="number"
+                                value={formik.values.certId}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.certId && Boolean(formik.errors.certId)}
+                                helperText={formik.touched.certId && formik.errors.certId}
+                            />
                         </Grid>
+
                         <Grid item xs={12} md={6} lg={4}>
                             <Box sx={{ textAlign: 'center', mt: 2 }}>
                                 <Button variant="contained" component="label">

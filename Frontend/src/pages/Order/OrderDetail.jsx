@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import http from "../../http";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import OrderPDF from "../../components/OrderPDF"; // Import the PDF document component
+import UserContext from "../../contexts/UserContext"; // Import UserContext
 
 const OrderDetails = () => {
     const { orderId } = useParams();
+    const { user } = useContext(UserContext); // Get user data from UserContext
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -124,7 +126,7 @@ const OrderDetails = () => {
 
             {/* PDF Download Button */}
             <div style={styles.buttonContainer}>
-                <PDFDownloadLink document={<OrderPDF order={order} />} fileName={`Invoice_${order.orderId}.pdf`}>
+                <PDFDownloadLink document={<OrderPDF order={order} user={user} />} fileName={`Invoice_${order.orderId}.pdf`}>
                     {({ loading }) => (
                         <button style={styles.button}>
                             {loading ? "Generating PDF..." : "Download PDF"}

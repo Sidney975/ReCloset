@@ -219,3 +219,39 @@ Content-Type: application/json
 DELETE {{Backend_HostAddress}}/admin/delete/{{id}}
 
 ###
+
+POST {{Backend_HostAddress}}/user/register
+Content-Type: application/json
+
+{
+    "Email":"jeraldliu@gmail.com",
+  "Username":"Jerald",
+  "Password":"P@ssw0rd!"
+}
+
+###
+
+POST {{Backend_HostAddress}}/api/product
+Content-Type: application/json
+
+{
+ 
+  
+    "Name": "Warm Wool Sweater",
+    "Image": "https://example.com/images/sweater.jpg",
+    "Description": "A cozy wool sweater designed for warmth and comfort.",
+    "SustainabilityNotes": "Made from ethically sourced wool.",
+    "SizingChart": "https://example.com/sizing-chart/sweater",
+    "Price": 49.99,
+    "Quality": true,
+    "Brand": "GreenThreads",
+    "Available": true,
+    "CategoryId": 2,
+    "WarehouseId": 1
+  
+ 
+ 
+
+}
+
+###

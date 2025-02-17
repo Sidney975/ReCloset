@@ -1,6 +1,7 @@
 ﻿using Backend.Models.Jerald.Orders;
 using Backend.Models.Jerald.Payments;
 using Backend.Models.Sarah.Admins; // ✅ Import Admin Model
+using Backend.Models.Sidney.Voucher;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
@@ -62,5 +63,7 @@ namespace Backend.Models.Sarah.Users
 
         [JsonIgnore]
         public List<Payment>? Payments { get; set; }
+        [JsonIgnore]
+        public ICollection<UserVoucher>? UserVouchers { get; set; }
     }
 }

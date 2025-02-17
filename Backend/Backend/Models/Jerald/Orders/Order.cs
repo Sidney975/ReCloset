@@ -3,6 +3,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Backend.Models.Jerald.Payments;
 using Backend.Models.Sarah.Users;
+using Backend.Models.Sidney.Delivery;
+using Backend.Models.Sidney.Voucher;
 
 namespace Backend.Models.Jerald.Orders
 {
@@ -50,5 +52,11 @@ namespace Backend.Models.Jerald.Orders
         // ✅ Corrected navigation property
         [JsonIgnore]
         public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+
+        public virtual Delivery Delivery { get; set; } // Navigation Property
+        public int? VoucherId { get; set; }
+
+        [ForeignKey("VoucherId")]
+        public virtual Voucher? Voucher { get; set; }
     }
 }

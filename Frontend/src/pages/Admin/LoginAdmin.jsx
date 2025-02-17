@@ -14,8 +14,8 @@ function LoginAdmin() {
 
   const formik = useFormik({
     initialValues: {
-      email: "admin@email.com",
-      password: "password1!",
+      email: "jerald@gmail.com",
+      password: "P@ssw0rd",
     },
     validationSchema: yup.object({
       email: yup.string().trim().email("Enter a valid email").max(50, "Email must be at most 50 characters").required("Email is required"),
@@ -51,7 +51,7 @@ function LoginAdmin() {
       </Box>
       <Button onClick={() => navigate("/login")} sx={{ mt: 2 }}>Login</Button>
       <Button onClick={() => navigate("/register")} sx={{ mt: 2 }}>Register</Button>
-      <Button onClick={() => navigate("/registeradmin")} sx={{ mt: 2 }}>Register Admin</Button>
+      <Button onClick={() => navigate("/admin/register")} sx={{ mt: 2 }}>Register Admin</Button>
       <ToastContainer />
     </Box>
   );

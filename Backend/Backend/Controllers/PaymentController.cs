@@ -104,7 +104,9 @@ namespace Backend.Controllers
                 DefaultPreference = addPaymentRequest.DefaultPreference,
                 Status = addPaymentRequest.Status,
                 UserId = userId,
-                User = user
+                User = user,
+                Country = addPaymentRequest.Country,
+                City = addPaymentRequest.City   
             };
 
             // Add payment to the database
@@ -166,7 +168,8 @@ namespace Backend.Controllers
             payment.BillingAddress = updatePaymentRequest.BillingAddress ?? payment.BillingAddress;
             payment.BillingZip = updatePaymentRequest.BillingZip ?? payment.BillingZip;
             payment.Status = updatePaymentRequest.Status ?? payment.Status;
-
+            payment.Country = updatePaymentRequest.Country ?? payment.Country;
+            payment.City = updatePaymentRequest.City ?? payment.City; 
             // Save changes
             _context.SaveChanges();
 

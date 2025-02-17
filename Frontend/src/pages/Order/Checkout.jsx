@@ -13,131 +13,198 @@ import {
   Stepper,
   Step,
   StepLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import useUserIP from "../../hooks/useUserIp"; // Import IP detection hook
 import http from "../../http";
 
 function CheckoutPage() {
+  const { userIP, userLocation, error: ipError } = useUserIP(); // Get IP & location
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [cartItems, setCartItems] = useState([
-    { id: 1, name: "T-Shirt", price: 10.99, quantity: 2 },
-    { id: 2, name: "Jeans", price: 20.99, quantity: 1 },
-  ]);
+  const [cartItems, setCartItems] = useState([]);
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [total, setTotal] = useState(0);
   const [step, setStep] = useState(0);
-  const [address, setAddress] = useState({
-    firstName: "Jerald",
-    lastName: "Liu",
-    address: "Canberra Street 998, Singapore",
-    city: "Singapore",
-    state: "Singapore",
-    zipCode: "123456",
-  });
+  const [hasDefaultPreference, setHasDefaultPreference] = useState(false);
+  const [loadingDefaultPreference, setLoadingDefaultPreference] = useState(true);
+  const [billingCountry, setBillingCountry] = useState(null); // Stores the billing country of the selected payment
+  const [isSuspicious, setIsSuspicious] = useState(false); // Flag if IP doesn't match billing address
   const navigate = useNavigate();
   const steps = ["Delivery Address", "Payment Information", "Review Order"];
 
-  useEffect(() => {
-    console.log("Calculating total...");
-    const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    setTotal(totalAmount);
+  // Voucher popup and applied voucher states
+  const [voucherPopupOpen, setVoucherPopupOpen] = useState(false);
+  const [claimedVouchers, setClaimedVouchers] = useState([]);
+  const [availableVouchers, setAvailableVouchers] = useState([]);
+  const [manualVoucherCode, setManualVoucherCode] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState(null);
+  const [alteredPrice, setAlteredPrice] = useState(0);
 
-    // Fetch payment methods
+  useEffect(() => {
+    // Load cart from localStorage
+    const storedCart = JSON.parse(localStorage.getItem("CartItems")) || [];
+    setCartItems(storedCart);
+    setTotal(
+      storedCart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    );
+
     // Fetch payment methods
     async function fetchPaymentMethods() {
       try {
-        console.log("Fetching payment methods...");
-        const response = await http.get("/payment");
-        console.log("Payment methods response:", response.data);
-
-        // Filter and process payment methods
-        const methods = Array.isArray(response.data)
-          ? response.data
-            .filter((method) => method.status === "Active") // Only include active payment methods
-            .map((method) => ({
-              PaymentId: method.paymentId,
-              PaymentMethod: method.paymentMethod || "Unknown Method",
-              MaskedCardNumber: method.maskedCardNumber || "****",
-              IsDefault: method.isDefault || false,
-            }))
-          : [];
-        setPaymentMethods(methods);
-
-        const defaultMethod = methods.find((method) => method.IsDefault);
+        const response = await http.get("/Payment");
+        const methods = Array.isArray(response.data) ? response.data : [];
+        console.log("Payment Methods:", methods);
+        const activeMethods = methods.filter(
+          (method) => method.status === "Active"
+        );
+        setPaymentMethods(activeMethods);
+        const defaultMethod = activeMethods.find((method) => method.isDefault);
         if (defaultMethod) {
-          setSelectedPaymentMethod(defaultMethod.PaymentId);
-          console.log("Default payment method selected:", defaultMethod);
+          setSelectedPaymentMethod(defaultMethod.paymentId);
+          fetchBillingCountry(defaultMethod.paymentId); // Fetch billing country for default payment
         }
+        setHasDefaultPreference(methods.some((method) => method.isDefault));
       } catch (err) {
-        console.error("Error fetching payment methods:", err);
-        setError("Failed to load payment methods. Please try again.");
+        setError("Failed to load payment methods.");
+      } finally {
+        setLoadingDefaultPreference(false);
       }
     }
 
-
-
     fetchPaymentMethods();
-  }, [cartItems]);
+  }, []);
 
-  const handleNext = () => {
-    console.log(`Proceeding to the next step. Current step: ${step}`);
-    if (step < steps.length - 1) setStep(step + 1);
+  // Fetch billing country when a payment method is selected
+  const fetchBillingCountry = async (paymentId) => {
+    try {
+      const response = await http.get(`/Payment/${paymentId}`); // Calls GetPaymentById API
+      var CombinebillingAddress =
+        response.data.billingAddress +
+        " " +
+        response.data.country +
+        " " +
+        response.data.billingZip;
+      setBillingCountry(CombinebillingAddress);
+    } catch (err) {
+      toast.error("Failed to retrieve billing address.");
+    }
   };
 
-  const handleBack = () => {
-    console.log(`Going back to the previous step. Current step: ${step}`);
-    if (step > 0) setStep(step - 1);
-  };
-
-  const handlePaymentMethodChange = (event) => {
-    console.log("Payment method changed to:", event.target.value);
-    setSelectedPaymentMethod(event.target.value);
-  };
+  useEffect(() => {
+    if (userLocation?.country && billingCountry) {
+      console.log(
+        `User IP Country: ${userLocation.country}, Billing Country: ${billingCountry}`
+      );
+      console.log(
+        `Pass IP check: ${billingCountry.includes(userLocation.country)}`
+      );
+      setIsSuspicious(!billingCountry.includes(userLocation.country));
+    }
+  }, [userLocation, billingCountry]);
 
   const handlePlaceOrder = async () => {
+    if (isSuspicious) {
+      toast.error(
+        "Transaction blocked: Your IP location does not match the billing country of the selected payment method."
+      );
+      return;
+    }
+
+    if (!selectedPaymentMethod) {
+      toast.error("Please select a payment method before placing your order.");
+      return;
+    }
+
+    const finalTotal = appliedVoucher ? alteredPrice : total;
+
+
     const payload = {
       deliveryOption: 1,
       paymentId: selectedPaymentMethod,
       orderItems: cartItems.map((item) => ({
-        ProductId: item.id,
+        ProductId: item.productId,
         Quantity: item.quantity,
         ItemPrice: item.price,
       })),
+      voucherId: appliedVoucher ? appliedVoucher.voucherId : null,
+      totalPrice: finalTotal,
+
     };
 
     try {
       setLoading(true);
-      console.log("Placing order with payload:", payload);
-      const response = await http.post("/checkout", payload);
-      console.log("Order placed successfully:", response.data);
+      await http.post("/checkout", payload);
       toast.success("Order placed successfully!");
+
+       // If a voucher was applied, call the redeem API to mark it as used
+       if (appliedVoucher) {
+        await http.post(`/voucher/${appliedVoucher.voucherId}/redeem`);
+        toast.success("Voucher redeemed successfully!");
+      }
+
+
+      localStorage.removeItem("CartItems");
       navigate("/");
     } catch (err) {
-      console.error("Error placing order:", err);
-      toast.error("Failed to place the order. Please try again.");
+      toast.error("Failed to place the order.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading && !error) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "50vh" }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  // Voucher fetching function
+  const fetchVouchers = async () => {
+    try {
+      const claimedResponse = await http.get("/voucher/claimed");
+      console.log(claimedResponse.data)
+      const activeClaimed = claimedResponse.data.filter(
+        (v) => v.redeemedAt == null
+      );
+      console.log(activeClaimed)
+      setClaimedVouchers(activeClaimed);
+      const allResponse = await http.get("/voucher");
+      const allVouchers = allResponse.data;
+      const claimedIds = claimedResponse.data.map((v) => v.VoucherId);
+      const avail = allVouchers.filter((v) => !claimedIds.includes(v.VoucherId));
+      setAvailableVouchers(avail);
+    } catch (err) {
+      toast.error("Failed to load vouchers.");
+    }
+  };
 
-  if (error) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error">{error}</Alert>
-      </Box>
-    );
-  }
+  // Fetch vouchers when popup is opened
+  useEffect(() => {
+    if (voucherPopupOpen) {
+      fetchVouchers();
+    }
+  }, [voucherPopupOpen]);
+
+  useEffect(() => {
+    console.log("Claimed Vouchers updated:", claimedVouchers);
+  }, [claimedVouchers]);
+
+  const handleApplyVoucher = async (voucher) => {
+    try {
+      const response = await http.post("/voucher/apply", {
+        VoucherId: voucher.voucherId,
+        OriginalPrice: total,
+      });
+      // Expecting the API response to have an alteredPrice field
+      console.log("Apply Voucher Response:", response.data);
+      setAlteredPrice(response.data.alteredPrice);
+      setAppliedVoucher(voucher);
+      setVoucherPopupOpen(false);
+    } catch (err) {
+      toast.error("Failed to apply voucher.");
+    }
+  };
 
   return (
     <Box sx={{ p: 3 }}>
@@ -145,7 +212,7 @@ function CheckoutPage() {
         Checkout Page
       </Typography>
       <Box sx={{ display: "flex", gap: 3 }}>
-        {/* Main Content */}
+        {/* Stepper Navigation */}
         <Box sx={{ flex: 2 }}>
           <Stepper activeStep={step} sx={{ mb: 3 }}>
             {steps.map((label, index) => (
@@ -154,131 +221,263 @@ function CheckoutPage() {
               </Step>
             ))}
           </Stepper>
-          <Box>
-            {step === 0 && (
-              <Box>
-                <Typography variant="h6">Delivery Address</Typography>
-                <Box component="form" sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <TextField
-                    label="First Name"
-                    fullWidth
-                    value={address.firstName}
-                    onChange={(e) => setAddress({ ...address, firstName: e.target.value })}
-                  />
-                  <TextField
-                    label="Last Name"
-                    fullWidth
-                    value={address.lastName}
-                    onChange={(e) => setAddress({ ...address, lastName: e.target.value })}
-                  />
-                  <TextField
-                    label="Address"
-                    fullWidth
-                    value={address.address}
-                    onChange={(e) => setAddress({ ...address, address: e.target.value })}
-                  />
-                  <TextField
-                    label="City"
-                    fullWidth
-                    value={address.city}
-                    onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                  />
-                  <TextField
-                    label="State"
-                    fullWidth
-                    value={address.state}
-                    onChange={(e) => setAddress({ ...address, state: e.target.value })}
-                  />
-                  <TextField
-                    label="ZIP Code"
-                    fullWidth
-                    value={address.zipCode}
-                    onChange={(e) => setAddress({ ...address, zipCode: e.target.value })}
-                  />
-                  <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-                    {/* New Navigate Home Button */}
-                    <Button variant="outlined" color="secondary" onClick={() => navigate("/")}>
-                      Cancel
-                    </Button>
-                    <Button variant="contained" onClick={handleNext}>
-                      Next
-                    </Button>
-                  </Box>
-                </Box>
+
+          {/* Delivery Step */}
+          {step === 0 && (
+            <Box>
+              <Typography variant="h6">Delivery Address</Typography>
+              <TextField
+                label="Full Name"
+                fullWidth
+                margin="normal"
+                defaultValue="John Doe"
+              />
+              <TextField
+                label="Address"
+                fullWidth
+                margin="normal"
+                defaultValue="123 Street, Singapore"
+              />
+              <TextField
+                label="City"
+                fullWidth
+                margin="normal"
+                defaultValue="Singapore"
+              />
+              <TextField
+                label="Postal Code"
+                fullWidth
+                margin="normal"
+                defaultValue="123456"
+              />
+              <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+                <Button variant="outlined" onClick={() => navigate("/")}>
+                  Cancel
+                </Button>
+                <Button variant="contained" onClick={() => setStep(step + 1)}>
+                  Next
+                </Button>
               </Box>
-            )}
-            {step === 1 && (
-              <Box>
-                <Typography variant="h6">Payment Information</Typography>
-                <RadioGroup value={selectedPaymentMethod} onChange={handlePaymentMethodChange}>
+            </Box>
+          )}
+
+          {/* Payment Step */}
+          {step === 1 && (
+            <Box>
+              {isSuspicious && (
+                <Alert severity="warning" sx={{ mt: 2 }}>
+                  Suspicious activity detected! The selected payment method's billing
+                  country ({billingCountry}) does not match your detected IP location (
+                  {userLocation?.country}).
+                </Alert>
+              )}
+
+              <Typography variant="h6">Payment Information</Typography>
+              {loadingDefaultPreference ? (
+                <CircularProgress sx={{ display: "block", margin: "auto", mt: 2 }} />
+              ) : paymentMethods.length === 0 ? (
+                <Box>
+                  <Alert severity="error">No payment methods detected.</Alert>
+                  <Button variant="contained" sx={{ mt: 2 }} onClick={() => navigate("/addpayment")}>
+                    Add Payment Method
+                  </Button>
+                </Box>
+              ) : (
+                <RadioGroup
+                  value={selectedPaymentMethod}
+                  onChange={(e) => {
+                    setSelectedPaymentMethod(e.target.value);
+                    fetchBillingCountry(e.target.value);
+                  }}
+                >
                   {paymentMethods.map((method) => (
                     <FormControlLabel
-                      key={method.PaymentId}
-                      value={method.PaymentId}
+                      key={method.paymentId}
+                      value={method.paymentId}
                       control={<Radio />}
-                      label={`${method.PaymentMethod} ending in ${method.MaskedCardNumber}`}
+                      label={`${method.paymentMethod} ending in ${method.maskedCardNumber}`}
                     />
                   ))}
                 </RadioGroup>
-                <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-                  <Button onClick={handleBack}>Back</Button>
-                  <Button variant="contained" onClick={handleNext}>
-                    Next
-                  </Button>
-                </Box>
+              )}
+
+              <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+                <Button onClick={() => setStep(step - 1)}>Back</Button>
+                <Button
+                  variant="contained"
+                  onClick={() => setStep(step + 1)}
+                  disabled={paymentMethods.length === 0 || isSuspicious}
+                >
+                  Next
+                </Button>
               </Box>
-            )}
-            {step === 2 && (
-              <Box>
-                <Typography variant="h6">Review Order</Typography>
-                <ul>
-                  {cartItems.map((item) => (
-                    <li key={item.id}>
-                      {item.name} - ${item.price.toFixed(2)} x {item.quantity}
-                    </li>
-                  ))}
-                </ul>
-                <Typography variant="h6">Total: ${total.toFixed(2)}</Typography>
-                <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-                  <Button onClick={handleBack}>Back</Button>
-                  <Button variant="contained" onClick={handlePlaceOrder}>
-                    Place Order
-                  </Button>
+            </Box>
+          )}
+
+          {/* Review Step */}
+          {step === 2 && (
+            <Box>
+              <Typography variant="h6">Review Order</Typography>
+              <ul>
+                {cartItems.map((item) => (
+                  <li key={item.productId}>
+                    {item.name} - ${item.price.toFixed(2)} x {item.quantity}
+                  </li>
+                ))}
+              </ul>
+              <Typography variant="h6">Subtotal: ${total.toFixed(2)}</Typography>
+              {appliedVoucher && (
+                <Box sx={{ mt: 2, p: 1, border: "1px solid #ccc", borderRadius: 1 }}>
+                  <Typography variant="subtitle1">
+                    Applied Voucher: {appliedVoucher.voucherName}
+                  </Typography>
+                  <Typography variant="body2">
+                    Discount:{" "}
+                    {appliedVoucher.VoucherTypeEnum === 0 &&
+                    appliedVoucher.DiscountValue < 1
+                      ? `${(appliedVoucher.DiscountValue * 100).toFixed(0)}%`
+                      : appliedVoucher.VoucherTypeEnum === 0
+                      ? `$${appliedVoucher.DiscountValue}`
+                      : "Free Shipping"}
+                  </Typography>
+                  <Typography variant="body2">
+                    New Total: ${alteredPrice.toFixed(2)}
+                  </Typography>
                 </Box>
+              )}
+              <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+                <Button onClick={() => setStep(step - 1)}>Back</Button>
+                {/* Button to open voucher popup */}
+                <Button variant="outlined" onClick={() => setVoucherPopupOpen(true)}>
+                  Apply Voucher
+                </Button>
+                <Button variant="contained" onClick={handlePlaceOrder}>
+                  Place Order
+                </Button>
               </Box>
-            )}
-          </Box>
+            </Box>
+          )}
         </Box>
-        {/* Cart Items */}
-        <Paper
-          sx={{
-            flex: 1,
-            p: 2,
-            height: 300, // Fixed height
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            overflowY: "auto", // Enable scrolling for overflow
-          }}
-        >
+
+        {/* Order Summary Sidebar */}
+        <Paper sx={{ flex: 1, p: 2, height: 300, overflowY: "auto" }}>
           <Typography variant="h6" align="center">
             Order Summary
           </Typography>
           <ul>
             {cartItems.map((item) => (
-              <li key={item.id}>
+              <li key={item.productId}>
                 {item.name} - ${item.price.toFixed(2)} x {item.quantity}
               </li>
             ))}
           </ul>
           <Typography variant="h6" align="center">
-            Total: ${total.toFixed(2)}
+            Subtotal: ${total.toFixed(2)}
           </Typography>
+          {appliedVoucher && (
+            <Typography variant="h6" align="center" color="green" sx={{ mt: 1 }}>
+              New Total: ${alteredPrice.toFixed(2)}
+            </Typography>
+          )}
         </Paper>
       </Box>
-    </Box>
 
+      {/* Voucher Popup Dialog */}
+      <Dialog
+        open={voucherPopupOpen}
+        onClose={() => setVoucherPopupOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Apply Voucher</DialogTitle>
+        <DialogContent>
+          <Typography variant="subtitle1">My Vouchers</Typography>
+          {claimedVouchers.length === 0 ? (
+            <Typography>No claimed vouchers.</Typography>
+          ) : (
+            claimedVouchers.map((voucher) => (
+              <Box
+                key={voucher.VoucherId}
+                sx={{
+                  p: 1,
+                  border: "1px solid #ccc",
+                  borderRadius: 1,
+                  my: 1,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Box>
+                  <Typography variant="body1">
+                    {voucher.voucherName}
+                  </Typography>
+                  <Typography variant="body2">
+                    Discount: {voucher.discountValue}{" "}
+                    {voucher.voucherTypeEnum === 0 &&
+                    voucher.discountValue < 1
+                      ? "(Percentage)"
+                      : voucher.voucherTypeEnum === 0 &&
+                      voucher.discountValue >= 1
+                      ? "(Flat)"
+                      : "(Free Shipping)"}
+                  </Typography>
+                </Box>
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    setAppliedVoucher(voucher);
+                    handleApplyVoucher(voucher);
+                    setVoucherPopupOpen(false);
+                  }}
+                >
+                  Apply
+                </Button>
+              </Box>
+            ))
+          )}
+
+          <Typography variant="subtitle1" sx={{ mt: 2 }}>
+            Enter Voucher Code
+          </Typography>
+          <TextField
+            fullWidth
+            placeholder="Enter voucher code"
+            value={manualVoucherCode}
+            onChange={(e) => setManualVoucherCode(e.target.value)}
+            margin="dense"
+          />
+          <Button
+            variant="contained"
+            onClick={async () => {
+              const voucher = availableVouchers.find(
+                (v) =>
+                  v.VoucherCode.toLowerCase() ===
+                  manualVoucherCode.toLowerCase()
+              );
+              if (!voucher) {
+                toast.error("Voucher code not found or already claimed.");
+                return;
+              }
+              try {
+                await http.post(`/voucher/${voucher.VoucherId}/claim`);
+                toast.success("Voucher claimed successfully!");
+                setManualVoucherCode("");
+                fetchVouchers();
+              } catch (err) {
+                toast.error("Failed to claim voucher.");
+              }
+            }}
+            sx={{ mt: 1 }}
+          >
+            Apply Voucher Code
+          </Button>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setVoucherPopupOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 }
 

@@ -2,9 +2,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
-using Microsoft.EntityFrameworkCore;
 using ReCloset;
 using Microsoft.AspNetCore.Diagnostics;
+using AutoMapper;
+using Backend;
+//check back here again
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +16,21 @@ builder.Services.AddDbContext<MyDbContext>(options =>
     options.UseMySQL(builder.Configuration.GetConnectionString("MyConnection")));
 
 // ? Fix CORS Policy
+// Auto Mapper
+var mappingConfig = new MapperConfiguration(mc =>
+{
+    mc.AddProfile(new MappingProfile());
+});
+IMapper mapper = mappingConfig.CreateMapper();
+builder.Services.AddSingleton(mapper);
+
+// Add CORS policy
+var allowedOrigins = builder.Configuration.GetSection(
+"AllowedOrigins").Get<string[]>();
+if (allowedOrigins == null || allowedOrigins.Length == 0)
+{
+    throw new Exception("AllowedOrigins is required for CORS policy.");
+}
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>

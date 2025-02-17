@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using Backend.Models.Jerald.Orders;
+using Backend.Models.Sophie;
 
 namespace Backend.Models.Sophie
 {
@@ -57,10 +57,9 @@ namespace Backend.Models.Sophie
 		[JsonIgnore]
 		public Warehouse Warehouse { get; set; }
 
+		[ForeignKey("CertId")]
 		[JsonIgnore]
 		public SustainabilityCertification? SustainabilityCertification { get; set; }
-        [JsonIgnore]
-        public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 
-    }
+	}
 }

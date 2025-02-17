@@ -87,5 +87,33 @@ namespace ReCloset.Controllers
 			await _context.SaveChangesAsync();
 			return NoContent();
 		}
+
+		[HttpGet("nearest-warehouse")]
+		public async Task<IActionResult> GetNearestWarehouse([FromQuery] string origin)
+		{
+			if (string.IsNullOrEmpty(origin))
+			{
+				return BadRequest("Origin is required");
+			}
+
+			var apiKey = "AIzaSyCcHZDjfgvgsDgPFY57kkx095gvESfX5CM";
+			var warehouses = _context.Warehouses.Select(w => new { w.Latitude, w.Longitude }).ToList();
+
+			if (warehouses.Count == 0)
+			{
+				return NotFound("No warehouses available.");
+			}
+
+			string destinations = string.Join("|", warehouses.Select(w => $"{w.Latitude},{w.Longitude}"));
+			string requestUrl = $"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin}&destinations={destinations}&key={apiKey}";
+
+			using (var httpClient = new HttpClient())
+			{
+				var response = await httpClient.GetStringAsync(requestUrl);
+				return Content(response, "application/json");
+			}
+		}
+
+
 	}
 }

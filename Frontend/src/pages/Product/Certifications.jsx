@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Box, Typography, Grid, Card, CardContent, Input, IconButton, Button } from '@mui/material';
 import { Search, Clear, Edit, Delete } from '@mui/icons-material';
-import http from '../../http';
+import http from "../../http";
 
 function Certifications() {
     const [certificationList, setCertificationList] = useState([]);

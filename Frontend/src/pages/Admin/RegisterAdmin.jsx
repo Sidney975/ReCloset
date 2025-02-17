@@ -119,4 +119,4 @@ function RegisterAdmin() {
     );
 }
 
-export default RegisterAdmin;
+export default RegisterAdmin;

@@ -12,5 +12,8 @@ namespace Backend.Models.Sophie
 
 		[MaxLength(255)]
 		public string Description { get; set; }
+
+		[MaxLength(1000)]
+		public string QRCodeUrl { get; set; }
 	}
 }

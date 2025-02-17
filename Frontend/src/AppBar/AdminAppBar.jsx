@@ -65,12 +65,18 @@ const AdminAppBar = () => {
         <NavItem to="/admin/vouchers" label="Vouchers" />
         <NavItem to="/admin/delivery" label="Delivery" />
         <NavItem to="/admin/users" label="Users" />
+        <NavItem to="/admin/dashboard" label="Dashboard" />
+        <NavItem to="/admin/products" label="Products" />
+        <NavItem to="/admin/orders" label="Orders" />
+        <NavItem to="/voucher" label="Vouchers" />
+        {/* <NavItem to="/admin/delivery" label="Delivery" /> */}
+        <NavItem to="/admin/users" label="Users" />
       </Box>
     </>
   );
 };
 
-/** ✅ **Reusable Navigation Item** */
+/** ✅ *Reusable Navigation Item* */
 const NavItem = ({ to, label }) => (
   <Link
     to={to}
@@ -89,4 +95,4 @@ const NavItem = ({ to, label }) => (
   </Link>
 );
 
-export default AdminAppBar;
+export default AdminAppBar;

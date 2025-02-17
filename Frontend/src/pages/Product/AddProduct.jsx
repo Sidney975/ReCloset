@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Typography, TextField, Button, Grid } from '@mui/material';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import http from '../../http';
+import http from "../../http";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -68,12 +68,16 @@ function AddProduct() {
                 data.image = image;
             }
             data.name = data.name.trim();
+
+            console.log("Submitting data:", data);  // Add this line for debugging
+
             http.post("/api/product", data)
                 .then(() => {
-                    navigate("/products");
+                    navigate("/adminproducts");
                 })
                 .catch((error) => {
-                    console.error(error);
+                    console.error("API Error:", error.response?.data || error.message);
+                    toast.error(error.response?.data || "Failed to add product");
                 });
         },
     });

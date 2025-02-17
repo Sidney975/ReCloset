@@ -85,9 +85,9 @@ function ViewPayments() {
       toast.error("You cannot set this payment method as the default because it is inactive.");
       return;
     }
-  
+
     const updatedDefault = !isCurrentlyDefault;
-  
+
     http.put(`/payment/${paymentId}`, { defaultPreference: updatedDefault })
       .then(() => {
         fetchPayments(); // Refresh data to sync with backend
@@ -124,14 +124,16 @@ function ViewPayments() {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell align="center"><strong>Payment ID</strong></TableCell>
-                  <TableCell align="center"><strong>Payment Method</strong></TableCell>
-                  <TableCell align="center"><strong>Last 4 Digits</strong></TableCell>
-                  <TableCell align="center"><strong>Expiry Date</strong></TableCell>
-                  <TableCell align="center"><strong>Billing Address</strong></TableCell>
-                  <TableCell align="center"><strong>Status</strong></TableCell>
-                  <TableCell align="center"><strong>Default Preference</strong></TableCell>
-                  <TableCell align="center"><strong>Actions</strong></TableCell>
+                  <TableCell align="center" sx={{ width: "5%" }}><strong>Payment ID</strong></TableCell>
+                  <TableCell align="center" sx={{ width: "10%" }}><strong>Payment Method</strong></TableCell>
+                  <TableCell align="center" sx={{ width: "10%" }}><strong>Last 4 Digits</strong></TableCell>
+                  <TableCell align="center" sx={{ width: "10%" }}><strong>Expiry Date</strong></TableCell>
+                  <TableCell align="center" sx={{ width: "30%", whiteSpace: "normal", wordBreak: "break-word" }}>
+                    <strong>Billing Address</strong>
+                  </TableCell>
+                  <TableCell align="center" sx={{ width: "10%" }}><strong>Status</strong></TableCell>
+                  <TableCell align="center" sx={{ width: "10%" }}><strong>Default Preference</strong></TableCell>
+                  <TableCell align="center" sx={{ width: "10%", minWidth: "100px" }}><strong>Actions</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -141,7 +143,9 @@ function ViewPayments() {
                     <TableCell align="center">{payment.paymentMethod}</TableCell>
                     <TableCell align="center">{payment.maskedCardNumber}</TableCell>
                     <TableCell align="center">{payment.expiryDate}</TableCell>
-                    <TableCell align="center">{payment.billingAddress}</TableCell>
+                    <TableCell align="center" sx={{ width: "30%", whiteSpace: "normal", wordBreak: "break-word" }}>
+                      {payment.billingAddress}, {payment.country}, {payment.city}, {payment.billingZip}
+                    </TableCell>
                     <TableCell align="center">{payment.status}</TableCell>
                     <TableCell align="center">
                       <Checkbox
@@ -151,20 +155,11 @@ function ViewPayments() {
                         color="primary"
                       />
                     </TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        color="primary"
-                        size="small"
-                        onClick={() => navigate(`/EditPayment/${payment.paymentId}`)}
-                      >
+                    <TableCell align="center" sx={{ minWidth: "100px" }}>
+                      <IconButton color="primary" size="small" onClick={() => navigate(`/EditPayment/${payment.paymentId}`)}>
                         <EditIcon />
                       </IconButton>
-                      <IconButton
-                        color="error"
-                        size="small"
-                        sx={{ ml: 1 }}
-                        onClick={() => handleDeleteClick(payment)}
-                      >
+                      <IconButton color="error" size="small" sx={{ ml: 1 }} onClick={() => handleDeleteClick(payment)}>
                         <DeleteIcon />
                       </IconButton>
                     </TableCell>
