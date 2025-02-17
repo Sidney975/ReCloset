@@ -186,8 +186,8 @@ POST {{Backend_HostAddress}}/admin/register
 Content-Type: application/json
 
 {
-  "Username":"adminOne",
-  "Email":"admin@email.com",
+  "Username":"adminTwo",
+  "Email":"admin2@email.com",
   "Password":"password1!"
 }
 
@@ -197,7 +197,7 @@ POST {{Backend_HostAddress}}/admin/login
 Content-Type: application/json
 
 {
-  "Email":"admin@email.com",
+  "Email":"admin2@email.com",
   "Password":"password1!"
 }
 
@@ -224,7 +224,7 @@ POST {{Backend_HostAddress}}/user/register
 Content-Type: application/json
 
 {
-    "Email":"jeraldliu@gmail.com",
+   "Email":"jeraldliu@gmail.com",
   "Username":"Jerald",
   "Password":"P@ssw0rd!"
 }

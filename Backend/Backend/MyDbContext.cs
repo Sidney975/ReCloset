@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Backend.Models.Sophie;
 using Backend.Models.Sidney.Voucher;
 using Backend.Models.Sidney.Delivery;
+
 public class MyDbContext(IConfiguration configuration) : DbContext
 {
     private readonly IConfiguration _configuration = configuration;
@@ -34,63 +35,33 @@ public class MyDbContext(IConfiguration configuration) : DbContext
 
     public required DbSet<Voucher> Vouchers { get; set; }
     public required DbSet<UserVoucher> UserVouchers { get; set; }
-    public DbSet<Delivery> Deliveries { get; set; } // Register the Delivery model
+    public required DbSet<Delivery> Deliveries { get; set; } // Fixed: Marked as required
 
-    // Configure global query filters
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Exclude soft-deleted payments
         modelBuilder.Entity<Payment>().HasQueryFilter(p => ApplyPaymentFilter ? !p.IsDeleted : true);
-
-        // ✅ Global filter: Exclude soft-deleted users (Status != "Inactive")
         modelBuilder.Entity<User>().HasQueryFilter(u => u.Status != "Inactive");
-
-        // ✅ Global filter: Ensure only active admins are retrieved
         modelBuilder.Entity<Admin>().HasQueryFilter(a => a.Status != "Inactive");
 
-        // ✅ Make Order -> User relationship optional to avoid breaking Orders when User is deleted
         modelBuilder.Entity<Order>()
             .HasOne(o => o.User)
             .WithMany(u => u.Orders)
             .HasForeignKey(o => o.UserId)
-            .OnDelete(DeleteBehavior.SetNull); // 🔥 Ensures Orders remain even if User is deleted
+            .OnDelete(DeleteBehavior.SetNull);
 
-
-        // ✅ Corrected: Define the Admin-User relationship
         modelBuilder.Entity<User>()
             .HasOne(u => u.ManagedByAdmin)
-            .WithMany() // No need to specify a navigation property in Admin
+            .WithMany()
             .HasForeignKey(u => u.ManagedByAdminId)
-            .OnDelete(DeleteBehavior.SetNull); // If an Admin is deleted, Users remain
-
+            .OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<Product>()
             .HasOne(p => p.SustainabilityCertification)
             .WithMany()
             .HasForeignKey(p => p.CertId);
 
-        // Seed data for Warehouses
-        modelBuilder.Entity<Warehouse>().HasData(
-            new Warehouse { WarehouseId = 1, LocationName = "Northeast Warehouse", Street = "38 Ang Mo Kio Ind Park 2", City = "Singapore", State = "SG", PostalCode = "569511", Country = "Singapore", ContactNo = "12345678", Latitude = 1.3765864094476026, Longitude = 103.8659848158459 },
-            new Warehouse { WarehouseId = 2, LocationName = "Central Warehouse", Street = "20 Depot Rd", City = "Singapore", State = "SG", PostalCode = "109677", Country = "Singapore", ContactNo = "87654321", Latitude = 1.281216720946465, Longitude = 103.81405834338983 }
-        );
-
-        // ✅ Seed data for Categories
-        modelBuilder.Entity<Category>().HasData(
-            new Category { CategoryId = 1, Name = "Clothing", Description = "Second-hand fashion items" },
-            new Category { CategoryId = 2, Name = "Accessories", Description = "Jewelry, bags, belts, etc." }
-        );
-
-        // ✅ Seed data for Sustainability Certifications
-        modelBuilder.Entity<SustainabilityCertification>().HasData(
-            new SustainabilityCertification { CertId = 1, Name = "Fair Trade", Description = "Certified Fair Trade standard for ethical sourcing.", QRCodeUrl = "fairtrade.png" },
-            new SustainabilityCertification { CertId = 2, Name = "Global Organic Textile Standard (GOTS)", Description = "Ensures organic fibers and environmental responsibility.", QRCodeUrl = "gots.png" }
-        );
-
-
         modelBuilder.Entity<UserVoucher>().HasKey(uv => new { uv.UserId, uv.VoucherId });
 
-        // Configure the relationships for UserVoucher
         modelBuilder.Entity<UserVoucher>()
             .HasOne(uv => uv.User)
             .WithMany(u => u.UserVouchers)
@@ -102,18 +73,17 @@ public class MyDbContext(IConfiguration configuration) : DbContext
             .HasForeignKey(uv => uv.VoucherId);
 
         modelBuilder.Entity<Order>()
-                .HasOne(o => o.Delivery)
-                .WithOne(d => d.Order)
-                .HasForeignKey<Delivery>(d => d.OrderId)
-                .OnDelete(DeleteBehavior.Cascade);
-                
+            .HasOne(o => o.Delivery)
+            .WithOne(d => d.Order)
+            .HasForeignKey<Delivery>(d => d.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<Voucher>()
             .HasOne(v => v.Category)
             .WithMany(c => c.Vouchers)
             .HasForeignKey(v => v.CategoryId)
             .OnDelete(DeleteBehavior.Cascade);
 
-            base.OnModelCreating(modelBuilder);
-         
+        base.OnModelCreating(modelBuilder);
     }
 }

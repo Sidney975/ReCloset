@@ -6,17 +6,23 @@ using ReCloset;
 using Microsoft.AspNetCore.Diagnostics;
 using AutoMapper;
 using Backend;
-//check back here again
+using Microsoft.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure; // Ensure MySQL is referenced
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add services
 builder.Services.AddControllers();
-builder.Services.AddDbContext<MyDbContext>(options =>
-    options.UseMySQL(builder.Configuration.GetConnectionString("MyConnection")));
 
-// ? Fix CORS Policy
-// Auto Mapper
+// ? Corrected MySQL configuration
+builder.Services.AddDbContext<MyDbContext>(options =>
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("MyConnection"),
+        new MySqlServerVersion(new Version(8, 0, 23)) // Adjust MySQL version as per your database
+    )
+);
+
+// AutoMapper
 var mappingConfig = new MapperConfiguration(mc =>
 {
     mc.AddProfile(new MappingProfile());
@@ -24,9 +30,8 @@ var mappingConfig = new MapperConfiguration(mc =>
 IMapper mapper = mappingConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
 
-// Add CORS policy
-var allowedOrigins = builder.Configuration.GetSection(
-"AllowedOrigins").Get<string[]>();
+// CORS Policy
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
 if (allowedOrigins == null || allowedOrigins.Length == 0)
 {
     throw new Exception("AllowedOrigins is required for CORS policy.");
@@ -35,13 +40,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
     });
 });
 
-// ? Authentication Configuration
+// Authentication
 var secret = builder.Configuration.GetValue<string>("Authentication:Secret");
 if (string.IsNullOrEmpty(secret))
 {
@@ -56,13 +59,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(secret)
-            ),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
         };
     });
 
-// ? Swagger Configuration
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -89,31 +90,31 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// ? Configure Swagger
+// Swagger Configuration
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Backend v1");
-        c.RoutePrefix = "swagger"; // Ensures Swagger loads correctly
+        c.RoutePrefix = "swagger"; // Ensure Swagger loads correctly
     });
 }
 
-// ? Logging Middleware
+// Logging Middleware
 app.Use(async (context, next) =>
 {
     Console.WriteLine($"Request: {context.Request.Method} {context.Request.Path}");
     await next.Invoke();
 });
 
-// ? Enhanced Exception Handling
+// Exception Handling Middleware
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
     {
         var error = context.Features.Get<IExceptionHandlerFeature>();
-        Console.WriteLine($"?? Unhandled Exception: {error?.Error}");
+        Console.WriteLine($"Unhandled Exception: {error?.Error}");
 
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = 500;
@@ -126,7 +127,7 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
-// ? Apply Middleware
+// Apply Middleware
 app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
