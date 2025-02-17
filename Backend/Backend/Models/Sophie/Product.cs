@@ -35,7 +35,7 @@ namespace Backend.Models.Sophie
 
 		public bool Available { get; set; }
 
-		[Column(TypeName = "datetime")]
+        [Column(TypeName = "datetime")]
 		public DateTime CreatedAt { get; set; }
 
 		[Column(TypeName = "datetime")]

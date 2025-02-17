@@ -1,12 +1,14 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Box, Typography, Grid, Card, CardContent, CardMedia, Input, IconButton, Button, Container } from '@mui/material';
+import { Box, Typography, Grid, Card, CardContent, CardMedia, Input, IconButton, Button, Container, Paper } from '@mui/material';
 import { Search, Clear, FavoriteBorder, ShoppingCart } from '@mui/icons-material';
 import http from "../../http";
 import CartContext from '../../contexts/CartContext';
 import UserContext from '../../contexts/UserContext';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 function Products() {
     const [productList, setProductList] = useState([]);
@@ -15,20 +17,31 @@ function Products() {
     const [nearestWarehouse, setNearestWarehouse] = useState(null);
     const [userLocation, setUserLocation] = useState(null);
     const [showMap, setShowMap] = useState(false);
+
     const navigate = useNavigate();
     const { addToCart } = useContext(CartContext);
     const { user } = useContext(UserContext);
 
     useEffect(() => {
         getProducts();
+        getWarehouses();
     }, []);
 
     const getProducts = () => {
-        http.get('/api/product').then((res) => {
+        http.get('/api/product/available').then((res) => {
             setProductList(res.data);
         }).catch((err) => {
             console.error("Error fetching products:", err);
         });
+    };
+
+    const getWarehouses = async () => {
+        try {
+            const res = await http.get('/api/warehouse');
+            setWarehouses(res.data);
+        } catch (error) {
+            console.error("Error fetching warehouses:", error);
+        }
     };
 
     const searchProducts = () => {
@@ -81,9 +94,9 @@ function Products() {
                     };
                     setUserLocation(userLoc);
 
-                    // Ensure warehouses are loaded before finding the nearest one
+                    // Ensure warehouses are loaded before calling findNearestWarehouse
                     if (warehouses.length === 0) {
-                        await getWarehouses(); // Wait for warehouse data
+                        await getWarehouses();
                     }
 
                     console.log("User location:", userLoc);
@@ -100,6 +113,8 @@ function Products() {
         }
     };
 
+
+
     // Find the nearest warehouse using Google Maps Distance Matrix API
     const findNearestWarehouse = async (lat, lng) => {
         if (!warehouses.length) {
@@ -111,32 +126,46 @@ function Products() {
 
         try {
             const response = await http.get(`/api/warehouse/nearest-warehouse?origin=${origin}`);
-            const data = response.data;
+            console.log("API Response:", response.data);  // 🔍 Debugging step
 
-            if (!data.rows || data.rows.length === 0) {
+            if (!response.data.rows || response.data.rows.length === 0) {
                 console.error("No valid warehouse distances found.");
                 return;
             }
 
-            const distances = data.rows[0].elements.map((el, index) => ({
-                distance: el.distance?.value || Infinity,
-                warehouse: warehouses[index],
-            }));
+            // Extract distances from API response
+            const distances = response.data.rows[0].elements.map((el, index) => {
+                return {
+                    distance: el.distance?.value || Infinity,
+                    warehouse: warehouses.find(w =>
+                        response.data.destination_addresses[index].toLowerCase().includes(w.street.toLowerCase().replace(/\d+/g, '').trim())
+                    ) || null
+                };
+            });
 
+            console.log("Matching warehouses:", distances);
+
+            // Sort warehouses by distance (shortest first)
             distances.sort((a, b) => a.distance - b.distance);
 
-            // Get the closest warehouse
-            const nearest = distances[0].warehouse;
-            setNearestWarehouse(nearest);
+            const nearest = distances[0].warehouse;  // 🛑 Make sure this is correct!
 
-            // Fetch only products from this warehouse
-            fetchProductsByWarehouse(nearest.WarehouseId);
+            console.log("Nearest warehouse:", nearest);  // 🔍 Debugging step
+
+            if (!nearest) {
+                console.error("Nearest warehouse is undefined.");
+                return;
+            }
+
+            setNearestWarehouse(nearest);
+            fetchProductsByWarehouse(nearest.warehouseId);  // Make sure property name is correct!
 
             setShowMap(true);
         } catch (error) {
             console.error("Error fetching distance matrix:", error);
         }
     };
+
 
     // Fetch products from the nearest warehouse
     const fetchProductsByWarehouse = (warehouseId) => {
@@ -148,74 +177,126 @@ function Products() {
     };
 
     return (
-        <Box sx={{ backgroundColor: '#f4f4f4', minHeight: '100vh' }}>
+        <Box sx={{ minHeight: '100vh', padding: 4, width: '100%' }}>
             <Container>
-                <Typography variant="h3" sx={{ my: 4, textAlign: 'center', fontWeight: 'bold', color: '#333' }}>
+                <Typography variant="h3" sx={{ textAlign: 'center', fontWeight: 'bold', color: '#333', mb: 4 }}>
                     Explore the Future of Sustainable Fashion
                 </Typography>
 
-                {/* Filter by Warehouse Section */}
-                <Box sx={{ mb: 4, p: 3, backgroundColor: '#fff', borderRadius: 3, boxShadow: 2, textAlign: 'center' }}>
-                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
-                        Check out our nearest warehouse!
-                    </Typography>
-                    <Button variant="contained" color="primary" onClick={getUserLocation}>
-                        Go
-                    </Button>
-                </Box>
+                <Grid container spacing={4}>
+                    <Grid item xs={12} md={8}>
+                        <Paper sx={{ p: 3, mb: 4, borderRadius: 3, boxShadow: 3 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                                Search for Products
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Input
+                                    fullWidth
+                                    placeholder="Search products..."
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && searchProducts()}
+                                    sx={{ flexGrow: 1, mr: 1 }}
+                                />
+                                <IconButton color="primary" onClick={searchProducts}><Search /></IconButton>
+                                <IconButton color="secondary" onClick={() => { setSearch(''); getProducts(); }}><Clear /></IconButton>
+                            </Box>
+                        </Paper>
 
-                {/* Show Map with Directions */}
-                {showMap && nearestWarehouse && userLocation && (
-                    <Box sx={{ textAlign: 'center', my: 4 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-                            Directions to {nearestWarehouse.LocationName}
-                        </Typography>
-                        <iframe
-                            width="100%"
-                            height="400"
-                            src={`https://www.google.com/maps/embed/v1/directions?key=${GOOGLE_MAPS_API_KEY}&origin=${userLocation.lat},${userLocation.lng}&destination=${nearestWarehouse.Latitude},${nearestWarehouse.Longitude}`}
-                            allowFullScreen
-                        ></iframe>
-                    </Box>
-                )}
+                        <Grid container spacing={3}>
+                            {productList.map((product) => (
+                                <Grid item xs={12} sm={6} md={4} lg={4} key={product.productId}>
+                                    <Card sx={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'space-between',
+                                        height: '430px',  // Shorten card height
+                                        maxHeight: '430px', // Restrict max height
+                                        borderRadius: 3,
+                                        boxShadow: 4,
+                                        transition: '0.3s',
+                                        '&:hover': { boxShadow: 8, transform: 'scale(1.02)' }
+                                    }}>
+                                        <Link to={`/product/${product.productId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                            {product.image && (
+                                                <CardMedia
+                                                    component="img"
+                                                    height="200"
+                                                    image={`${import.meta.env.VITE_FILE_BASE_URL}${product.image}`}
+                                                    alt={product.name}
+                                                    sx={{ borderTopLeftRadius: 3, borderTopRightRadius: 3 }}
+                                                />
+                                            )}
+                                        </Link>
+                                        <CardContent sx={{ flexGrow: 1, overflow: 'hidden', paddingBottom: 1}}>
+                                            <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>
+                                                {product.name}
+                                            </Typography>
+                                            <Typography sx={{ color: '#00796b', fontWeight: 'bold', mb: 1 }}>
+                                                ${product.price.toFixed(2)}
+                                            </Typography>
+                                            <Typography
+                                                sx={{
+                                                    color: 'text.secondary',
+                                                    fontSize: '0.85rem',
+                                                    display: '-webkit-box',
+                                                    WebkitBoxOrient: 'vertical',
+                                                    WebkitLineClamp: 2,  // Limit to 2 lines
+                                                    overflow: 'hidden'
+                                                }}
+                                            >
+                                                {product.description}
+                                            </Typography>
+                                        </CardContent>
 
-                <Grid container spacing={4} justifyContent="center">
-                    {productList.map((product) => (
-                        <Grid item xs={12} sm={6} md={4} lg={3} key={product.productId}>
-                            <Card sx={{ borderRadius: 3, boxShadow: 4, transition: '0.3s', '&:hover': { boxShadow: 8, transform: 'scale(1.02)' } }}>
-                                <Link to={`/product/${product.productId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                                    {product.image && (
-                                        <CardMedia
-                                            component="img"
-                                            height="280"
-                                            image={`${import.meta.env.VITE_FILE_BASE_URL}${product.image}`}
-                                            alt={product.name}
-                                            sx={{ borderTopLeftRadius: 3, borderTopRightRadius: 3 }}
-                                        />
-                                    )}
-                                </Link>
-                                <CardContent>
-                                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>
-                                        {product.name}
-                                    </Typography>
-                                    <Typography sx={{ color: '#00796b', fontWeight: 'bold', mb: 1 }}>
-                                        ${product.price.toFixed(2)}
-                                    </Typography>
-                                    <Typography sx={{ whiteSpace: 'pre-wrap', color: 'text.secondary', mb: 1 }}>
-                                        {product.description.length > 80 ? `${product.description.substring(0, 80)}...` : product.description}
-                                    </Typography>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <IconButton color="primary" onClick={(e) => handleCartClick(e, product)}>
-                                            <ShoppingCart />
-                                        </IconButton>
-                                        <IconButton color="secondary">
-                                            <FavoriteBorder />
-                                        </IconButton>
-                                    </Box>
-                                </CardContent>
-                            </Card>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 2, mt: 'auto' }}>
+                                            <IconButton color="primary" onClick={(e) => handleCartClick(e, product)}>
+                                                <ShoppingCart />
+                                            </IconButton>
+                                            <IconButton color="secondary">
+                                                <FavoriteBorder />
+                                            </IconButton>
+                                        </Box>
+                                    </Card>
+                                </Grid>
+                            ))}
                         </Grid>
-                    ))}
+                    </Grid>
+
+                    {/* Map Section */}
+                    <Grid item xs={12} md={4}>
+                        <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                                Nearest Warehouse
+                            </Typography>
+                            {showMap && nearestWarehouse && userLocation ? (
+                                <>
+                                    <iframe
+                                        width="100%"
+                                        height="300"
+                                        src={`https://www.google.com/maps/embed/v1/directions?key=${GOOGLE_MAPS_API_KEY}&origin=${userLocation.lat},${userLocation.lng}&destination=${nearestWarehouse.latitude},${nearestWarehouse.longitude}`}
+                                        allowFullScreen
+                                        style={{ borderRadius: 10 }}
+                                    ></iframe>
+
+                                    {/* 🚀 New Section: Display Warehouse Details */}
+                                    <Box sx={{ mt: 2, p: 2, border: '1px solid #ddd', borderRadius: 2 }}>
+                                        <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+                                            Warehouse Details
+                                        </Typography>
+                                        <Typography><strong>Name:</strong> {nearestWarehouse.locationName}</Typography>
+                                        <Typography><strong>Address:</strong> {nearestWarehouse.street}, {nearestWarehouse.city}, {nearestWarehouse.state}, {nearestWarehouse.postalCode}, {nearestWarehouse.country}</Typography>
+                                        <Typography><strong>Contact:</strong> {nearestWarehouse.contactNo}</Typography>
+                                    </Box>
+                                </>
+                            ) : (
+                                <Button variant="contained" color="primary" fullWidth onClick={getUserLocation}>
+                                    Find Nearest Warehouse
+                                </Button>
+                            )}
+
+                        </Paper>
+                    </Grid>
                 </Grid>
 
                 <Box sx={{ mt: 8, textAlign: 'center', backgroundColor: '#00796b', padding: 4, borderRadius: 3, color: 'white' }}>
@@ -223,8 +304,8 @@ function Products() {
                         Why We Are the Sustainable Choice
                     </Typography>
                     <Typography variant="body1" sx={{ maxWidth: 700, mx: 'auto' }}>
-                        Our mission is to reduce waste, promote ethical sourcing, and make sustainable fashion accessible to all. 
-                        Every purchase you make contributes to a greener planet. 
+                        Our mission is to reduce waste, promote ethical sourcing, and make sustainable fashion accessible to all.
+                        Every purchase you make contributes to a greener planet.
                         Join us in making a difference, one stylish choice at a time.
                     </Typography>
                 </Box>

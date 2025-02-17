@@ -44,26 +44,33 @@ public class MyDbContext(IConfiguration configuration) : DbContext
 
         // You can configure other entity relationships or filters here
 
+
+        modelBuilder.Entity<Product>()
+            .HasOne(p => p.SustainabilityCertification)
+            .WithMany()
+            .HasForeignKey(p => p.CertId);
+
+
         // Seed data for Warehouses
         modelBuilder.Entity<Warehouse>().HasData(
-				new Warehouse { WarehouseId = 1, LocationName = "Northeast Warehouse", Street = "38 Ang Mo Kio Ind Park 2", City = "Singapore", State = "SG", PostalCode = "569511", Country = "Singapore", ContactNo = "12345678", Latitude = 1.3765864094476026, Longitude = 103.8659848158459 },
-				new Warehouse { WarehouseId = 2, LocationName = "Central Warehouse", Street = "20 Depot Rd", City = "Singapore", State = "SG", PostalCode = "109677", Country = "Singapore", ContactNo = "87654321", Latitude = 1.281216720946465, Longitude = 103.81405834338983 }
-			);
+            new Warehouse { WarehouseId = 1, LocationName = "Northeast Warehouse", Street = "38 Ang Mo Kio Ind Park 2", City = "Singapore", State = "SG", PostalCode = "569511", Country = "Singapore", ContactNo = "12345678", Latitude = 1.3765864094476026, Longitude = 103.8659848158459 },
+            new Warehouse { WarehouseId = 2, LocationName = "Central Warehouse", Street = "20 Depot Rd", City = "Singapore", State = "SG", PostalCode = "109677", Country = "Singapore", ContactNo = "87654321", Latitude = 1.281216720946465, Longitude = 103.81405834338983 }
+        );
 
-			// Seed data for Categories
-			modelBuilder.Entity<Category>().HasData(
-				new Category { CategoryId = 1, Name = "Clothing", Description = "Second-hand fashion items" },
-				new Category { CategoryId = 2, Name = "Accessories", Description = "Jewelry, bags, belts, etc." }
-			);
+        // Seed data for Categories
+        modelBuilder.Entity<Category>().HasData(
+            new Category { CategoryId = 1, Name = "Clothing", Description = "Second-hand fashion items" },
+            new Category { CategoryId = 2, Name = "Accessories", Description = "Jewelry, bags, belts, etc." }
+        );
 
-			// Seed data for Sustainability Certifications
-			modelBuilder.Entity<SustainabilityCertification>().HasData(
-				new SustainabilityCertification { CertId = 1, Name = "Fair Trade", Description = "Certified Fair Trade standard for ethical sourcing.", QRCodeUrl = "fairtrade.png" },
-				new SustainabilityCertification { CertId = 2, Name = "Global Organic Textile Standard (GOTS)", Description = "Ensures organic fibers and environmental responsibility.", QRCodeUrl = "gots.png" }
-			);
+        // Seed data for Sustainability Certifications
+        modelBuilder.Entity<SustainabilityCertification>().HasData(
+            new SustainabilityCertification { CertId = 1, Name = "Fair Trade", Description = "Certified Fair Trade standard for ethical sourcing.", QRCodeUrl = "fairtrade.png" },
+            new SustainabilityCertification { CertId = 2, Name = "Global Organic Textile Standard (GOTS)", Description = "Ensures organic fibers and environmental responsibility.", QRCodeUrl = "gots.png" }
+        );
 
-        modelBuilder.Entity<UserVoucher>()
-    .HasKey(uv => new { uv.UserId, uv.VoucherId });
+
+        modelBuilder.Entity<UserVoucher>().HasKey(uv => new { uv.UserId, uv.VoucherId });
 
         // Configure the relationships for UserVoucher
         modelBuilder.Entity<UserVoucher>()
@@ -81,15 +88,14 @@ public class MyDbContext(IConfiguration configuration) : DbContext
                 .WithOne(d => d.Order)
                 .HasForeignKey<Delivery>(d => d.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
+                
+        modelBuilder.Entity<Voucher>()
+            .HasOne(v => v.Category)
+            .WithMany(c => c.Vouchers)
+            .HasForeignKey(v => v.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-		modelBuilder.Entity<Voucher>()
-				.HasOne(v => v.Category)
-				.WithMany(c => c.Vouchers)
-				.HasForeignKey(v => v.CategoryId)
-				.OnDelete(DeleteBehavior.Cascade);
-
-		base.OnModelCreating(modelBuilder);
-
-        base.OnModelCreating(modelBuilder);
+            base.OnModelCreating(modelBuilder);
+         
     }
 }
