@@ -38,7 +38,7 @@ const CustomerAppBar = () => {
   const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   // Calculate total price
-  const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  const totalPrice = cartItems.reduce((total, item) => total + item.itemPrice * item.quantity, 0);
 
   return (
     <>
@@ -213,9 +213,9 @@ const CustomerAppBar = () => {
                   <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                     {/* First Row: Title & Price */}
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body1" sx={{ fontWeight: 'bold' }}>{item.name}</Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 'bold' }}>{item.productName}</Typography>
                       <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'black' }}>
-                        ${(item.price * item.quantity).toFixed(2)}
+                        ${(item.itemPrice * item.quantity).toFixed(2)}
                       </Typography>
                       <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'black' }}>
                         Qty: {(item.quantity)}

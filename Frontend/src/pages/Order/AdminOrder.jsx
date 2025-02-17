@@ -258,7 +258,7 @@ const OrderItemsGraph = () => {
                             <TableRow key={item.id}>
                                 <TableCell>{item.id}</TableCell>
                                 <TableCell>{item.productName}</TableCell>
-                                <TableCell>{item.categoryName}</TableCell>
+                                <TableCell>{item.productCategory}</TableCell>
                                 <TableCell>{item.quantityBought}</TableCell>
                                 <TableCell>${item.totalSales.toFixed(2)}</TableCell>
                                 <TableCell>{item.timeBought}</TableCell>

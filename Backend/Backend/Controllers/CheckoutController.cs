@@ -12,8 +12,11 @@ namespace Backend.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class CheckoutController(MyDbContext context, IMapper mapper) : ControllerBase
+    public class CheckoutController(MyDbContext context, IMapper mapper, EmailService emailService) : ControllerBase
     {
+        private readonly MyDbContext _context = context;
+        private readonly IMapper _mapper = mapper;
+        private readonly EmailService _emailService = emailService; // Add this line to initialize the email service
 
         private int GetUserId()
         {
@@ -21,9 +24,6 @@ namespace Backend.Controllers
             .Where(c => c.Type == ClaimTypes.NameIdentifier)
             .Select(c => c.Value).SingleOrDefault());
         }
-
-        private readonly MyDbContext _context = context;
-        private readonly IMapper _mapper = mapper;
 
         // GET: Get all orders
         [HttpGet]
@@ -48,7 +48,6 @@ namespace Backend.Controllers
             return Ok(orderDtos);
         }
 
-
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(OrderDTO), StatusCodes.Status200OK)]
         public IActionResult GetOrderById(int id)
@@ -62,7 +61,6 @@ namespace Backend.Controllers
 
             order.User = _context.Users.FirstOrDefault(u => u.Id == order.UserId);
 
-
             if (order == null)
             {
                 return NotFound("Order not found.");
@@ -73,10 +71,9 @@ namespace Backend.Controllers
             return Ok(orderDto);
         }
 
-
         [HttpPost, Authorize]
         [ProducesResponseType(typeof(OrderDTO), StatusCodes.Status201Created)]
-        public IActionResult CreateOrder([FromBody] CreateOrderRequestDTO createOrderRequest)
+        public async Task<IActionResult> CreateOrderAsync([FromBody] CreateOrderRequestDTO createOrderRequest)
         {
             if (createOrderRequest == null || createOrderRequest.OrderItems == null || !createOrderRequest.OrderItems.Any())
             {
@@ -126,12 +123,14 @@ namespace Backend.Controllers
             _context.OrderItems.AddRange(orderItems);
             _context.SaveChanges();
 
+            // Send invoice email
+            await _emailService.SendInvoiceEmailAsync(order.OrderId);
+
             // Map to OrderDTO
             var orderDto = _mapper.Map<OrderDTO>(order);
 
             return CreatedAtAction(nameof(GetOrderById), new { id = order.OrderId }, orderDto);
         }
-
 
         // PUT: Update an existing order
         [HttpPut("{id}"), Authorize]
@@ -230,9 +229,6 @@ namespace Backend.Controllers
             return Ok(updatedOrderDto);
         }
 
-
-
-
         [HttpDelete("{id}")]
         public IActionResult DeleteOrder(int id)
         {
@@ -259,6 +255,5 @@ namespace Backend.Controllers
             // Return 204 No Content as the order has been successfully deleted
             return Ok();
         }
-
     }
 }

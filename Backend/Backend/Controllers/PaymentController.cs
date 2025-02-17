@@ -36,11 +36,16 @@ namespace Backend.Controllers
         [ProducesResponseType(typeof(IEnumerable<PaymentDTO>), StatusCodes.Status200OK)]
         public IActionResult GetAll(string? search)
         {
+            int userId = GetUserId(); // Get the logged-in user's ID
+
             // Query the database
-            IQueryable<Payment> result = _context.Payments;
+            IQueryable<Payment> result = _context.Payments
+        .Include(t => t.User) // Include user details
+        .Where(p => p.UserId == userId); // 🔹 Filter by the logged-in user
+
             if (!string.IsNullOrEmpty(search))
             {
-                result = result.Include(t => t.User).Where(p => p.PaymentMethod.Contains(search) && p.UserId == GetUserId());
+                result = result.Where(p => p.PaymentMethod.Contains(search));
             }
 
             // Materialize the query into a list

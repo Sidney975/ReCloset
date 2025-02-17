@@ -1,4 +1,5 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect } from "react";
+import axios from "axios"; // Import axios for API calls
 
 const CartContext = createContext();
 
@@ -16,18 +17,41 @@ export const CartProvider = ({ children }) => {
         localStorage.setItem("CartItems", JSON.stringify(cartItems));
     }, [cartItems]);
 
-    // Function to add item to cart
-    const addToCart = (product) => {
+    // 🔹 Function to fetch category name from API
+    const fetchCategoryName = async (categoryId) => {
+        try {
+            const response = await axios.get(`/api/category/${categoryId}`); // Call Category API
+            return response.data.name; // Extract category name
+        } catch (error) {
+            console.error("Failed to fetch category:", error);
+            return "Unknown"; // Default if API call fails
+        }
+    };
+
+    // 🔹 Function to add item to cart
+    const addToCart = async (product) => {
+        const categoryName = await fetchCategoryName(product.categoryId); // Fetch category name from API
+
         setCartItems((prevCart) => {
             const existingItem = prevCart.find(item => item.productId === product.productId);
 
             if (!existingItem) {
-                return [...prevCart, { ...product, quantity: 1, productName: product.name, 
-                    productCategory: product.category }];
+                return [
+                    ...prevCart, 
+                    {
+                        productId: product.productId,  // Product ID (for lookup)
+                        productName: product.name,  // Matches `OrderItem`
+                        productCategory: categoryName,  // 🔹 Store actual category name
+                        quantity: 1,  // Default quantity
+                        itemPrice: product.price,  // Matches `ItemPrice` in `OrderItem`
+                    }
+                ];
             }
 
             return prevCart.map(item =>
-                item.productId === product.productId ? { ...item, quantity: item.quantity + 1 } : item
+                item.productId === product.productId
+                    ? { ...item, quantity: item.quantity + 1 }
+                    : item
             );
         });
     };
@@ -40,9 +64,11 @@ export const CartProvider = ({ children }) => {
     // Function to update item quantity
     const updateQuantity = (productId, amount) => {
         setCartItems((prevCart) =>
-            prevCart.map(item =>
-                item.productId === productId ? { ...item, quantity: item.quantity + amount } : item
-            ).filter(item => item.quantity > 0)
+            prevCart
+                .map(item =>
+                    item.productId === productId ? { ...item, quantity: item.quantity + amount } : item
+                )
+                .filter(item => item.quantity > 0)
         );
     };
 

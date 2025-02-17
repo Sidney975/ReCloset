@@ -51,7 +51,7 @@ function CheckoutPage() {
   useEffect(() => {
     // Load cart from localStorage
     setTotal(
-      cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+      cartItems.reduce((sum, item) => sum + item.itemPrice * item.quantity, 0)
     );
 
     // Fetch payment methods
@@ -123,7 +123,7 @@ function CheckoutPage() {
         productName: item.productName,
         productCategory: item.productCategory,
         quantity: item.quantity,
-        itemPrice: item.price,
+        itemPrice: item.itemPrice,
         timeBought: new Date().toISOString().split('T')[0] // Send only the date
       })),
       voucherId: appliedVoucher ? appliedVoucher.voucherId : null,
@@ -254,7 +254,7 @@ function CheckoutPage() {
           {step === 1 && (
             <Box>
               {isSuspicious && (
-                <Alert severity="warning" sx={{ mt: 2 }}>
+                <Alert severity="error" sx={{ mt: 2 }}>
                   Suspicious activity detected! The selected payment method's billing
                   country ({billingCountry}) does not match your detected IP location (
                   {userLocation?.country}).
@@ -310,7 +310,7 @@ function CheckoutPage() {
               <ul>
                 {cartItems.map((item) => (
                   <li key={item.productId}>
-                    {item.name} - ${item.price.toFixed(2)} x {item.quantity}
+                    {item.productName} - ${item.itemPrice.toFixed(2)} x {item.quantity}
                   </li>
                 ))}
               </ul>
@@ -356,7 +356,7 @@ function CheckoutPage() {
           <ul>
             {cartItems.map((item) => (
               <li key={item.productId}>
-                {item.name} - ${item.price.toFixed(2)} x {item.quantity}
+                {item.name} - ${item.itemPrice.toFixed(2)} x {item.quantity}
               </li>
             ))}
           </ul>

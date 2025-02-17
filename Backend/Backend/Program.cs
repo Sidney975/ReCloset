@@ -16,6 +16,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddDbContext<MyDbContext>();
 
+// Register EmailService so it can be injected
+builder.Services.AddScoped<EmailService>();
+
 // Auto Mapper
 var mappingConfig = new MapperConfiguration(mc =>
 {
