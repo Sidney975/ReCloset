@@ -1,16 +1,32 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, IconButton } from '@mui/material';
 import { Edit } from '@mui/icons-material';
 import UserContext from '../../contexts/UserContext';
 import Sidebar from './Sidebar';
+import http from "../../http";
+
 
 const Profile = () => {
-    const { user } = useContext(UserContext);
+    const { user, setUser } = useContext(UserContext); // ✅ Ensure setUser is used
     const navigate = useNavigate();
 
+    useEffect(() => {
+        if (!user) {
+            http.get("/user/auth", {
+                headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` }
+            })
+            .then((res) => {
+                setUser(res.data.user); // ✅ Store user in context
+            })
+            .catch(() => {
+                navigate("/login"); // 🔄 Redirect if authentication fails
+            });
+        }
+    }, [user, navigate, setUser]); // ✅ Only runs when `user` changes
+
     if (!user) {
-        return <div style={styles.message}>Please log in to view your profile.</div>;
+        return <div style={styles.message}>Loading user details...</div>;
     }
 
     return (
@@ -24,16 +40,17 @@ const Profile = () => {
                     </IconButton>
                 </Typography>
                 <Box sx={styles.profileDetails}>
-                    <Typography sx={styles.label}><strong>First Name:</strong> {user.first_name || "Not provided"}</Typography>
-                    <Typography sx={styles.label}><strong>Last Name:</strong> {user.last_name || "Not provided"}</Typography>
+                    <Typography sx={styles.label}><strong>First Name:</strong> {user.firstName || "Not provided"}</Typography>
+                    <Typography sx={styles.label}><strong>Last Name:</strong> {user.lastName || "Not provided"}</Typography>
                     <Typography sx={styles.label}><strong>Email:</strong> {user.email}</Typography>
-                    <Typography sx={styles.label}><strong>Phone Number:</strong> {user.phone_number || "Not provided"}</Typography>
+                    <Typography sx={styles.label}><strong>Phone Number:</strong> {user.phoneNumber || "Not provided"}</Typography>
                     <Typography sx={styles.label}><strong>Address:</strong> {user.address || "Not provided"}</Typography>
                 </Box>
             </Box>
         </Box>
     );
 };
+
 
 const styles = {
     container: {

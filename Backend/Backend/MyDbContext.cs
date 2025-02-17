@@ -1,83 +1,80 @@
 ﻿using Backend.Models.Jerald.Orders;
 using Backend.Models.Jerald.Payments;
-using Backend.Models.Sarah.Admins;
 using Backend.Models.Sarah.Users;
-using Microsoft.EntityFrameworkCore;
 using Backend.Models.Sophie;
 using Backend.Models.Sidney.Voucher;
 using Backend.Models.Sidney.Delivery;
+using Microsoft.EntityFrameworkCore;
 
-public class MyDbContext(IConfiguration configuration) : DbContext
+public class MyDbContext : DbContext
 {
-    private readonly IConfiguration _configuration = configuration;
     public bool ApplyPaymentFilter { get; set; } = false;
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        string? connectionString = _configuration.GetConnectionString("MyConnection");
-        if (!string.IsNullOrEmpty(connectionString))
-        {
-            optionsBuilder.UseMySQL(connectionString);
-        }
-    }
+    public MyDbContext(DbContextOptions<MyDbContext> options) : base(options) { }
 
-    public required DbSet<Payment> Payments { get; set; }
-    public required DbSet<Order> Orders { get; set; }
-    public required DbSet<OrderItem> OrderItems { get; set; }
-    public required DbSet<User> Users { get; set; }
-    public required DbSet<Admin> Admins { get; set; }
-    public required DbSet<Product> Products { get; set; }
-    public required DbSet<Category> Categories { get; set; }
-    public required DbSet<CollectionPoint> CollectionPoints { get; set; }
-    public required DbSet<Warehouse> Warehouses { get; set; }
-    public required DbSet<SustainabilityCertification> SustainabilityCertifications { get; set; }
-    public required DbSet<UpcyclingRequest> UpcyclingRequests { get; set; }
-
-    public required DbSet<Voucher> Vouchers { get; set; }
-    public required DbSet<UserVoucher> UserVouchers { get; set; }
-    public required DbSet<Delivery> Deliveries { get; set; } // Fixed: Marked as required
+    // Define all DbSets (Tables)
+    public DbSet<User> Users { get; set; }
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<Payment> Payments { get; set; }
+    public DbSet<Product> Products { get; set; }
+    public DbSet<Category> Categories { get; set; }
+    public DbSet<CollectionPoint> CollectionPoints { get; set; }
+    public DbSet<Warehouse> Warehouses { get; set; }
+    public DbSet<SustainabilityCertification> SustainabilityCertifications { get; set; }
+    public DbSet<UpcyclingRequest> UpcyclingRequests { get; set; }
+    public DbSet<Voucher> Vouchers { get; set; }
+    public DbSet<UserVoucher> UserVouchers { get; set; }
+    public DbSet<Delivery> Deliveries { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // 🔹 Apply Soft Delete Filters
         modelBuilder.Entity<Payment>().HasQueryFilter(p => ApplyPaymentFilter ? !p.IsDeleted : true);
         modelBuilder.Entity<User>().HasQueryFilter(u => u.Status != "Inactive");
-        modelBuilder.Entity<Admin>().HasQueryFilter(a => a.Status != "Inactive");
 
-        modelBuilder.Entity<Order>()
-            .HasOne(o => o.User)
-            .WithMany(u => u.Orders)
-            .HasForeignKey(o => o.UserId)
-            .OnDelete(DeleteBehavior.SetNull);
+        // 🔹 Ensure UserId is Unique
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.UserId)
+            .IsUnique();
 
+        // 🔹 Admin-User Relationship
         modelBuilder.Entity<User>()
             .HasOne(u => u.ManagedByAdmin)
             .WithMany()
             .HasForeignKey(u => u.ManagedByAdminId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<Product>()
-            .HasOne(p => p.SustainabilityCertification)
-            .WithMany()
-            .HasForeignKey(p => p.CertId);
+        // 🔹 Orders Relationship (User -> Orders)
+        modelBuilder.Entity<Order>()
+            .HasOne(o => o.User)
+            .WithMany(u => u.Orders)
+            .HasForeignKey(o => o.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
+        // 🔹 User-Voucher Relationship (Many-to-Many)
         modelBuilder.Entity<UserVoucher>().HasKey(uv => new { uv.UserId, uv.VoucherId });
 
         modelBuilder.Entity<UserVoucher>()
             .HasOne(uv => uv.User)
             .WithMany(u => u.UserVouchers)
-            .HasForeignKey(uv => uv.UserId);
+            .HasForeignKey(uv => uv.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<UserVoucher>()
             .HasOne(uv => uv.Voucher)
             .WithMany(v => v.UserVouchers)
-            .HasForeignKey(uv => uv.VoucherId);
+            .HasForeignKey(uv => uv.VoucherId)
+            .OnDelete(DeleteBehavior.Cascade);
 
+        // 🔹 Delivery Relationship (One-to-One with Order)
         modelBuilder.Entity<Order>()
             .HasOne(o => o.Delivery)
             .WithOne(d => d.Order)
             .HasForeignKey<Delivery>(d => d.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // 🔹 Voucher-Category Relationship
         modelBuilder.Entity<Voucher>()
             .HasOne(v => v.Category)
             .WithMany(c => c.Vouchers)

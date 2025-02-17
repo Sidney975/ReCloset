@@ -5,10 +5,12 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using Backend.Models.Sarah.Users;
+using Backend.Services;
 
 namespace ReCloset.Controllers
 {
@@ -18,241 +20,148 @@ namespace ReCloset.Controllers
     {
         private readonly MyDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly AuthService _authService;
 
-        public UserController(MyDbContext context, IConfiguration configuration)
+        public UserController(MyDbContext context, IConfiguration configuration, AuthService authService)
         {
             _context = context;
             _configuration = configuration;
+            _authService = authService;
         }
 
         [HttpPost("register")]
         public IActionResult Register(RegisterRequest request)
         {
-            // Trim string values
-            request.Username = request.Username.Trim();
-            request.Email = request.Email.Trim().ToLower();
-            request.Password = request.Password.Trim();
+            if (_context.Users.Any(u => u.UserId == request.UserId))
+                return BadRequest("User ID is already in use.");
 
-            // Check email
-            var foundUser = _context.Users.Where(x => x.Email == request.Email).FirstOrDefault();
-            if (foundUser != null)
-            {
-                string message = "Email already exists.";
-                return BadRequest(new { message });
-            }
+            if (_context.Users.Any(u => u.Email == request.Email))
+                return BadRequest("Email is already in use.");
 
-            // Create user object
-            var now = DateTime.Now;
-            string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-            var user = new User()
+            var user = new User
             {
-                Username = request.Username,
+                UserId = request.UserId, 
                 Email = request.Email,
-                Password = passwordHash,
-                CreatedAt = now,
-                UpdatedAt = now
+                Password = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                Role = "Customer",
+                Status = "Active",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
-            // Add user
+
             _context.Users.Add(user);
             _context.SaveChanges();
-            return Ok();
+
+            return Ok(new { message = $"User {request.UserId} registered successfully." });
         }
 
         [HttpPost("login")]
         public IActionResult Login(LoginRequest request)
         {
-            // Trim string values
-            request.Email = request.Email.Trim().ToLower();
+            request.UsernameOrEmail = request.UsernameOrEmail.Trim().ToLower();
             request.Password = request.Password.Trim();
 
-            // Check email and password
-            string message = "Email or password is not correct.";
-            var foundUser = _context.Users.Where(x => x.Email == request.Email).FirstOrDefault();
-            if (foundUser == null)
-            {
-                return BadRequest(new { message });
-            }
-            bool verified = BCrypt.Net.BCrypt.Verify(request.Password, foundUser.Password);
-            if (!verified)
-            {
-                return BadRequest(new { message });
-            }
+            var foundUser = _context.Users
+                .FirstOrDefault(x => x.Email.ToLower() == request.UsernameOrEmail || x.UserId.ToLower() == request.UsernameOrEmail);
 
-            // Return user info
-            var user = new
-            {
-                foundUser.Id,
-                foundUser.Email,
-                foundUser.Username
-            };
-            string accessToken = CreateToken(foundUser);
-            return Ok(new { user, accessToken });
+            if (foundUser == null || !BCrypt.Net.BCrypt.Verify(request.Password, foundUser.Password))
+                return Unauthorized(new { message = "Invalid credentials." });
+
+            string accessToken = _authService.GenerateToken(foundUser);
+
+            return Ok(new { user = new { foundUser.UserId, foundUser.Email }, accessToken });
         }
 
         [HttpGet("auth"), Authorize]
         public async Task<IActionResult> Auth()
         {
-            // Extract user information from claims
-            var tokenUserId = Convert.ToInt32(User.Claims
-                .Where(c => c.Type == ClaimTypes.NameIdentifier)
-                .Select(c => c.Value)
-                .SingleOrDefault());
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-            var username = User.Claims
-                .Where(c => c.Type == ClaimTypes.Name)
-                .Select(c => c.Value)
-                .SingleOrDefault();
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized(new { message = "Invalid token. Access denied." });
 
-            var email = User.Claims
-                .Where(c => c.Type == ClaimTypes.Email)
-                .Select(c => c.Value)
-                .SingleOrDefault();
-
-            // Validate that the claims exist
-            if (tokenUserId == 0 || username == null || email == null)
-            {
-                return Unauthorized(new { message = "Invalid user claims. Access denied." });
-            }
-
-            // Ensure the authenticated user can only access their own information
-            //if (tokenUserId != id)
-            //{
-            //    return Unauthorized(new { message = "You can only view your own information." });
-            //}
-
-            // Fetch user data from the database
-            var user = await _context.Users.FindAsync(tokenUserId);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userIdClaim); // ✅ Ensure `FirstOrDefaultAsync()` is used
 
             if (user == null)
-            {
-                return NotFound(new { message = $"User with ID {tokenUserId} not found." });
-            }
+                return NotFound(new { message = "User not found." });
 
-            // Build a response with detailed user information
-            var userResponse = new
-            {
-                user.Id,
-                user.Username,
-                user.First_name,
-                user.Last_name,
-                user.Email,
-                user.Phone_number,
-                user.Address,
-                user.Role,
-                user.Status,
-                user.CreatedAt,
-                user.UpdatedAt,
-                Preferences = user.Preferences != null ? JsonSerializer.Deserialize<List<string>>(user.Preferences) : new List<string>(),
-                user.LoyaltyPoints,
-                Vouchers = user.Vouchers != null ? JsonSerializer.Deserialize<List<string>>(user.Vouchers) : new List<string>(),
-            };
-
-            return Ok(new { user = userResponse });
+            return Ok(new { user });
         }
 
-
-
-        [HttpPut("update/{id}"), Authorize]
-        public IActionResult Update(int id, UpdateUserRequest request)
+        [HttpPut("update-profile"), Authorize]
+        public IActionResult UpdateProfile([FromBody] UpdateUserRequest request)
         {
-            // Find the user by ID
-            var foundUser = _context.Users.FirstOrDefault(x => x.Id == id);
-            if (foundUser == null)
-            {
-                return NotFound(new { message = "User not found." });
-            }
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized("User not found.");
 
-            // Only allow users to update their own information
-            if (foundUser.Id != id)
-            {
-                return Unauthorized(new { message = "You cannot update another user's information." });
-            }
+            var user = _context.Users.FirstOrDefault(u => u.UserId == userIdClaim);
+            if (user == null)
+                return NotFound("User does not exist.");
 
-            // Update user fields
-            foundUser.Username = request.Username ?? foundUser.Username;
-            foundUser.Password = request.Password != null ? BCrypt.Net.BCrypt.HashPassword(request.Password) : foundUser.Password;
-            foundUser.First_name = request.First_name ?? foundUser.First_name;
-            foundUser.Last_name = request.Last_name ?? foundUser.Last_name;
-            foundUser.Phone_number = request.Phone_number ?? foundUser.Phone_number;
-            foundUser.Address = request.Address ?? foundUser.Address;
-            foundUser.Preferences = request.Preferences ?? foundUser.Preferences;
-            foundUser.UpdatedAt = DateTime.UtcNow;
+            user.FirstName = request.FirstName ?? user.FirstName;
+            user.LastName = request.LastName ?? user.LastName;
+            user.PhoneNumber = request.PhoneNumber ?? user.PhoneNumber;
+            user.Address = request.Address ?? user.Address;
+            user.UpdatedAt = DateTime.UtcNow;
 
-            // Update the user in the database
-            _context.Users.Update(foundUser);
             _context.SaveChanges();
 
-            return Ok(new { message = "User information updated successfully." });
+            return Ok(new { message = "Profile updated successfully." });
         }
 
-        [HttpDelete("delete/{id}"), Authorize]
-        public IActionResult Delete(int id)
+        [HttpDelete("delete/{userId}"), Authorize]
+        public IActionResult Delete(string userId)
         {
-            // Extract the user's ID from the token claims
-            var tokenUserId = Convert.ToInt32(User.Claims
-                .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value);
+            var tokenUserId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-            // Validate the extracted user ID
-            if (tokenUserId == 0)
-            {
-                return Unauthorized(new { message = "Invalid token. Access denied." });
-            }
-
-            // Ensure the authenticated user can only delete their own account
-            if (tokenUserId != id)
-            {
+            if (string.IsNullOrEmpty(tokenUserId) || tokenUserId != userId)
                 return Unauthorized(new { message = "You cannot delete another user's account." });
-            }
 
-            // Find the user by ID in the database
-            var foundUser = _context.Users.FirstOrDefault(x => x.Id == id);
+            var foundUser = _context.Users.FirstOrDefault(x => x.UserId == userId);
             if (foundUser == null)
-            {
                 return NotFound(new { message = "User not found." });
-            }
 
-            // Delete the user
             _context.Users.Remove(foundUser);
             _context.SaveChanges();
 
             return Ok(new { message = "User deleted successfully." });
         }
 
-        [HttpPut("admin/update-user/{id}"), Authorize(Roles = "Admin")] // 🔥 Admins can update any user
-        public IActionResult UpdateUser(int id, UpdateUserRequest request)
+        [HttpPut("admin/update-user/{id}"), Authorize(Roles = "Admin")]
+        public IActionResult UpdateUser(string id, [FromBody] UpdateUserRequest request)
         {
-            var foundUser = _context.Users.FirstOrDefault(x => x.Id == id);
+            var foundUser = _context.Users.FirstOrDefault(u => u.UserId == id);
             if (foundUser == null)
             {
                 return NotFound(new { message = "User not found." });
             }
 
-            // ✅ Admin can update any user
-            foundUser.Username = request.Username ?? foundUser.Username;
-            foundUser.Password = request.Password != null ? BCrypt.Net.BCrypt.HashPassword(request.Password) : foundUser.Password;
-            foundUser.Phone_number = request.Phone_number ?? foundUser.Phone_number;
+            // ✅ Allow admins to edit user details
             foundUser.Address = request.Address ?? foundUser.Address;
-            foundUser.Status = request.Status ?? foundUser.Status; // 🔥 Admin can modify Status
+            foundUser.PhoneNumber = request.PhoneNumber ?? foundUser.PhoneNumber;
+            foundUser.Role = request.Role ?? foundUser.Role;
+            foundUser.Status = request.Status ?? foundUser.Status;
             foundUser.UpdatedAt = DateTime.UtcNow;
 
             _context.Users.Update(foundUser);
             _context.SaveChanges();
 
-            return Ok(new { message = "User updated successfully by Admin." });
+            return Ok(new { message = "User updated successfully.", user = foundUser });
         }
 
 
         [HttpDelete("soft-delete/{id}"), Authorize(Roles = "Admin")]
-        public IActionResult SoftDeleteUser(int id)
+        public IActionResult SoftDeleteUser(string id)
         {
-            var foundUser = _context.Users.FirstOrDefault(x => x.Id == id);
+            var foundUser = _context.Users.FirstOrDefault(u => u.UserId == id);
             if (foundUser == null)
             {
                 return NotFound(new { message = "User not found." });
             }
 
-            // Soft delete by updating status instead of removing from DB
-            foundUser.Status = "Inactive"; // Mark user as inactive
+            //  Instead of deleting, mark as Inactive
+            foundUser.Status = "Inactive";
             foundUser.UpdatedAt = DateTime.UtcNow;
 
             _context.Users.Update(foundUser);
@@ -261,63 +170,56 @@ namespace ReCloset.Controllers
             return Ok(new { message = "User has been soft deleted (deactivated)." });
         }
 
-
-
-        private string CreateToken(User user)
+        [HttpPut("change-password"), Authorize]
+        public IActionResult ChangeOwnPassword([FromBody] ChangePasswordRequest request)
         {
-            string secret = _configuration.GetValue<string>("Authentication:Secret");
-            if (string.IsNullOrEmpty(secret))
-            {
-                throw new Exception("Secret is required for JWT authentication.");
-            }
-            int tokenExpiresDays = _configuration.GetValue<int>("Authentication:TokenExpiresDays");
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(secret);
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(
-                    new[] {
-                        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                        new Claim(ClaimTypes.Name, user.Username),
-                        new Claim(ClaimTypes.Email, user.Email)
-                    }),
-                Expires = DateTime.UtcNow.AddDays(tokenExpiresDays),
-                SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var securityToken = tokenHandler.CreateToken(tokenDescriptor);
-            string token = tokenHandler.WriteToken(securityToken);
-            return token;
+            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("User authentication failed.");
+
+            var user = _context.Users.FirstOrDefault(u => u.UserId == userId);
+            if (user == null)
+                return NotFound("User not found.");
+
+            if (!BCrypt.Net.BCrypt.Verify(request.OldPassword, user.Password))
+                return BadRequest("Incorrect current password.");
+
+            // Hash and update new password
+            user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            user.UpdatedAt = DateTime.UtcNow;
+
+            _context.SaveChanges();
+            return Ok(new { message = "Password updated successfully." });
         }
-    }
 
-    // DTO class for update request
-    public class UpdateUserRequest
-    {
-        [MaxLength(50)]
-        public string? Username { get; set; }
+        [HttpPut("admin/change-password/{id}"), Authorize(Roles = "Admin")]
+        public IActionResult ChangeUserPassword(string id, [FromBody] ChangePasswordRequest request)
+        {
+            var adminRole = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
 
-        [MaxLength(100)]
-        public string? Password { get; set; }
+            if (adminRole != "Admin")
+                return Forbid("Only admins can change other users' passwords.");
 
-        [MaxLength(50)]
-        public string? First_name { get; set; }
+            var user = _context.Users.FirstOrDefault(u => u.UserId == id);
+            if (user == null)
+                return NotFound("User not found.");
 
-        [MaxLength(50)]
-        public string? Last_name { get; set; }
+            user.Password = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            user.UpdatedAt = DateTime.UtcNow;
 
-        [MaxLength(15)] // Adjust max length based on your phone number format
-        public string? Phone_number { get; set; }
+            _context.SaveChanges();
+            return Ok(new { message = $"Password for {id} updated successfully." });
 
-        [MaxLength(100)]
-        public string? Address { get; set; }
+        }
 
-        // Assuming Preferences are serialized as a string or JSON
-        public string? Preferences { get; set; }
+        [HttpGet("customers")]
+        public IActionResult GetCustomers()
+        {
+            var customers = _context.Users.Where(u => u.Role == "Customer").ToList();
+            return Ok(customers);
+        }
 
-        [MaxLength(50)]
-        public string? Status { get; set; } // 🔥 Fix for your error
 
     }
 }
-

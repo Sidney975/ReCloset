@@ -10,7 +10,7 @@ namespace Backend.Models.Sidney.Voucher
         // Foreign key to User
         [JsonIgnore]
         public int UserId { get; set; }
-        public User User { get; set; } = null!;
+        public User? User { get; set; } = null!;
         [JsonIgnore]
         // Foreign key to Voucher
         public int VoucherId { get; set; }

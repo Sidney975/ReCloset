@@ -18,35 +18,53 @@ const ChangeAdminPassword = () => {
     }
 
     // **State for password visibility toggle**
+    const [showOldPassword, setShowOldPassword] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    const toggleOldPasswordVisibility = () => setShowOldPassword(!showOldPassword);
     const togglePasswordVisibility = () => setShowPassword(!showPassword);
     const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(!showConfirmPassword);
 
     const formik = useFormik({
         initialValues: {
+            oldPassword: "",
             newPassword: "",
             confirmPassword: "",
         },
         validationSchema: yup.object({
+            oldPassword: yup.string().trim().required("Old Password is required"),
             newPassword: yup.string().trim()
                 .min(8, "Password must be at least 8 characters")
                 .max(50, "Password must be at most 50 characters")
-                .required("Password is required"),
+                .required("New Password is required"),
             confirmPassword: yup.string()
                 .oneOf([yup.ref("newPassword"), null], "Passwords must match")
                 .required("Confirm Password is required"),
         }),
         onSubmit: (data) => {
-            http.put(`/admin/update/${admin.id}`, { password: data.newPassword })
-                .then(() => {
-                    toast.success("Password updated successfully!");
-                    navigate("/admin/profile");
-                })
-                .catch(() => {
+            http.put(`/user/change-password`, 
+                {
+                    oldPassword: data.oldPassword, // Backend requires the old password
+                    newPassword: data.newPassword,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+                    },
+                }
+            )
+            .then(() => {
+                toast.success("Password updated successfully!");
+                navigate("/admin/profile");
+            })
+            .catch((err) => {
+                if (err.response && err.response.status === 400) {
+                    toast.error("Incorrect old password.");
+                } else {
                     toast.error("Failed to update password.");
-                });
+                }
+            });
         }
     });
 
@@ -60,10 +78,29 @@ const ChangeAdminPassword = () => {
                 <Paper sx={styles.formContainer} elevation={3}>
                     <Typography variant="h5" sx={styles.title}>Change Password</Typography>
                     <Box component="form" onSubmit={formik.handleSubmit} sx={styles.form}>
+
+                        {/* Old Password Field */}
+                        <TextField
+                            fullWidth margin="dense" label="Old Password" name="oldPassword"
+                            type={showOldPassword ? "text" : "password"}
+                            value={formik.values.oldPassword} onChange={formik.handleChange}
+                            error={formik.touched.oldPassword && Boolean(formik.errors.oldPassword)}
+                            helperText={formik.touched.oldPassword && formik.errors.oldPassword}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton onClick={toggleOldPasswordVisibility} edge="end">
+                                            {showOldPassword ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                )
+                            }}
+                        />
+
                         {/* New Password Field */}
                         <TextField
                             fullWidth margin="dense" label="New Password" name="newPassword"
-                            type={showPassword ? "text" : "password"} // Toggle password visibility
+                            type={showPassword ? "text" : "password"}
                             value={formik.values.newPassword} onChange={formik.handleChange}
                             error={formik.touched.newPassword && Boolean(formik.errors.newPassword)}
                             helperText={formik.touched.newPassword && formik.errors.newPassword}
@@ -81,7 +118,7 @@ const ChangeAdminPassword = () => {
                         {/* Confirm Password Field */}
                         <TextField
                             fullWidth margin="dense" label="Confirm New Password" name="confirmPassword"
-                            type={showConfirmPassword ? "text" : "password"} // Toggle confirm password visibility
+                            type={showConfirmPassword ? "text" : "password"}
                             value={formik.values.confirmPassword} onChange={formik.handleChange}
                             error={formik.touched.confirmPassword && Boolean(formik.errors.confirmPassword)}
                             helperText={formik.touched.confirmPassword && formik.errors.confirmPassword}

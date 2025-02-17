@@ -1,6 +1,5 @@
 ﻿using Backend.Models.Jerald.Orders;
 using Backend.Models.Jerald.Payments;
-using Backend.Models.Sarah.Admins; // ✅ Import Admin Model
 using Backend.Models.Sidney.Voucher;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -11,59 +10,56 @@ namespace Backend.Models.Sarah.Users
 {
     public class User
     {
-        public int Id { get; set; }
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // Auto-generate ID
+        public int Id { get; set; }  //  Change this to 'int' (recommended)
 
         [MaxLength(50)]
-        public string Username { get; set; } = string.Empty;
+        public string UserId { get; set; } = Guid.NewGuid().ToString();
+        [Required]
+        [MaxLength(50)]
+        public string Email { get; set; } = string.Empty;
 
+        [Required]
         [MaxLength(100)]
         public string Password { get; set; } = string.Empty;
 
         [MaxLength(50)]
-        public string First_name { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
 
         [MaxLength(50)]
-        public string Last_name { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
 
-        [MaxLength(50)]
-        public string Email { get; set; } = string.Empty;
-
-        [MaxLength(50)]
-        public string Phone_number { get; set; } = string.Empty;
+        [MaxLength(15)]
+        public string PhoneNumber { get; set; } = string.Empty;
 
         [MaxLength(100)]
         public string Address { get; set; } = string.Empty;
 
-        // ✅ Admin that manages the user (nullable in case user is not assigned an admin)
-        [ForeignKey("ManagedByAdminId")]
-        public int? ManagedByAdminId { get; set; }
-
-        // ✅ Navigation property for admin (optional)
-        public Admin? ManagedByAdmin { get; set; }
+        [MaxLength(50)]
+        public string Role { get; set; } = "Customer"; // ✅ Role differentiates Admin & Customer
 
         [MaxLength(50)]
-        public string Role { get; set; } = string.Empty;
+        public string Status { get; set; } = "Active";
 
-        [MaxLength(50)]
-        public string Status { get; set; } = string.Empty;
-
-        [Column(TypeName = "datetime")]
-        public DateTime CreatedAt { get; set; }
-
-        [Column(TypeName = "datetime")]
-        public DateTime UpdatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public string Preferences { get; set; } = JsonSerializer.Serialize(new List<string>());
         public int LoyaltyPoints { get; set; }
-        public string Vouchers { get; set; } = JsonSerializer.Serialize(new List<string>());
 
-        // ✅ Navigation properties
-        [JsonIgnore]
-        public List<Order>? Orders { get; set; }
-
-        [JsonIgnore]
-        public List<Payment>? Payments { get; set; }
         [JsonIgnore]
         public ICollection<UserVoucher>? UserVouchers { get; set; }
+
+        [JsonIgnore]
+        public ICollection<Order>? Orders { get; set; }
+
+        //  ADMIN-SPECIFIC ATTRIBUTES (Only applies if Role == "Admin")
+        public int? ManagedByAdminId { get; set; } // Which admin manages this user
+        [JsonIgnore]
+        public User? ManagedByAdmin { get; set; }
+
+        [JsonIgnore]
+        public ICollection<User>? ManagedUsers { get; set; } // Admins can manage multiple users
     }
 }

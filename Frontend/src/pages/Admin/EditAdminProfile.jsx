@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { Box, Typography, TextField, Button, Paper } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
@@ -12,31 +12,46 @@ const EditAdminProfile = () => {
   const { admin, setAdmin } = useContext(AdminContext);
   const navigate = useNavigate();
 
-  // 🛑 Prevents crash if admin is null
+  // ✅ Fetch latest admin profile data before editing
+  useEffect(() => {
+    if (!admin) {
+      http
+        .get("/user/auth", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+        })
+        .then((res) => {
+          setAdmin(res.data.user);
+        })
+        .catch(() => {
+          navigate("/login");
+        });
+    }
+  }, [admin, navigate, setAdmin]);
+
   if (!admin) {
     return <Typography>Loading...</Typography>;
   }
 
   const formik = useFormik({
     initialValues: {
-      username: admin?.username || "",
-      email: admin?.email || "",
-      first_name: admin?.first_name || "",
-      last_name: admin?.last_name || "",
-      phone_number: admin?.phone_number || "",
+      firstName: admin?.firstName || "",
+      lastName: admin?.lastName || "",
+      phoneNumber: admin?.phoneNumber || "",
       address: admin?.address || "",
     },
     validationSchema: yup.object({
-      username: yup.string().trim().min(3, "Username must be at least 3 characters").max(50, "Username must be at most 50 characters").required("Username is required"),
-      email: yup.string().trim().email("Enter a valid email").max(50, "Email must be at most 50 characters").required("Email is required"),
-      first_name: yup.string().trim().max(50, "First name must be at most 50 characters").required("First name is required"),
-      last_name: yup.string().trim().max(50, "Last name must be at most 50 characters").required("Last name is required"),
-      phone_number: yup.string().matches(/^[89]\d{7}$/, "Phone number must start with 8 or 9 and be 8 digits long").required("Contact number is required"),
+      firstName: yup.string().trim().max(50, "First name must be at most 50 characters").required("First name is required"),
+      lastName: yup.string().trim().max(50, "Last name must be at most 50 characters").required("Last name is required"),
+      phoneNumber: yup.string().matches(/^[89]\d{7}$/, "Phone number must start with 8 or 9 and be 8 digits long").required("Contact number is required"),
       address: yup.string().trim().max(100, "Address must be at most 100 characters").required("Address is required"),
     }),
     onSubmit: (data) => {
       http
-        .put(`/admin/update/${admin.id}`, data) // ✅ Fixed backticks here
+        .put(`/user/update-profile`, data, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        })
         .then(() => {
           toast.success("Profile updated successfully!");
           setAdmin({ ...admin, ...data });
@@ -57,12 +72,36 @@ const EditAdminProfile = () => {
             Edit Admin Profile
           </Typography>
           <Box component="form" onSubmit={formik.handleSubmit} sx={styles.form}>
-            <TextField fullWidth margin="dense" label="First Name" name="first_name" value={formik.values.first_name} onChange={formik.handleChange} onBlur={formik.handleBlur} error={formik.touched.first_name && Boolean(formik.errors.first_name)} helperText={formik.touched.first_name && formik.errors.first_name} />
-            <TextField fullWidth margin="dense" label="Last Name" name="last_name" value={formik.values.last_name} onChange={formik.handleChange} onBlur={formik.handleBlur} error={formik.touched.last_name && Boolean(formik.errors.last_name)} helperText={formik.touched.last_name && formik.errors.last_name} />
-            <TextField fullWidth margin="dense" label="Phone Number" name="phone_number" value={formik.values.phone_number} onChange={formik.handleChange} onBlur={formik.handleBlur} error={formik.touched.phone_number && Boolean(formik.errors.phone_number)} helperText={formik.touched.phone_number && formik.errors.phone_number} />
-            <TextField fullWidth margin="dense" label="Address" name="address" value={formik.values.address} onChange={formik.handleChange} onBlur={formik.handleBlur} error={formik.touched.address && Boolean(formik.errors.address)} helperText={formik.touched.address && formik.errors.address} />
-            <Button fullWidth variant="contained" sx={styles.saveButton} type="submit">Save</Button>
-            <Button fullWidth variant="outlined" sx={styles.cancelButton} onClick={() => navigate("/admin/profile")}>Cancel</Button>
+            <TextField
+              fullWidth margin="dense" label="First Name" name="firstName"
+              value={formik.values.firstName} onChange={formik.handleChange} onBlur={formik.handleBlur}
+              error={formik.touched.firstName && Boolean(formik.errors.firstName)}
+              helperText={formik.touched.firstName && formik.errors.firstName}
+            />
+            <TextField
+              fullWidth margin="dense" label="Last Name" name="lastName"
+              value={formik.values.lastName} onChange={formik.handleChange} onBlur={formik.handleBlur}
+              error={formik.touched.lastName && Boolean(formik.errors.lastName)}
+              helperText={formik.touched.lastName && formik.errors.lastName}
+            />
+            <TextField
+              fullWidth margin="dense" label="Phone Number" name="phoneNumber"
+              value={formik.values.phoneNumber} onChange={formik.handleChange} onBlur={formik.handleBlur}
+              error={formik.touched.phoneNumber && Boolean(formik.errors.phoneNumber)}
+              helperText={formik.touched.phoneNumber && formik.errors.phoneNumber}
+            />
+            <TextField
+              fullWidth margin="dense" label="Address" name="address"
+              value={formik.values.address} onChange={formik.handleChange} onBlur={formik.handleBlur}
+              error={formik.touched.address && Boolean(formik.errors.address)}
+              helperText={formik.touched.address && formik.errors.address}
+            />
+            <Button fullWidth variant="contained" sx={styles.saveButton} type="submit">
+              Save
+            </Button>
+            <Button fullWidth variant="outlined" sx={styles.cancelButton} onClick={() => navigate("/admin/profile")}>
+              Cancel
+            </Button>
           </Box>
         </Paper>
       </Box>

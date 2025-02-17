@@ -1,5 +1,7 @@
 @Backend_HostAddress = http://localhost:11291
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIyIiwidW5pcXVlX25hbWUiOiJ1c2VyT25lIiwiZW1haWwiOiJ1c2VyQGVtYWlsLmNvbSIsIm5iZiI6MTczOTI5Njc0NSwiZXhwIjoxNzQxODg4NzQ1LCJpYXQiOjE3MzkyOTY3NDV9.BQ4lljjXdcX_CydkEpZByowp2r6lo3EUjKmvlEo7lZw
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6InVzZXJPbmUiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ1c2VyMUBlbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJDdXN0b21lciIsImV4cCI6MTc0MDQyMDQxMSwiaXNzIjoiUmVDbG9zZXRJc3N1ZXIiLCJhdWQiOiJSZUNsb3NldFVzZXJzIn0.GmtT2tK4Y98Nq45Bby1-PZcCP-iMRXXAtBJHaB6stgI
+
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6InVzZXJUd28iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ1c2VyMkBlbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImV4cCI6MTc0MDQxOTU1OCwiaXNzIjoiUmVDbG9zZXRJc3N1ZXIiLCJhdWQiOiJSZUNsb3NldFVzZXJzIn0.U_DG7SteIi5LqSNsOaifHuAjzYYAqfwE0X8EIb12nfQ
 
 GET {{Backend_HostAddress}}/checkout
 
@@ -128,109 +130,6 @@ Authorization: Bearer {{token}}
 
 
 
-
-POST {{Backend_HostAddress}}/user/register
-Content-Type: application/json
-
-{
-  "Email":"admin2@email.com",
-  "Username":"adminTwo",
-  "Password":"password1!"
-}
-
-###
-
-POST {{Backend_HostAddress}}/user/login
-Content-Type: application/json
-
-{
-  "Email":"user@email.com",
-  "Password":"password1!"
-}
-
-###
-
-GET {{Backend_HostAddress}}/user/auth
-
-###
-
-PUT {{Backend_HostAddress}}/user/update/{{id}}
-Content-Type: application/json
-
-{
-  //UpdateUserRequest
-}
-
-###
-
-DELETE {{Backend_HostAddress}}/user/delete/{{id}}
-###
-
-
-
-@id=0
-PUT {{Backend_HostAddress}}/user/update/{{id}}
-Content-Type: application/json
-
-{
-  //UpdateUserRequest
-}
-
-###
-
-DELETE {{Backend_HostAddress}}/user/soft-delete/{{id}}
-
-###
-
-POST {{Backend_HostAddress}}/admin/register
-Content-Type: application/json
-
-{
-  "Username":"adminTwo",
-  "Email":"admin2@email.com",
-  "Password":"password1!"
-}
-
-###
-
-POST {{Backend_HostAddress}}/admin/login
-Content-Type: application/json
-
-{
-  "Email":"admin2@email.com",
-  "Password":"password1!"
-}
-
-###
-
-GET {{Backend_HostAddress}}/admin/auth
-
-###
-
-PUT {{Backend_HostAddress}}/admin/update/{{id}}
-Content-Type: application/json
-
-{
-  
-}
-
-###
-
-DELETE {{Backend_HostAddress}}/admin/delete/{{id}}
-
-###
-
-POST {{Backend_HostAddress}}/user/register
-Content-Type: application/json
-
-{
-   "Email":"jeraldliu@gmail.com",
-  "Username":"Jerald",
-  "Password":"P@ssw0rd!"
-}
-
-###
-
 POST {{Backend_HostAddress}}/api/product
 Content-Type: application/json
 
@@ -252,6 +151,96 @@ Content-Type: application/json
  
  
 
+}
+
+###
+
+
+
+
+POST {{Backend_HostAddress}}/user/register
+Content-Type: application/json
+
+{
+ "UserId":"userTwo",
+ "Email":"user2@email.com",
+ "Password":"password1!"
+}
+
+###
+
+POST {{Backend_HostAddress}}/user/login
+Content-Type: application/json
+
+{
+  "usernameOrEmail":"userOne",
+  "Password":"password1!"
+}
+
+###
+
+GET {{Backend_HostAddress}}/user/auth
+Authorization: Bearer {{token}}
+###
+
+PUT {{Backend_HostAddress}}/user/update-profile
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "FirstName": "cust",
+  "LastName": "omer",
+  "PhoneNumber": "1234567890",
+  "Address": "123 Street, City, Country"
+}
+
+###
+
+@userId=string
+DELETE {{Backend_HostAddress}}/user/delete/userOne
+Authorization: Bearer {{token}}
+###
+
+@id=string
+PUT {{Backend_HostAddress}}/user/admin/update-user/{{id}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+{
+
+}
+
+###
+
+DELETE {{Backend_HostAddress}}/user/soft-delete/{{id}}
+Authorization: Bearer {{token}}
+###
+
+PUT {{Backend_HostAddress}}/user/admin/change-password/userOne
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+{
+  "NewPassword":"password1!"
+}
+
+###
+
+PUT {{Backend_HostAddress}}/user/admin/change-password/{{id}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  //ChangePasswordRequest
+}
+
+###
+
+PUT {{Backend_HostAddress}}/user/change-password
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "OldPassword":"password1!!",
+  "NewPassword":"password1!"
 }
 
 ###

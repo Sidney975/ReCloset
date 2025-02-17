@@ -11,16 +11,23 @@ import { Link, useNavigate } from "react-router-dom";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LogoutIcon from "@mui/icons-material/Logout";
 import AdminContext from "../contexts/AdminContext";
+import UserContext from "../contexts/UserContext";  
 
 const AdminAppBar = () => {
   const navigate = useNavigate();
   const { admin, setAdmin } = useContext(AdminContext);
-
+  const { setUser } = useContext(UserContext);  
   const logout = () => {
     localStorage.removeItem("accessToken");
+    localStorage.removeItem("adminData");
+    localStorage.removeItem("userData");
+
     setAdmin(null);
-    navigate("/admin/login");
-  };
+    setUser(null);
+
+    navigate("/login", { replace: true });
+};
+
 
   return (
     <>
@@ -45,7 +52,7 @@ const AdminAppBar = () => {
               {admin && (
                 <IconButton component={Link} to="/admin/profile" sx={{ color: "black", "&:hover": { color: "gray" } }}>
                   <AccountCircleIcon />
-                  <Typography variant="body2" sx={{ ml: 0.5 }}>{admin.username}</Typography>
+                  <Typography variant="body2" sx={{ ml: 0.5 }}>{admin.userId}</Typography>
                 </IconButton>
               )}
               <IconButton onClick={logout} sx={{ color: "black", "&:hover": { color: "gray" } }}>
@@ -57,26 +64,24 @@ const AdminAppBar = () => {
         </Container>
       </MuiAppBar>
 
-      {/* Navigation Tabs */}
+      {/* ✅ Navigation Tabs Added Here */}
       <Box sx={{ display: "flex", justifyContent: "center", bgcolor: "#a67c52", py: 1, width: "100%" }}>
-        <NavItem to="/admin/dashboard" label="Dashboard" />
-        <NavItem to="/admin/products" label="Products" />
-        <NavItem to="/admin/orders" label="Orders" />
-        <NavItem to="/admin/vouchers" label="Vouchers" />
-        <NavItem to="/admin/delivery" label="Delivery" />
-        <NavItem to="/admin/users" label="Users" />
-        <NavItem to="/admin/dashboard" label="Dashboard" />
-        <NavItem to="/admin/products" label="Products" />
-        <NavItem to="/admin/orders" label="Orders" />
-        <NavItem to="/voucher" label="Vouchers" />
-        {/* <NavItem to="/admin/delivery" label="Delivery" /> */}
-        <NavItem to="/admin/users" label="Users" />
+        {[
+          { to: "/admin/dashboard", label: "Dashboard" },
+          { to: "/admin/products", label: "Products" },
+          { to: "/admin/orders", label: "Orders" },
+          { to: "/admin/vouchers", label: "Vouchers" },
+          // { to: "/admin/delivery", label: "Delivery" },
+          { to: "/admin/users", label: "Users" }
+        ].map((item, index) => (
+          <NavItem key={index} to={item.to} label={item.label} />
+        ))}
       </Box>
     </>
   );
 };
 
-/** ✅ *Reusable Navigation Item* */
+/** ✅ *Reusable Navigation Item Component* */
 const NavItem = ({ to, label }) => (
   <Link
     to={to}
@@ -95,4 +100,4 @@ const NavItem = ({ to, label }) => (
   </Link>
 );
 
-export default AdminAppBar;
+export default AdminAppBar;

@@ -1,15 +1,24 @@
-import React from "react";
-import { Routes, Route, Outlet } from "react-router-dom";
+import React, { useContext } from "react";
+import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
+import AdminContext from "../../contexts/AdminContext";
 
 const AdminDashboard = () => {
+    const { admin } = useContext(AdminContext);
+
+    if (!admin) {
+        return <Navigate to="/login" replace />;
+    }
+
     return (
-        <div style={styles.container}>
-            <AdminSidebar />
-            <div style={styles.content}>
-                <Outlet /> {/* ✅ This will load nested routes */}
+        <>
+            <div style={styles.container}>
+                <AdminSidebar />
+                <div style={styles.content}>
+                    <Outlet /> {/* ✅ Load nested routes */}
+                </div>
             </div>
-        </div>
+        </>
     );
 };
 

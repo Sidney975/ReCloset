@@ -7,19 +7,20 @@ using Microsoft.AspNetCore.Diagnostics;
 using AutoMapper;
 using Backend;
 using Microsoft.EntityFrameworkCore;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure; // Ensure MySQL is referenced
+using Backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Load configuration
+var configuration = builder.Configuration;
+
 // Add services
 builder.Services.AddControllers();
+builder.Services.AddScoped<AuthService>();
 
-// ? Corrected MySQL configuration
+// Correct MySQL Configuration
 builder.Services.AddDbContext<MyDbContext>(options =>
-    options.UseMySql(
-        builder.Configuration.GetConnectionString("MyConnection"),
-        new MySqlServerVersion(new Version(8, 0, 23)) // Adjust MySQL version as per your database
-    )
+    options.UseMySQL(configuration.GetConnectionString("MyConnection"))
 );
 
 // AutoMapper
@@ -31,7 +32,7 @@ IMapper mapper = mappingConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
 
 // CORS Policy
-var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
+var allowedOrigins = configuration.GetSection("AllowedOrigins").Get<string[]>();
 if (allowedOrigins == null || allowedOrigins.Length == 0)
 {
     throw new Exception("AllowedOrigins is required for CORS policy.");
@@ -45,20 +46,22 @@ builder.Services.AddCors(options =>
 });
 
 // Authentication
-var secret = builder.Configuration.GetValue<string>("Authentication:Secret");
+var secret = configuration["Jwt:Key"];
 if (string.IsNullOrEmpty(secret))
 {
-    throw new Exception("Secret is required for JWT authentication.");
+    throw new Exception("JWT Secret Key is missing in configuration.");
 }
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters()
         {
-            ValidateIssuer = false,
-            ValidateAudience = false,
+            ValidateIssuer = true,
+            ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
+            ValidIssuer = configuration["Jwt:Issuer"],
+            ValidAudience = configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
         };
     });
@@ -97,7 +100,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Backend v1");
-        c.RoutePrefix = "swagger"; // Ensure Swagger loads correctly
+        c.RoutePrefix = "swagger";
     });
 }
 
