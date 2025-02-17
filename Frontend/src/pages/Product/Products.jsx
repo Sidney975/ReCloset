@@ -28,7 +28,7 @@ function Products() {
     }, []);
 
     const getProducts = () => {
-        http.get('/api/product').then((res) => {
+        http.get('/api/product/available').then((res) => {
             setProductList(res.data);
         }).catch((err) => {
             console.error("Error fetching products:", err);

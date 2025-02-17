@@ -20,13 +20,38 @@ namespace ReCloset.Controllers
 		}
 
         // GET: api/Product
-        [HttpGet]
-        public IActionResult GetAll(string? search)
+        [HttpGet("available")]
+        public IActionResult GetAllAvailable(string? search)
         {
             IQueryable<Product> result = _context.Products
                 .Include(p => p.Category)
                 .Include(p => p.Warehouse)
-                .Include(p => p.SustainabilityCertification);
+                .Include(p => p.SustainabilityCertification)
+                .Where(p => p.Available == true); // Only return available products
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                result = result.Where(p =>
+                    p.Name.Contains(search) ||
+                    p.Price.ToString().Contains(search) ||
+                    p.Category.Name.Contains(search) ||
+                    p.Warehouse.WarehouseId.ToString().Contains(search) ||
+                    (p.SustainabilityCertification != null && p.SustainabilityCertification.Name.Contains(search))
+                );
+            }
+
+            var list = result.OrderByDescending(x => x.CreatedAt).ToList();
+            return Ok(list);
+        }
+
+        // GET: api/Product
+        [HttpGet]
+        public IActionResult GetAll(string? search)
+        {
+			IQueryable<Product> result = _context.Products
+				.Include(p => p.Category)
+				.Include(p => p.Warehouse)
+				.Include(p => p.SustainabilityCertification);
 
             if (!string.IsNullOrEmpty(search))
             {

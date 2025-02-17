@@ -33,9 +33,9 @@ namespace Backend.Models.Sophie
 		[MaxLength(50)]
 		public string Brand { get; set; }
 
-		public bool Available { get; set; }
+		public bool Available { get; set; } = true; // Default value set to true
 
-		[Column(TypeName = "datetime")]
+        [Column(TypeName = "datetime")]
 		public DateTime CreatedAt { get; set; }
 
 		[Column(TypeName = "datetime")]
