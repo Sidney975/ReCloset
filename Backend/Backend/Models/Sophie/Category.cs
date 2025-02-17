@@ -11,7 +11,7 @@ namespace Backend.Models.Sophie
 		[Required, MaxLength(50)]
 		public string Name { get; set; }
 
-		[MaxLength(100)]
+		[MaxLength(500)]
 		public string Description { get; set; }
 
 		public virtual ICollection<Voucher>? Vouchers { get; set; } = new List<Voucher>();

@@ -59,8 +59,11 @@ public class MyDbContext(IConfiguration configuration) : DbContext
 
         // Seed data for Categories
         modelBuilder.Entity<Category>().HasData(
-            new Category { CategoryId = 1, Name = "Clothing", Description = "Second-hand fashion items" },
-            new Category { CategoryId = 2, Name = "Accessories", Description = "Jewelry, bags, belts, etc." }
+            new Category { CategoryId = 1, Name = "Accessory", Description = "Jewelry, bags, belts, etc." },
+            new Category { CategoryId = 2, Name = "Blouse", Description = "Upper garment resembling a shirt, typically with a collar, buttons, and sleeves." },
+            new Category { CategoryId = 3, Name = "Dress", Description = "One-piece garment that covers the body and extends down over the thighs or legs." },
+            new Category { CategoryId = 4, Name = "Jacket", Description = "Outer garment extending either to the waist or the hips, typically having sleeves and a fastening down the front." },
+            new Category { CategoryId = 5, Name = "T-Shirt", Description = "Short-sleeved casual top, generally made of cotton, having the shape of a T when spread out flat." }
         );
 
         // Seed data for Sustainability Certifications

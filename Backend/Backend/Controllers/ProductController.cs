@@ -89,6 +89,7 @@ namespace ReCloset.Controllers
 				Name = product.Name,
 				Image = product.Image,
 				Description = product.Description,
+				Gender = product.Gender,
 				SustainabilityNotes = product.SustainabilityNotes,
 				SizingChart = product.SizingChart,
 				Price = product.Price,
@@ -135,6 +136,7 @@ namespace ReCloset.Controllers
 				Name = productDto.Name,
 				Image = productDto.Image,
 				Description = productDto.Description,
+				Gender = productDto.Gender,
 				SustainabilityNotes = productDto.SustainabilityNotes,
 				SizingChart = productDto.SizingChart,
 				Price = productDto.Price,
@@ -191,6 +193,7 @@ namespace ReCloset.Controllers
             existingProduct.Name = productDto.Name;
 			existingProduct.Image = productDto.Image;
 			existingProduct.Description = productDto.Description;
+			existingProduct.Gender = productDto.Gender;
 			existingProduct.SustainabilityNotes = productDto.SustainabilityNotes;
 			existingProduct.SizingChart = productDto.SizingChart;
 			existingProduct.Price = productDto.Price;

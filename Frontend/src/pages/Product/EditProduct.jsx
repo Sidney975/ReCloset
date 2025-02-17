@@ -51,6 +51,7 @@ function EditProduct() {
                 .max(255, 'Image URL must be at most 255 characters'),
             description: yup.string()
                 .max(255, 'Description must be at most 255 characters'),
+            gender: yup.boolean(),
             sustainabilityNotes: yup.string()
                 .max(255, 'Sustainability Notes must be at most 255 characters'),
             sizingChart: yup.string()
@@ -152,6 +153,20 @@ function EditProduct() {
                                 error={formik.touched.description && Boolean(formik.errors.description)}
                                 helperText={formik.touched.description && formik.errors.description}
                             />
+                            <FormControl component="fieldset">
+                                <FormLabel component="legend">Gender</FormLabel>
+                                <RadioGroup
+                                    row
+                                    name="gender"
+                                    value={formik.values.gender ? "true" : "false"}
+                                    onChange={(event) => {
+                                        formik.setFieldValue("gender", event.target.value === "true"); // Convert to boolean
+                                    }}
+                                >
+                                    <FormControlLabel value={"true"} control={<Radio />} label="Male" />
+                                    <FormControlLabel value={"false"} control={<Radio />} label="Female" />
+                                </RadioGroup>
+                            </FormControl>
                             <TextField
                                 fullWidth
                                 margin="dense"
@@ -191,15 +206,15 @@ function EditProduct() {
                                 <RadioGroup
                                     row
                                     name="quality"
-                                    value={formik.values.quality ? true : false}
+                                    value={formik.values.quality ? "true" : "false"}
                                     onChange={(event) => {
-                                        const newQuality = event.target.value === true;
+                                        const newQuality = event.target.value === "true"; // Convert string to boolean
                                         formik.setFieldValue("quality", newQuality);
                                         formik.setFieldValue("available", newQuality); // Automatically set available to false if quality is low
                                     }}
                                 >
-                                    <FormControlLabel value={true} control={<Radio />} label="High" />
-                                    <FormControlLabel value={false} control={<Radio />} label="Low" />
+                                    <FormControlLabel value={"true"} control={<Radio />} label="High" />
+                                    <FormControlLabel value={"false"} control={<Radio />} label="Low" />
                                 </RadioGroup>
                             </FormControl>
                             <TextField
