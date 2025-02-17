@@ -249,3 +249,13 @@ GET {{Backend_HostAddress}}/OrderItem/graph
 GET {{Backend_HostAddress}}/orderitem/list
 
 ###
+
+PUT {{Backend_HostAddress}}/payment/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "DefaultPreference" : Active
+}
+
+###

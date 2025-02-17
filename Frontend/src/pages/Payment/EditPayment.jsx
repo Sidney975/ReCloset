@@ -71,6 +71,9 @@ function EditPayment() {
         http.get(`/payment/${id}`)
             .then((response) => {
                 formik.setValues({
+                    firstName: response.data.firstName, // 🔹 Added First Name
+                    lastName: response.data.lastName,   // 🔹 Added Last Name
+                    mobileNumber: response.data.mobileNumber, // 🔹 Added Mobile Number
                     paymentMethod: response.data.paymentMethod,
                     cardNumber: "",
                     cvv: "",
@@ -98,6 +101,9 @@ function EditPayment() {
 
     const formik = useFormik({
         initialValues: {
+            firstName: "",  // 🔹 Added First Name
+            lastName: "",   // 🔹 Added Last Name
+            mobileNumber: "", // 🔹 Added Mobile Number
             paymentMethod: "",
             cardNumber: "",
             cvv: "",
@@ -105,11 +111,16 @@ function EditPayment() {
             billingAddress: "",
             billingZip: "",
             status: "Inactive",
+            country: "",
+            city: "",
             defaultPreference: false, // Ensure this is a boolean
         },
 
         validationSchema: yup.object({
             paymentMethod: yup.string().required("Payment Method is required"),
+            firstName: yup.string().trim().max(50).required("First Name is required"), // 🔹 Validation
+            lastName: yup.string().trim().max(50).required("Last Name is required"), // 🔹 Validation
+            mobileNumber: yup.string().matches(/^\d{8}$/, "Mobile number must be between 8 digits").required("Mobile number is required"), // 🔹 Validation
             cardNumber: yup
                 .string()
                 .matches(/^\d{16}$/, "Card Number must be 16 digits")
@@ -289,6 +300,7 @@ function EditPayment() {
                         inputRef: cvvRef,
                     }}
                 />
+
                 <TextField
                     fullWidth
                     margin="dense"
@@ -302,6 +314,33 @@ function EditPayment() {
                     error={formik.touched.expiryDate && Boolean(formik.errors.expiryDate)}
                     helperText={formik.touched.expiryDate && formik.errors.expiryDate}
                 />
+
+                {/* 🔹 First Name */}
+                <TextField
+                    fullWidth
+                    margin="dense"
+                    label="First Name"
+                    name="firstName"
+                    value={formik.values.firstName}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={formik.touched.firstName && Boolean(formik.errors.firstName)}
+                    helperText={formik.touched.firstName && formik.errors.firstName}
+                />
+
+                {/* 🔹 Last Name */}
+                <TextField
+                    fullWidth
+                    margin="dense"
+                    label="Last Name"
+                    name="lastName"
+                    value={formik.values.lastName}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={formik.touched.lastName && Boolean(formik.errors.lastName)}
+                    helperText={formik.touched.lastName && formik.errors.lastName}
+                />
+                
                 <TextField
                     fullWidth
                     margin="dense"
@@ -329,18 +368,6 @@ function EditPayment() {
                     error={formik.touched.billingZip && Boolean(formik.errors.billingZip)}
                     helperText={formik.touched.billingZip && formik.errors.billingZip}
                 />
-                {/* 🔹 Country */}
-                <TextField
-                    fullWidth
-                    margin="dense"
-                    label="Country"
-                    name="country"
-                    value={formik.values.country}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.touched.country && Boolean(formik.errors.country)}
-                    helperText={formik.touched.country && formik.errors.country}
-                />
 
                 {/* 🔹 City */}
                 <TextField
@@ -354,6 +381,33 @@ function EditPayment() {
                     error={formik.touched.city && Boolean(formik.errors.city)}
                     helperText={formik.touched.city && formik.errors.city}
                 />
+
+                {/* 🔹 Country */}
+                <TextField
+                    fullWidth
+                    margin="dense"
+                    label="Country"
+                    name="country"
+                    value={formik.values.country}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={formik.touched.country && Boolean(formik.errors.country)}
+                    helperText={formik.touched.country && formik.errors.country}
+                />
+
+                {/* 🔹 Mobile Number */}
+                <TextField
+                    fullWidth
+                    margin="dense"
+                    label="Mobile Number"
+                    name="mobileNumber"
+                    value={formik.values.mobileNumber}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={formik.touched.mobileNumber && Boolean(formik.errors.mobileNumber)}
+                    helperText={formik.touched.mobileNumber && formik.errors.mobileNumber}
+                />
+
                 <TextField
                     select
                     fullWidth

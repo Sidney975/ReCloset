@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations;
 using Backend.Models.Sarah.Users;
 using Backend.Models.Jerald.Orders;
 
-
 namespace Backend.Models.Jerald.Payments
 {
     // Enum for Status
@@ -45,6 +44,15 @@ namespace Backend.Models.Jerald.Payments
         [Required, MaxLength(100)]
         public string City { get; set; } = string.Empty;
 
+        [Required, MaxLength(8), MinLength(8), RegularExpression(@"^\d+$", ErrorMessage = "Mobile number must be numeric.")]
+        public string MobileNumber { get; set; } = string.Empty;
+
+        [Required, MaxLength(50)]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required, MaxLength(50)]
+        public string LastName { get; set; } = string.Empty;
+
         [Required]
         public PaymentStatus Status { get; set; } = PaymentStatus.Inactive;
 
@@ -61,3 +69,4 @@ namespace Backend.Models.Jerald.Payments
         public List<Order>? Order { get; set; }
     }
 }
+

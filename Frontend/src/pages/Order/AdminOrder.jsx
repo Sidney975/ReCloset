@@ -26,7 +26,7 @@ const generateColors = (numColors) => {
 const OrderItemsGraph = () => {
     const [chartData, setChartData] = useState(null);
     const [orderItems, setOrderItems] = useState([]);
-    const [filterBy, setFilterBy] = useState("product");
+    const [filterBy, setFilterBy] = useState("category");
     const [displayType, setDisplayType] = useState("totalRevenue"); // New state for display type
     const [file, setFile] = useState(null);
     const [fileError, setFileError] = useState("");
@@ -185,13 +185,13 @@ const OrderItemsGraph = () => {
             </Typography>
 
             {/* Dropdown for selecting filter */}
-            <FormControl variant="outlined" sx={{ mb: 3, minWidth: 200 }}>
+            {/* <FormControl variant="outlined" sx={{ mb: 3, minWidth: 200 }}>
                 <InputLabel>Filter By</InputLabel>
                 <Select value={filterBy} onChange={(e) => setFilterBy(e.target.value)} label="Filter By">
                     <MenuItem value="product">Filter by Product</MenuItem>
                     <MenuItem value="category">Filter by Category</MenuItem>
                 </Select>
-            </FormControl>
+            </FormControl> */}
             {/* Dropdown for selecting display type */}
             <FormControl variant="outlined" sx={{ mb: 3, minWidth: 200, ml: 2 }}>
                 <InputLabel>Display Type</InputLabel>

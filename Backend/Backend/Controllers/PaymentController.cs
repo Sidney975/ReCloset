@@ -23,7 +23,6 @@ namespace Backend.Controllers
             _context.ApplyPaymentFilter = true;
         }
 
-
         private int GetUserId()
         {
             return Convert.ToInt32(User.Claims
@@ -40,8 +39,8 @@ namespace Backend.Controllers
 
             // Query the database
             IQueryable<Payment> result = _context.Payments
-        .Include(t => t.User) // Include user details
-        .Where(p => p.UserId == userId); // 🔹 Filter by the logged-in user
+                .Include(t => t.User) // Include user details
+                .Where(p => p.UserId == userId); // 🔹 Filter by the logged-in user
 
             if (!string.IsNullOrEmpty(search))
             {
@@ -55,7 +54,6 @@ namespace Backend.Controllers
             var paymentDtos = _mapper.Map<List<PaymentDTO>>(list);
             return Ok(paymentDtos);
         }
-
 
         // GET a specific payment by ID
         [HttpGet("{id}")]
@@ -111,7 +109,10 @@ namespace Backend.Controllers
                 UserId = userId,
                 User = user,
                 Country = addPaymentRequest.Country,
-                City = addPaymentRequest.City   
+                City = addPaymentRequest.City,
+                MobileNumber = addPaymentRequest.MobileNumber,
+                FirstName = addPaymentRequest.FirstName,
+                LastName = addPaymentRequest.LastName
             };
 
             // Add payment to the database
@@ -135,7 +136,6 @@ namespace Backend.Controllers
             }
             int userId = GetUserId();
 
-            
             var payment = _context.Payments.FirstOrDefault(p => p.PaymentId == id);
             if (payment == null)
             {
@@ -174,7 +174,11 @@ namespace Backend.Controllers
             payment.BillingZip = updatePaymentRequest.BillingZip ?? payment.BillingZip;
             payment.Status = updatePaymentRequest.Status ?? payment.Status;
             payment.Country = updatePaymentRequest.Country ?? payment.Country;
-            payment.City = updatePaymentRequest.City ?? payment.City; 
+            payment.City = updatePaymentRequest.City ?? payment.City;
+            payment.MobileNumber = updatePaymentRequest.MobileNumber ?? payment.MobileNumber;
+            payment.FirstName = updatePaymentRequest.FirstName ?? payment.FirstName;
+            payment.LastName = updatePaymentRequest.LastName ?? payment.LastName;
+
             // Save changes
             _context.SaveChanges();
 
@@ -182,11 +186,6 @@ namespace Backend.Controllers
             var paymentDto = _mapper.Map<PaymentDTO>(payment);
             return Ok(paymentDto);
         }
-
-
-
-
-
 
         // DELETE a payment by ID
         [HttpDelete("{id}")]
@@ -206,6 +205,7 @@ namespace Backend.Controllers
 
             return NoContent();
         }
-
     }
 }
+
+

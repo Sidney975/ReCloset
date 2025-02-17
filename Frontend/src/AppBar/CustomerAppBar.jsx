@@ -228,9 +228,9 @@ const CustomerAppBar = () => {
                         <RemoveIcon />
                       </IconButton>
                       <Typography variant="body2" sx={{ mx: 1 }}>{item.quantity}</Typography>
-                      <IconButton onClick={() => updateQuantity(item.productId, 1)} sx={{ color: 'black' }}>
+                      {/* <IconButton onClick={() => updateQuantity(item.productId, 1)} sx={{ color: 'black' }}>
                         <AddIcon />
-                      </IconButton>
+                      </IconButton> */}
                       <IconButton onClick={() => removeFromCart(item.productId)} sx={{ color: 'red', textAlign: 'right', ml: 'auto' }}>
                         <DeleteIcon />
                       </IconButton>

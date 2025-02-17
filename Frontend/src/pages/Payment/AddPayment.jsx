@@ -59,6 +59,9 @@ function AddPayment() {
 
   const formik = useFormik({
     initialValues: {
+      firstName: "", // 🔹 Added First Name
+      lastName: "", // 🔹 Added Last Name
+      mobileNumber: "", // 🔹 Added Mobile Number
       paymentMethod: "",
       cardNumber: "",
       cvv: "",
@@ -71,6 +74,9 @@ function AddPayment() {
       city: ""      // 🔹 Added city
     },
     validationSchema: yup.object({
+      firstName: yup.string().trim().max(50).required("First Name is required"), // 🔹 Validation
+      lastName: yup.string().trim().max(50).required("Last Name is required"), // 🔹 Validation
+      mobileNumber: yup.string().matches(/^\d{8}$/, "Mobile number must be between 8 digits").required("Mobile number is required"), // 🔹 Validation
       paymentMethod: yup.string().trim().required("Payment Method is required").max(50),
       cardNumber: yup.string().trim().matches(/^\d{16}$/, "Card Number must be 16 digits").required("Card Number is required"),
       cvv: yup.string().trim().matches(/^\d{3,4}$/, "CVV must be 3 or 4 digits").required("CVV is required"),
@@ -123,7 +129,15 @@ function AddPayment() {
   };
 
   return (
-    <Box>
+    <Box
+      sx={{
+        maxWidth: 600,
+        margin: "auto",
+        padding: 4,
+        borderRadius: 2,
+        color: "black",
+      }}
+    >
       <Typography variant="h5" sx={{ my: 2 }}>
         Add Payment
       </Typography>
@@ -223,6 +237,32 @@ function AddPayment() {
           helperText={formik.touched.expiryDate && formik.errors.expiryDate}
         />
 
+        {/* 🔹 First Name */}
+        <TextField
+          fullWidth
+          margin="dense"
+          label="First Name"
+          name="firstName"
+          value={formik.values.firstName}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.firstName && Boolean(formik.errors.firstName)}
+          helperText={formik.touched.firstName && formik.errors.firstName}
+        />
+
+        {/* 🔹 Last Name */}
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Last Name"
+          name="lastName"
+          value={formik.values.lastName}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.lastName && Boolean(formik.errors.lastName)}
+          helperText={formik.touched.lastName && formik.errors.lastName}
+        />
+
         <TextField
           fullWidth
           margin="dense"
@@ -251,6 +291,21 @@ function AddPayment() {
           helperText={formik.touched.billingZip && formik.errors.billingZip}
         />
 
+
+
+        {/* 🔹 City */}
+        <TextField
+          fullWidth
+          margin="dense"
+          label="City"
+          name="city"
+          value={formik.values.city}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.touched.city && Boolean(formik.errors.city)}
+          helperText={formik.touched.city && formik.errors.city}
+        />
+
         {/* 🔹 Country */}
         <TextField
           fullWidth
@@ -264,17 +319,17 @@ function AddPayment() {
           helperText={formik.touched.country && formik.errors.country}
         />
 
-        {/* 🔹 City */}
+        {/* 🔹 Mobile Number */}
         <TextField
           fullWidth
           margin="dense"
-          label="City"
-          name="city"
-          value={formik.values.city}
+          label="Mobile Number"
+          name="mobileNumber"
+          value={formik.values.mobileNumber}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          error={formik.touched.city && Boolean(formik.errors.city)}
-          helperText={formik.touched.city && formik.errors.city}
+          error={formik.touched.mobileNumber && Boolean(formik.errors.mobileNumber)}
+          helperText={formik.touched.mobileNumber && formik.errors.mobileNumber}
         />
 
         <TextField
@@ -301,7 +356,11 @@ function AddPayment() {
           />
         )}
 
-        <Box sx={{ mt: 3, textAlign: "right" }}>
+        <Box sx={{ mt: 3, textAlign: "right", display: "flex", justifyContent: "space-between" }}>
+          {/* Back FAB */}
+          <Fab color="primary" aria-label="back" onClick={() => navigate(-1)}>
+            <ArrowBack />
+          </Fab>
           <Button variant="contained" color="primary" type="submit" disabled={loadingDefaultPreference}>
             Submit
           </Button>

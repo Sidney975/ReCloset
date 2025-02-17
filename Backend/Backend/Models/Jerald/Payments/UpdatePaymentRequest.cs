@@ -26,11 +26,22 @@ namespace Backend.Models.Jerald.Payments
         public PaymentStatus? Status { get; set; }
 
         [MaxLength(100)]
-        public string Country { get; set; }
+        public string? Country { get; set; }
 
         [MaxLength(100)]
-        public string City { get; set; }
+        public string? City { get; set; }
 
         public bool? DefaultPreference { get; set; }
+
+        [MaxLength(8), MinLength(8), RegularExpression(@"^\d+$", ErrorMessage = "Mobile number must be numeric.")]
+        public string? MobileNumber { get; set; }
+
+        [MaxLength(50)]
+        public string? FirstName { get; set; }
+
+        [MaxLength(50)]
+        public string? LastName { get; set; }
     }
 }
+
+
