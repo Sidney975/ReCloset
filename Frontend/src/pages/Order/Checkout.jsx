@@ -400,7 +400,7 @@ function CheckoutPage() {
           <ul>
             {cartItems.map((item) => (
               <li key={item.productId}>
-                {item.name} - ${item.itemPrice.toFixed(2)} x {item.quantity}
+                {item.productName} - ${item.itemPrice.toFixed(2)} x {item.quantity}
               </li>
             ))}
           </ul>

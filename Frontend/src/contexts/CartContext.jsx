@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
-import axios from "axios"; // Import axios for API calls
+import http from "../http";
 
 const CartContext = createContext();
 
@@ -20,7 +20,8 @@ export const CartProvider = ({ children }) => {
     // 🔹 Function to fetch category name from API
     const fetchCategoryName = async (categoryId) => {
         try {
-            const response = await axios.get(`/api/category/${categoryId}`); // Call Category API
+            const response = await http.get(`/api/category/${categoryId}`); // Call Category API
+            console.log("Category API response:", response.data.name);
             return response.data.name; // Extract category name
         } catch (error) {
             console.error("Failed to fetch category:", error);

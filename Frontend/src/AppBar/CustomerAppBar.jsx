@@ -164,7 +164,7 @@ const CustomerAppBar = () => {
             Voucher
           </Link>
           <Link
-            to="/consultations"
+            to="/FashionConsultant"
             style={{
               textDecoration: 'none',
               color: 'white',
@@ -176,7 +176,7 @@ const CustomerAppBar = () => {
             onMouseEnter={(e) => e.target.style.backgroundColor = '#8d6238'}
             onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
           >
-            Consultations
+            AI Fashion Consultant
           </Link>
           <Link
             to="/about-us"

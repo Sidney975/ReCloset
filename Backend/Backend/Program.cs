@@ -12,7 +12,7 @@ using Backend;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+builder.Services.AddHttpClient<FashionAdviceService>();
 builder.Services.AddControllers();
 builder.Services.AddDbContext<MyDbContext>();
 

@@ -20,6 +20,7 @@ import EditPayment from './pages/Payment/EditPayment';
 import ViewOrder from './pages/Order/ViewOrder';
 import OrderDetails from './pages/Order/OrderDetail';
 import AdminOrder from './pages/Order/AdminOrder';
+import FashionConsultant from './pages/FashionAssistantStyly';
 
 {/* Sarah's Imports */ }
 import MyForm from './pages/User/MyForm';
@@ -99,7 +100,9 @@ function App() {
                   <Route path="/EditPayment/:id" element={<EditPayment />} />
                   <Route path="/ViewOrder" element={<ViewOrder />} />
                   <Route path="/OrderDetails/:orderId" element={<OrderDetails />} />
-
+                  <Route path="/admin/orders" element={<AdminOrder />} />
+                  <Route path="/FashionConsultant" element={<FashionConsultant />} />
+                  
                   {/* Sarah's Routes */}
                   <Route path="/register" element={<Register />} />
                   <Route path="/login" element={<Login />} />
@@ -113,7 +116,6 @@ function App() {
                   <Route path="/admin/register" element={<RegisterAdmin />} />
                   <Route path="/admin/dashboard" element={<AdminDashboard />} />
                   <Route path="/admin/users" element={<ManageUsers />} />
-                  <Route path="/admin/orders" element={<AdminOrder />} />
                   <Route path="/admin/products" element={<AdminProducts />} />
                   <Route path="/admin/profile" element={<AdminProfile />} />
                   <Route path="/admin/edit-profile" element={<EditAdminProfile />} />
