@@ -33,6 +33,9 @@ namespace Backend.Models.Sidney.Delivery
 
 		[JsonProperty("user_attributes")]
 		public UserAttributes User { get; set; }
+
+		[JsonProperty("product_attributes")]
+		public List<ProductDetails> Products { get; set; }
 	}
 
 	public class ParcelAttribute
@@ -54,5 +57,20 @@ namespace Backend.Models.Sidney.Delivery
 
 		[JsonProperty("last_name")]
 		public string LastName { get; set; }
+	}
+
+	public class ProductDetails
+	{
+		[JsonProperty("sku")] // Ensure JSON property names match Shippit's API
+		public string SKU { get; set; }
+
+		[JsonProperty("title")] // Shippit expects "description", not "Name"
+		public string Title { get; set; }
+
+		[JsonProperty("quantity")]
+		public int Quantity { get; set; }
+
+		[JsonProperty("price")]
+		public double Price { get; set; }
 	}
 }

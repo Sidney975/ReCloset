@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Backend.Models.Sidney.Delivery;
 using Backend;
-using Backend.Models.Jerald.Orders; // For Order and OrderItem
+using Backend.Models.Jerald.Orders;
+using Newtonsoft.Json; // For Order and OrderItem
 
 namespace Backend.Controllers
 {
@@ -22,22 +23,21 @@ namespace Backend.Controllers
 				.SingleOrDefault());
 		}
 
-		/// <summary>
-		/// Sends the order to Shippit for shipment creation.
-		/// </summary>
-		/// <param name="orderId">ID of the order to ship</param>
-		/// <returns>Shipment information from Shippit</returns>
-		[HttpPost("send/{orderId}"), Authorize]
+		[HttpPost("send/{orderId}")]
 		public async Task<IActionResult> SendOrderToShippit(int orderId)
 		{
 			var order = await _context.Orders
 				.Include(o => o.OrderItems)
+				.ThenInclude(oi => oi.Product)
 				.Include(o => o.User)
 				.Include(o => o.Deliveries) // Ensure deliveries are included
 				.FirstOrDefaultAsync(o => o.OrderId == orderId);
 
 			if (order == null) return NotFound("Order not found.");
 			if (order.UserId != GetUserId()) return Forbid();
+
+			var orderAddress = await _context.OrderAddresses.FirstOrDefaultAsync(a => a.OrderId == order.OrderId);
+			if (orderAddress == null) return BadRequest("Order address not found.");
 
 			// Ensure order is tracked before modifying
 			_context.Orders.Attach(order);
@@ -47,8 +47,8 @@ namespace Backend.Controllers
 				Order = new OrderDetails
 				{
 					CourierType = "standard",
-					DeliveryAddress = "Sin Ming Avenue", // Replace with actual data
-					DeliveryPostcode = "570442",
+					DeliveryAddress = orderAddress.StreetAddress,
+					DeliveryPostcode = orderAddress.Postcode,
 					DeliveryState = "SG",
 					DeliverySuburb = "SG",
 					AuthorityToLeave = "Yes",
@@ -60,11 +60,22 @@ namespace Backend.Controllers
 					User = new UserAttributes
 					{
 						Email = order.User?.Email ?? "default@email.com",
-						FirstName = order.User?.First_name ?? "John",
+						FirstName = orderAddress.RecipientName ?? "non",
+						//order.User?.First_name ??
 						LastName = order.User?.Last_name ?? "Doe"
-					}
+					},
+					Products = order.OrderItems.Select(item => new ProductDetails
+					{
+						Title = item.Product?.Name ?? "Unknown Product",
+						SKU = "SKU123",
+						Quantity = item.Quantity,
+						Price = (double)item.ItemPrice
+					}).ToList()
 				}
 			};
+
+			var jsonPayload = JsonConvert.SerializeObject(shipmentRequest, Formatting.Indented);
+			Console.WriteLine("Shippit Payload: " + jsonPayload);
 
 			try
 			{
@@ -76,7 +87,7 @@ namespace Backend.Controllers
 				string trackingNumber = shipmentResponse.TrackingNumber;
 				string state = shipmentResponse.Status ?? "processing";
 
-				order.ShipmentStatus = ShipmentStatus.Shipped;
+				order.ShipmentStatus = ShipmentStatus.despatch_in_progress;
 				await _context.SaveChangesAsync(); 
 
 				// **Check if delivery entry already exists**
@@ -107,7 +118,7 @@ namespace Backend.Controllers
 			try
 			{
 				var trackingInfo = await _shippitService.GetShipmentStatusAsync(shipmentId);
-
+				Console.WriteLine(shipmentId);
 				if (trackingInfo == null)
 				{
 					return NotFound("Shipment tracking details not found.");
@@ -115,7 +126,7 @@ namespace Backend.Controllers
 
 				// Log the entire response for debugging
 				Console.WriteLine($"Tracking Response: {System.Text.Json.JsonSerializer.Serialize(trackingInfo)}");
-
+				Console.WriteLine($"Tracking Response: {shipmentId}");
 				// Ensure Status is present before updating
 				if (!string.IsNullOrEmpty(trackingInfo.Status))
 				{

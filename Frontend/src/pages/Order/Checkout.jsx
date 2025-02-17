@@ -49,8 +49,17 @@ function CheckoutPage() {
   const [appliedVoucher, setAppliedVoucher] = useState(null);
   const [alteredPrice, setAlteredPrice] = useState(0);
 
+  //Address Handling
+  const [recipientName, setRecipientName] = useState("");
+  const [streetAddress, setStreetAddress] = useState("");
+  const [suburb, setSuburb] = useState("");
+  const [state, setState] = useState("");
+  const [postcode, setPostcode] = useState("");
+  const [country, setCountry] = useState("");
+  const [deliveryInstructions, setDeliveryInstructions] = useState("");
+
   const finalPrice = appliedVoucher ? alteredPrice : total;
-  const pointsEarned = Math.floor(total * 10); 
+  const pointsEarned = Math.floor(total * 10);
 
   useEffect(() => {
     // Load cart from localStorage
@@ -140,11 +149,18 @@ function CheckoutPage() {
       voucherId: appliedVoucher ? appliedVoucher.voucherId : null,
       totalPrice: finalTotal,
 
+      recipientName,
+      streetAddress,
+      suburb,
+      state,
+      postcode,
+      country,
+      deliveryInstructions
     };
 
     try {
       setLoading(true);
-      const orderResponse  = await http.post("/checkout", payload);
+      const orderResponse = await http.post("/checkout", payload);
       toast.success("Order placed successfully!");
 
       const orderId = orderResponse.data.orderId;
@@ -168,8 +184,8 @@ function CheckoutPage() {
       };
 
       await http.post("/api/delivery", deliveryPayload);
-       // If a voucher was applied, call the redeem API to mark it as used
-       
+      // If a voucher was applied, call the redeem API to mark it as used
+
       if (appliedVoucher) {
         await http.post(`/voucher/${appliedVoucher.voucherId}/redeem`);
         toast.success("Voucher redeemed successfully!");
@@ -269,25 +285,43 @@ function CheckoutPage() {
                 label="Full Name"
                 fullWidth
                 margin="normal"
-                defaultValue="John Doe"
+                value={recipientName}
+                onChange={(e) => setRecipientName(e.target.value)}
               />
               <TextField
                 label="Address"
                 fullWidth
                 margin="normal"
-                defaultValue="123 Street, Singapore"
+                value={streetAddress}
+                onChange={(e) => setStreetAddress(e.target.value)}
               />
               <TextField
                 label="City"
                 fullWidth
                 margin="normal"
-                defaultValue="Singapore"
+                value={suburb}
+                onChange={(e) => setSuburb(e.target.value)}
+              />
+              <TextField
+                label="State"
+                fullWidth
+                margin="normal"
+                value={state}
+                onChange={(e) => setState(e.target.value)}
               />
               <TextField
                 label="Postal Code"
                 fullWidth
                 margin="normal"
-                defaultValue="123456"
+                value={postcode}
+                onChange={(e) => setPostcode(e.target.value)}
+              />
+              <TextField
+                label="Country"
+                fullWidth
+                margin="normal"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
               />
               <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
                 <Button variant="outlined" onClick={() => navigate("/")}>
@@ -373,11 +407,11 @@ function CheckoutPage() {
                   <Typography variant="body2">
                     Discount:{" "}
                     {appliedVoucher.VoucherTypeEnum === 0 &&
-                    appliedVoucher.DiscountValue < 1
+                      appliedVoucher.DiscountValue < 1
                       ? `${(appliedVoucher.DiscountValue * 100).toFixed(0)}%`
                       : appliedVoucher.VoucherTypeEnum === 0
-                      ? `$${appliedVoucher.DiscountValue}`
-                      : "Free Shipping"}
+                        ? `$${appliedVoucher.DiscountValue}`
+                        : "Free Shipping"}
                   </Typography>
                   <Typography variant="body2">
                     New Total: ${alteredPrice.toFixed(2)}
@@ -423,7 +457,7 @@ function CheckoutPage() {
               </Typography>
             </Box>
           )}
-           <Typography variant="subtitle1" align="center" sx={{ mt: 1 }}>
+          <Typography variant="subtitle1" align="center" sx={{ mt: 1 }}>
             Points Earned: {pointsEarned}
           </Typography>
         </Paper>
@@ -462,12 +496,12 @@ function CheckoutPage() {
                   <Typography variant="body2">
                     Discount: {voucher.discountValue}{" "}
                     {voucher.voucherTypeEnum === 0 &&
-                    voucher.discountValue < 1
+                      voucher.discountValue < 1
                       ? "(Percentage)"
                       : voucher.voucherTypeEnum === 0 &&
-                      voucher.discountValue >= 1
-                      ? "(Flat)"
-                      : "(Free Shipping)"}
+                        voucher.discountValue >= 1
+                        ? "(Flat)"
+                        : "(Free Shipping)"}
                   </Typography>
                 </Box>
                 <Button

@@ -42,7 +42,7 @@ namespace Backend
 			var responseContent = await response.Content.ReadAsStringAsync();
 
 			// Log raw response for debugging
-			Console.WriteLine($"Shippit Order Response: {responseContent}");
+			Console.WriteLine($"Shippit Order ResponseService: {responseContent}");
 
 			// Deserialize properly by extracting "response" object
 			var responseObject = JsonConvert.DeserializeObject<JObject>(responseContent);
@@ -96,7 +96,7 @@ namespace Backend
 			}
 
 			// Get the latest tracking status (assuming the last entry is the most recent)
-			var latestStatus = trackArray.Last();
+			var latestStatus = trackArray.First();
 			var shipmentStatus = latestStatus["status"]?.ToString();
 			var statusOwner = latestStatus["status_owner"]?.ToString();
 			var date = latestStatus["date"]?.ToString();

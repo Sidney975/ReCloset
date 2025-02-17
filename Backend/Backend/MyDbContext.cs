@@ -32,13 +32,16 @@ public class MyDbContext(IConfiguration configuration) : DbContext
     public required DbSet<SustainabilityCertification> SustainabilityCertifications { get; set; }
     public required DbSet<UpcyclingRequest> UpcyclingRequests { get; set; }
 
+
     public required DbSet<Voucher> Vouchers { get; set; }
     public required DbSet<UserVoucher> UserVouchers { get; set; }
     public DbSet<Delivery> Deliveries { get; set; } // Register the Delivery model
 
+	public required DbSet<OrderAddress> OrderAddresses { get; set; }
 
-    // Configure global query filters
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+
+	// Configure global query filters
+	protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Apply a global query filter to exclude soft-deleted payments
         modelBuilder.Entity<Payment>().HasQueryFilter(p => ApplyPaymentFilter ? !p.IsDeleted : true);
