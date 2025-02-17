@@ -19,7 +19,10 @@ namespace Backend.Models.Sophie
 		[MaxLength(255)]
 		public string Description { get; set; }
 
-		[MaxLength(255)]
+        [Required]
+        public bool Gender { get; set; }
+
+        [MaxLength(255)]
 		public string SustainabilityNotes { get; set; }
 
 		[MaxLength(255)]

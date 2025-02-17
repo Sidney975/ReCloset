@@ -50,6 +50,7 @@ import EditProduct from './pages/Product/EditProduct';
 import Certifications from './pages/Product/Certifications';
 import AddCertification from './pages/Product/AddCertification';
 import AdminProducts from './pages/Product/AdminProduct';
+import UpcyclingRequests from './pages/Product/UpcyclingRequests';
 
 {/* Sidney's Imports */ }
 import Vouchers from './pages/Voucher/Vouchers';
@@ -126,6 +127,7 @@ function App() {
                   <Route path="/product/:productId" element={<ProductDetail />} />
                   <Route path="/addproduct" element={<AddProduct />} />
                   <Route path="/editproduct/:id" element={<EditProduct />} />
+                  <Route path="/upcycling-requests" element={<UpcyclingRequests />} />
                   <Route path="/sustainabilitycertifications" element={<Certifications />} />
                   <Route path="/addcertification" element={<AddCertification />} />
 
