@@ -19,7 +19,7 @@ function Products() {
     const [showMap, setShowMap] = useState(false);
 
     const navigate = useNavigate();
-    const { addToCart } = useContext(CartContext);
+    const { cartItems, addToCart } = useContext(CartContext);
     const { user } = useContext(UserContext);
 
     useEffect(() => {
@@ -74,11 +74,23 @@ function Products() {
     console.log("products:", productList);
 
     const handleCartClick = (e, product) => {
-        e.preventDefault(); // Prevent navigating to product page
+        e.preventDefault(); // Prevent navigating to the product page
+    
         if (!user) {
             toast.error("You must be logged in to add items to the cart.");
             return;
         }
+    
+        // Check if the product is already in the cart
+        const isItemInCart = cartItems.some(item => item.productId === product.productId);
+    
+        if (isItemInCart) {
+            // Show an error toast if the item is already in the cart
+            toast.error("This item is already in your cart!");
+            return;
+        }
+    
+        // If the item is not in the cart, add it and show a success toast
         addToCart(product);
         toast.success("Item added to cart!");
     };

@@ -113,39 +113,83 @@ function CheckoutPage() {
       toast.error("Please select a payment method before placing your order.");
       return;
     }
-
+  
     const finalTotal = appliedVoucher ? alteredPrice : total;
-
+  
     const payload = {
       deliveryOption: 1,
       paymentId: selectedPaymentMethod,
       orderItems: cartItems.map((item) => ({
+        productId: item.productId, // Ensure productId is included
         productName: item.productName,
         productCategory: item.productCategory,
         quantity: item.quantity,
         itemPrice: item.itemPrice,
-        timeBought: new Date().toISOString().split('T')[0] // Send only the date
+        timeBought: new Date().toISOString().split('T')[0], // Send only the date
       })),
       voucherId: appliedVoucher ? appliedVoucher.voucherId : null,
       totalPrice: finalTotal,
     };
-
+  
     try {
       setLoading(true);
+  
+      // Step 1: Fetch each product and format data for update
+      const updatePromises = cartItems.map(async (item) => {
+        try {
+          const productResponse = await http.get(`/api/Product/${item.productId}`); // Get full product details
+          
+          // Format the response into the required ProductDto format
+          const formattedProduct = {
+            name: productResponse.data.name,
+            image: productResponse.data.image,
+            description: productResponse.data.description,
+            sustainabilityNotes: productResponse.data.sustainabilityNotes,
+            sizingChart: productResponse.data.sizingChart,
+            price: productResponse.data.price,
+            quality: productResponse.data.quality,
+            brand: productResponse.data.brand,
+            available: false, // Mark as unavailable
+            categoryId: productResponse.data.categoryId,
+            warehouseId: productResponse.data.warehouseId,
+            certId: productResponse.data.certId
+          };
+  
+          // Send update request
+          await http.put(`/api/Product/${item.productId}`, formattedProduct);
+          toast.success(`Updated ${item.productName} availability`);
+        } catch (error) {
+          console.error(`Failed to update product ${item.productId}`, error);
+          toast.error(`Failed to update ${item.productName}`);
+          throw new Error(`Update failed for ${item.productId}`); // Force promise rejection
+        }
+      });
+  
+      // Step 2: Ensure all product updates succeed before proceeding
+      await Promise.all(updatePromises);
+  
+      // Step 3: Proceed with Checkout after updates are successful
       await http.post("/checkout", payload);
       toast.success("Order placed successfully!");
+  
+      // Step 4: Redeem Voucher if Applied
       if (appliedVoucher) {
         await http.post(`/voucher/${appliedVoucher.voucherId}/redeem`);
         toast.success("Voucher redeemed successfully!");
       }
+  
+      // Step 5: Clear Cart & Redirect
       clearCart();
       navigate("/");
     } catch (err) {
-      toast.error("Failed to place the order.");
+      toast.error("Failed to complete checkout. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+  
+  
+  
 
 
   // Voucher fetching function

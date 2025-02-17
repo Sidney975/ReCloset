@@ -31,28 +31,26 @@ export const CartProvider = ({ children }) => {
     // 🔹 Function to add item to cart
     const addToCart = async (product) => {
         const categoryName = await fetchCategoryName(product.categoryId); // Fetch category name from API
-
+    
         setCartItems((prevCart) => {
             const existingItem = prevCart.find(item => item.productId === product.productId);
-
-            if (!existingItem) {
-                return [
-                    ...prevCart, 
-                    {
-                        productId: product.productId,  // Product ID (for lookup)
-                        productName: product.name,  // Matches `OrderItem`
-                        productCategory: categoryName,  // 🔹 Store actual category name
-                        quantity: 1,  // Default quantity
-                        itemPrice: product.price,  // Matches `ItemPrice` in `OrderItem`
-                    }
-                ];
+    
+            if (existingItem) {
+                // If the item already exists, return the previous cart without modifying it
+                return prevCart;
             }
-
-            return prevCart.map(item =>
-                item.productId === product.productId
-                    ? { ...item, quantity: item.quantity + 1 }
-                    : item
-            );
+    
+            // If the item doesn't exist, add it to the cart
+            return [
+                ...prevCart, 
+                {
+                    productId: product.productId,  // Product ID (for lookup)
+                    productName: product.name,  // Matches `OrderItem`
+                    productCategory: categoryName,  // 🔹 Store actual category name
+                    quantity: 1,  // Default quantity
+                    itemPrice: product.price,  // Matches `ItemPrice` in `OrderItem`
+                }
+            ];
         });
     };
 
