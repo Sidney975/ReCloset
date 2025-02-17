@@ -18,6 +18,38 @@ namespace Backend.Controllers
 			_context = context;
 		}
 
+		[HttpPost]
+		public async Task<IActionResult> CreateDelivery([FromBody] DeliveryDTO deliveryDto)
+		{
+			if (deliveryDto == null)
+			{
+				return BadRequest("Invalid delivery data.");
+			}
+
+			// Ensure the Order exists before creating the delivery entry
+			var order = await _context.Orders.FirstOrDefaultAsync(o => o.OrderId == deliveryDto.OrderId);
+			if (order == null)
+			{
+				return NotFound("Order not found.");
+			}
+
+			// Create the Delivery entry
+			var delivery = new Delivery
+			{
+				OrderId = deliveryDto.OrderId,
+				ShipmentId = deliveryDto.ShipmentId ?? Guid.NewGuid().ToString(), // Generate if not provided
+				TrackingNumber = deliveryDto.TrackingNumber,
+				Carrier = deliveryDto.Carrier ?? "Unknown",
+				ShipmentStatus = deliveryDto.ShipmentStatus ?? "Pending",
+				CreatedAt = DateTime.UtcNow
+			};
+
+			_context.Deliveries.Add(delivery);
+			await _context.SaveChangesAsync();
+
+			return CreatedAtAction(nameof(GetDeliveryByOrderId), new { orderId = delivery.OrderId }, delivery);
+		}
+
 		[HttpGet]
 		public IActionResult GetAllDelivery()
 		{

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -22,8 +22,10 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import useUserIP from "../../hooks/useUserIp"; // Import IP detection hook
 import http from "../../http";
+import UserContext from "../../contexts/UserContext";
 
 function CheckoutPage() {
+  const { user, setUser } = useContext(UserContext);
   const { userIP, userLocation, error: ipError } = useUserIP(); // Get IP & location
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -46,6 +48,9 @@ function CheckoutPage() {
   const [manualVoucherCode, setManualVoucherCode] = useState("");
   const [appliedVoucher, setAppliedVoucher] = useState(null);
   const [alteredPrice, setAlteredPrice] = useState(0);
+
+  const finalPrice = appliedVoucher ? alteredPrice : total;
+  const pointsEarned = Math.floor(total * 10); 
 
   useEffect(() => {
     // Load cart from localStorage
@@ -123,8 +128,7 @@ function CheckoutPage() {
     }
 
     const finalTotal = appliedVoucher ? alteredPrice : total;
-
-
+    const pointsEarned = Math.floor(total * 10);
     const payload = {
       deliveryOption: 1,
       paymentId: selectedPaymentMethod,
@@ -140,15 +144,45 @@ function CheckoutPage() {
 
     try {
       setLoading(true);
-      await http.post("/checkout", payload);
+      const orderResponse  = await http.post("/checkout", payload);
       toast.success("Order placed successfully!");
 
+      const orderId = orderResponse.data.orderId;
+      console.log(" Order created with ID:", orderId);
+
+      const shippitResponse = await http.post(`/api/shippit/send/${orderId}`);
+
+      if (!shippitResponse.data.shipmentId) {
+        throw new Error("Failed to send order to Shippit.");
+      }
+
+      const { shipmentId, trackingNumber } = shippitResponse.data;
+      console.log("Shipment created with ID:", shipmentId);
+
+      const deliveryPayload = {
+        orderId,
+        shipmentId,
+        trackingNumber,
+        carrier: "Shippit",
+        shipmentStatus: "Processing",
+      };
+
+      await http.post("/api/delivery", deliveryPayload);
        // If a voucher was applied, call the redeem API to mark it as used
-       if (appliedVoucher) {
+       
+      if (appliedVoucher) {
         await http.post(`/voucher/${appliedVoucher.voucherId}/redeem`);
         toast.success("Voucher redeemed successfully!");
       }
+      console.log(`points earned: ${pointsEarned}`);
+      console.log(`user: ${user}`);
+      console.log(`user id: ${user.id}`);
 
+      // Assuming you have the current user in your context:
+      if (user && user.id) {
+        await http.put(`/user/update/${user.id}/${pointsEarned}`, {});
+        toast.success(`Loyalty points updated! You earned ${pointsEarned} points.`);
+      }
 
       localStorage.removeItem("CartItems");
       navigate("/");
@@ -204,6 +238,11 @@ function CheckoutPage() {
     } catch (err) {
       toast.error("Failed to apply voucher.");
     }
+  };
+
+  const handleRemoveVoucher = () => {
+    setAppliedVoucher(null);
+    setAlteredPrice(total);
   };
 
   return (
@@ -375,10 +414,18 @@ function CheckoutPage() {
             Subtotal: ${total.toFixed(2)}
           </Typography>
           {appliedVoucher && (
-            <Typography variant="h6" align="center" color="green" sx={{ mt: 1 }}>
-              New Total: ${alteredPrice.toFixed(2)}
-            </Typography>
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="subtitle1" align="center">
+                Applied Voucher: {appliedVoucher.voucherName}
+              </Typography>
+              <Typography variant="subtitle1" align="center" color="green">
+                New Total: ${alteredPrice.toFixed(2)}
+              </Typography>
+            </Box>
           )}
+           <Typography variant="subtitle1" align="center" sx={{ mt: 1 }}>
+            Points Earned: {pointsEarned}
+          </Typography>
         </Paper>
       </Box>
 

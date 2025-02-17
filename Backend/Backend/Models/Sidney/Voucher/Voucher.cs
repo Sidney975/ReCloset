@@ -44,7 +44,10 @@ namespace Backend.Models.Sidney.Voucher
         [Required, Range(1, 9999)]
         public int PointsCost { get; set; }
 
-        [JsonIgnore]
+        [Required]
+        public bool Hidden { get; set; } = false;
+
+		[JsonIgnore]
         public ICollection<UserVoucher>? UserVouchers { get; set; }
 
 		public int CategoryId { get; set; } // Foreign Key

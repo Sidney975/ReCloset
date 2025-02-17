@@ -4,26 +4,26 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend.Models.Sidney.Delivery
 {
-    public class Delivery
-    {
-        [Key]
-        public int DeliveryId { get; set; } // Changed Id → DeliveryId to match convention
+	public class Delivery
+	{
+		[Key]
+		public int DeliveryId { get; set; }
 
-        [Required]
-        public string TrackingNumber { get; set; } // Shippo Tracking Number
+		[Required]
+		public string ShipmentId { get; set; } // From Shippit
 
-        [Required]
-        public string Carrier { get; set; } // Carrier used (e.g., USPS, FedEx, DHL)
+		public string TrackingNumber { get; set; } // From Shippit
 
-        public string ShipmentStatus { get; set; } // Current shipment status (e.g., In Transit, Delivered)
+		public string Carrier { get; set; } // e.g., "DHL", "FedEx"
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow; // Timestamp
+		public string ShipmentStatus { get; set; } // "Pending", "Shipped", etc.
 
-        // Ensure OrderId is correctly linked to Order
-        [Required]
-        public int OrderId { get; set; } // Foreign Key linking to Order
+		public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        [ForeignKey("OrderId")]
-        public virtual Order Order { get; set; } // Navigation property
-    }
+		[ForeignKey("OrderId")]
+		public int OrderId { get; set; } // Links to an order
+
+		public virtual Order Order { get; set; }
+	}
+
 }

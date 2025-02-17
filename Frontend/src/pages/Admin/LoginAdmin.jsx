@@ -14,8 +14,8 @@ function LoginAdmin() {
 
   const formik = useFormik({
     initialValues: {
-      email: "jerald@gmail.com",
-      password: "P@ssw0rd",
+      email: "sidney@gmail.com",
+      password: "Password1",
     },
     validationSchema: yup.object({
       email: yup.string().trim().email("Enter a valid email").max(50, "Email must be at most 50 characters").required("Email is required"),

@@ -83,7 +83,8 @@ namespace ReCloset.Controllers
             {
                 foundUser.Id,
                 foundUser.Email,
-                foundUser.Username
+                foundUser.Username,
+                foundUser.LoyaltyPoints,
             };
             string accessToken = CreateToken(foundUser);
             return Ok(new { user, accessToken });
@@ -245,7 +246,38 @@ namespace ReCloset.Controllers
             string token = tokenHandler.WriteToken(securityToken);
             return token;
         }
-    }
+
+        // Update the points
+		[HttpPut("update/{id}/{points}"), Authorize]
+		public IActionResult UpdateLoyalyPoints(int id, UpdateUserRequest request, int points)
+		{
+			// Find the user by ID
+			var foundUser = _context.Users.FirstOrDefault(x => x.Id == id);
+			if (foundUser == null)
+			{
+				return NotFound(new { message = "User not found." });
+			}
+
+			// Only allow users to update their own information
+			if (foundUser.Id != id)
+			{
+				return Unauthorized(new { message = "You cannot update another user's information." });
+			}
+
+
+			// Update user fields
+			foundUser.LoyaltyPoints = foundUser.LoyaltyPoints + points;
+			foundUser.UpdatedAt = DateTime.UtcNow;
+
+			// Update the user in the database
+			_context.Users.Update(foundUser);
+			_context.SaveChanges();
+
+			return Ok(new { message = "Points updated successfully." });
+		}
+
+
+	}
 
     // DTO class for update request
     public class UpdateUserRequest

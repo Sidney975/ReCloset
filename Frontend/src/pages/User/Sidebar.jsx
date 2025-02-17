@@ -34,6 +34,10 @@ const Sidebar = ({ activeTab }) => {
                     <ListItemIcon><Payment /></ListItemIcon>
                     <ListItemText primary="Payment" />
                 </ListItem>
+                <ListItem button selected={activeTab === 'vouchers'} onClick={() => navigate('/usevoucher')}>
+                    <ListItemIcon><Payment /></ListItemIcon>
+                    <ListItemText primary="Vouchers" />
+                </ListItem>
             </List>
         </Box>
     );

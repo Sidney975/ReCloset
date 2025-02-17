@@ -36,6 +36,7 @@ public class MyDbContext(IConfiguration configuration) : DbContext
     public required DbSet<UserVoucher> UserVouchers { get; set; }
     public DbSet<Delivery> Deliveries { get; set; } // Register the Delivery model
 
+
     // Configure global query filters
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -81,12 +82,6 @@ public class MyDbContext(IConfiguration configuration) : DbContext
             .HasOne(uv => uv.Voucher)
             .WithMany(v => v.UserVouchers)
             .HasForeignKey(uv => uv.VoucherId);
-
-        modelBuilder.Entity<Order>()
-                .HasOne(o => o.Delivery)
-                .WithOne(d => d.Order)
-                .HasForeignKey<Delivery>(d => d.OrderId)
-                .OnDelete(DeleteBehavior.Cascade);
                 
         modelBuilder.Entity<Voucher>()
             .HasOne(v => v.Category)
@@ -94,7 +89,14 @@ public class MyDbContext(IConfiguration configuration) : DbContext
             .HasForeignKey(v => v.CategoryId)
             .OnDelete(DeleteBehavior.Cascade);
 
-            base.OnModelCreating(modelBuilder);
+		modelBuilder.Entity<Order>()
+		.HasMany(o => o.Deliveries) // **Fix Here**
+		.WithOne(d => d.Order)
+		.HasForeignKey(d => d.OrderId)
+		.OnDelete(DeleteBehavior.Cascade);
+
+
+		base.OnModelCreating(modelBuilder);
          
     }
 }

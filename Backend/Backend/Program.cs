@@ -90,6 +90,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 });
 
+builder.Services.AddHttpClient<ShippitService>();
 
 var app = builder.Build();
 

@@ -130,11 +130,6 @@ namespace Backend.Controllers
         }
 
 
-
-
-
-
-
         // PUT: Update an existing order
         [HttpPut("{id}"), Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]

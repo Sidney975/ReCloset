@@ -19,8 +19,9 @@ namespace Backend.Models.Jerald.Orders
     {
         Pending = 0,
         Shipped = 1,
-        Delivered = 2,
-        Cancelled = 3
+        Delivering = 2,
+        Delivered = 3,
+        Cancelled = 4
     }
 
 
@@ -41,7 +42,7 @@ namespace Backend.Models.Jerald.Orders
         [Required]
         public ShipmentStatus ShipmentStatus { get; set; } = ShipmentStatus.Pending;
 
-        [ForeignKey("PaymentId")]
+		[ForeignKey("PaymentId")]
         public Payment? Payment { get; set; }
 
         [ForeignKey("UserId")]
@@ -52,8 +53,10 @@ namespace Backend.Models.Jerald.Orders
         [JsonIgnore]
         public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 
-        public virtual Delivery Delivery { get; set; } // Navigation Property
-        public int? VoucherId { get; set; }
+		[JsonIgnore]
+		public virtual List<Delivery> Deliveries { get; set; } = new List<Delivery>();
+
+		public int? VoucherId { get; set; }
 
         [ForeignKey("VoucherId")]
         public virtual Voucher? Voucher { get; set; }

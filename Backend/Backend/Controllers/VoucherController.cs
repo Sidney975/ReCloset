@@ -32,6 +32,7 @@ namespace Backend.Controllers
 				t.ExpirationDate,
 				t.CreatedAt,
 				t.UpdatedAt,
+				t.Hidden,
 			});
 			return Ok(data);
 		}
@@ -53,6 +54,7 @@ namespace Backend.Controllers
 				voucher.DiscountValue,
 				voucher.PointsCost,
 				voucher.ExpirationDate,
+				voucher.Hidden,
 				voucher.CreatedAt,
 				voucher.UpdatedAt,
 			};
@@ -72,6 +74,7 @@ namespace Backend.Controllers
 				DiscountValue = voucher.DiscountValue,
 				MinimumValue = voucher.MinimumValue,
 				PointsCost = voucher.PointsCost,
+				Hidden = voucher.Hidden,
 				ExpirationDate = voucher.ExpirationDate,
 				CreatedAt = now,
 				UpdatedAt = now,
@@ -94,9 +97,12 @@ namespace Backend.Controllers
 
 			myVoucher.VoucherName = voucher.VoucherName.Trim();
 			myVoucher.VoucherTypeEnum = voucher.VoucherTypeEnum;
+			myVoucher.VoucherCode = voucher.VoucherCode;
 			myVoucher.DiscountValue = voucher.DiscountValue;
 			myVoucher.PointsCost = voucher.PointsCost;
+			myVoucher.MinimumValue = voucher.MinimumValue;
 			myVoucher.ExpirationDate = voucher.ExpirationDate;
+			myVoucher.Hidden = voucher.Hidden;
 			myVoucher.CreatedAt = DateTime.Now;
 			myVoucher.UpdatedAt = DateTime.Now;
 
@@ -124,11 +130,22 @@ namespace Backend.Controllers
 			// Get the current user's ID
 			int userId = GetUserId();
 
-			// Check if the voucher exists
+			var user = _context.Users.Find(userId);
+			if (user == null)
+			{
+				return NotFound(new { message = "User not found" });
+			}
+
+				// Check if the voucher exists
 			var voucher = _context.Vouchers.Find(voucherId);
 			if (voucher == null)
 			{
 				return NotFound(new { message = "Voucher not found" });
+			}
+
+			if (user.LoyaltyPoints < voucher.PointsCost )
+			{
+				return BadRequest(new { message = "you do not have enough points" });
 			}
 
 			// Check if the user has already claimed this voucher
@@ -148,13 +165,13 @@ namespace Backend.Controllers
 			};
 
 
-
 			// Add the record to the database
 			_context.UserVouchers.Add(userVoucher);
 			_context.SaveChanges();
 
 			return Ok(new { message = "Voucher claimed successfully" });
 		}
+
 
 		[HttpGet("claimed"), Authorize]
 		public IActionResult GetClaimedVouchers()
@@ -177,6 +194,7 @@ namespace Backend.Controllers
 					uv.Voucher.PointsCost,
 					uv.Voucher.ExpirationDate,
 					uv.Voucher.CategoryId,
+					uv.Voucher.Hidden,
 					uv.CollectedAt,
 					uv.RedeemedAt
 				})

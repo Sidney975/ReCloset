@@ -62,7 +62,7 @@ const AdminAppBar = () => {
         <NavItem to="/admin/dashboard" label="Dashboard" />
         <NavItem to="/admin/products" label="Products" />
         <NavItem to="/admin/orders" label="Orders" />
-        <NavItem to="/voucher" label="Vouchers" />
+        <NavItem to="/admin/voucher" label="Vouchers" />
         {/* <NavItem to="/admin/delivery" label="Delivery" /> */}
         <NavItem to="/admin/users" label="Users" />
       </Box>

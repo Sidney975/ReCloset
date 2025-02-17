@@ -12,12 +12,12 @@ import {
 } from '@mui/material';
 import { Redeem, CheckCircle } from '@mui/icons-material';
 import http from "../../http";
-import UserContext from '../../contexts/UserContext';
+import UserContext from "../../contexts/UserContext";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 function ClaimVoucher() {
-  const { user } = useContext(UserContext);
+  const { user, setUser } = useContext(UserContext);
   const [vouchers, setVouchers] = useState([]);
   const [claimedVouchers, setClaimedVouchers] = useState([]);
 
@@ -49,11 +49,25 @@ function ClaimVoucher() {
       });
   };
 
-  const claimVoucher = (voucherId) => {
+  // When a voucher is claimed, deduct its cost from the user's loyalty points.
+  const claimVoucher = (voucherId, voucherCost) => {
     http.post(`/voucher/${voucherId}/claim`)
       .then((res) => {
         toast.success(res.data.message);
         setClaimedVouchers((prev) => [...prev, voucherId]);
+        // Update loyalty points: subtract voucherCost from the current points
+        if (user && user.id) {
+          http.put(`/user/update/${user.id}/${-voucherCost}`, {})
+            .then(() => {
+              // Update local context immediately
+              setUser({ ...user, loyaltyPoints: user.loyaltyPoints - voucherCost });
+              toast.success("Loyalty points updated!");
+            })
+            .catch((err) => {
+              console.error("Failed to update loyalty points:", err);
+              toast.error("Failed to update loyalty points.");
+            });
+        }
       })
       .catch((err) => {
         console.error('Failed to claim voucher:', err);
@@ -78,7 +92,7 @@ function ClaimVoucher() {
   }, []);
 
   return (
-    <Box>
+    <Box sx={{ p: 3 }}>
       <Typography
         variant="h4"
         sx={{
@@ -92,6 +106,11 @@ function ClaimVoucher() {
       >
         Available Vouchers
       </Typography>
+      {user && (
+        <Typography variant="h6" sx={{ textAlign: 'center', mb: 2 }}>
+          Your Points: {user.loyaltyPoints}
+        </Typography>
+      )}
       <Grid container spacing={3}>
         {vouchers.map((voucher) => (
           <Grid item xs={12} sm={6} md={4} key={voucher.voucherId}>
@@ -118,6 +137,16 @@ function ClaimVoucher() {
                   Cost: <strong>{voucher.pointsCost} points</strong>
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  Discount: {voucher.discountValue}{" "}
+                  {voucher.voucherTypeEnum === "Price Deduction" &&
+                    voucher.discountValue < 1
+                    ? "(Percentage)"
+                    : voucher.voucherTypeEnum === "Price Deduction" &&
+                      voucher.discountValue >= 1
+                    ? "(Flat)"
+                    : ""}
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                   Expiration Date: {new Date(voucher.expirationDate).toLocaleDateString()}
                 </Typography>
               </CardContent>
@@ -127,7 +156,7 @@ function ClaimVoucher() {
                     variant="contained"
                     startIcon={claimedVouchers.includes(voucher.voucherId) ? <CheckCircle /> : <Redeem />}
                     color={claimedVouchers.includes(voucher.voucherId) ? 'success' : 'primary'}
-                    onClick={() => claimVoucher(voucher.voucherId)}
+                    onClick={() => claimVoucher(voucher.voucherId, voucher.pointsCost)}
                     disabled={claimedVouchers.includes(voucher.voucherId)}
                     sx={{ borderRadius: '8px', px: 3 }}
                   >

@@ -128,7 +128,7 @@ function App() {
                   <Route path="women’s-clothing" element={<Products />} />
 
                   {/* Sidney's Routes */}
-                  <Route path="/voucher" element={<Vouchers />} />
+                  <Route path="/admin/voucher" element={<Vouchers />} />
                   <Route path="/addvoucher" element={<AddVoucher />} />
                   <Route path="/claimvoucher" element={<ClaimVoucher />} />
                   <Route path="/usevoucher" element={<UseVoucher />} />
