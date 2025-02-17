@@ -6,6 +6,8 @@ import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
+
 
 function EditProduct() {
     const { id } = useParams();
@@ -32,9 +34,9 @@ function EditProduct() {
             sustainabilityNotes: '',
             sizingChart: '',
             price: '',
-            quality: false,
+            quality: '',
             brand: '',
-            available: false,
+            available: true,
             categoryId: '',
             warehouseId: '',
             certId: '',
@@ -83,7 +85,7 @@ function EditProduct() {
             }
             data.name = data.name.trim();
             http.put(`/api/product/${id}`, data)
-                .then(() => navigate("/adminproducts"))
+                .then(() => navigate("/admin/products"))
                 .catch((err) => console.error(err));
         },
     });
@@ -184,6 +186,22 @@ function EditProduct() {
                                 error={formik.touched.price && Boolean(formik.errors.price)}
                                 helperText={formik.touched.price && formik.errors.price}
                             />
+                            <FormControl component="fieldset">
+                                <FormLabel component="legend">Quality</FormLabel>
+                                <RadioGroup
+                                    row
+                                    name="quality"
+                                    value={formik.values.quality ? true : false}
+                                    onChange={(event) => {
+                                        const newQuality = event.target.value === true;
+                                        formik.setFieldValue("quality", newQuality);
+                                        formik.setFieldValue("available", newQuality); // Automatically set available to false if quality is low
+                                    }}
+                                >
+                                    <FormControlLabel value={true} control={<Radio />} label="High" />
+                                    <FormControlLabel value={false} control={<Radio />} label="Low" />
+                                </RadioGroup>
+                            </FormControl>
                             <TextField
                                 fullWidth
                                 margin="dense"

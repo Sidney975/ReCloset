@@ -69,6 +69,9 @@ function AdminProducts() {
                 <Link to="/addproduct">
                     <Button variant="contained" color="success">Add Product</Button>
                 </Link>
+                <Link to="/upcycling-requests">
+                    <Button variant="contained" color="warning">View Upcycling Requests</Button>
+                </Link>
             </Box>
 
             {/* Product List Table */}
@@ -79,6 +82,7 @@ function AdminProducts() {
                             <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Image</TableCell>
                             <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Product Name</TableCell>
                             <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Price</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Quality</TableCell>
                             <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Category</TableCell>
                             <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Warehouse</TableCell>
                             <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Sustainability Cert</TableCell>
@@ -95,6 +99,7 @@ function AdminProducts() {
                                 </TableCell>
                                 <TableCell>{product.name}</TableCell>
                                 <TableCell>${product.price.toFixed(2)}</TableCell>
+                                <TableCell>{product.quality ? "High" : "Low"}</TableCell>
                                 <TableCell>{categories[product.categoryId]}</TableCell>
                                 <TableCell>{product.warehouseId}</TableCell>
                                 <TableCell>{certifications[product.certId] || "None"}</TableCell>
