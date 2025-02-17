@@ -1,120 +1,117 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Box, Typography, Grid2, Card, CardContent, Input, IconButton, Button } from '@mui/material';
+import { Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Input, IconButton, Button } from '@mui/material';
 import { Search, Clear, Edit } from '@mui/icons-material';
 import http from "../../http";
 
 function AdminProducts() {
     const [productList, setProductList] = useState([]);
     const [search, setSearch] = useState('');
-
-    const onSearchChange = (e) => {
-        setSearch(e.target.value);
-    };
+    const [categories, setCategories] = useState({});
+    const [certifications, setCertifications] = useState({});
 
     const getProducts = () => {
         http.get('/api/product').then((res) => {
-            setProductList(res.data); // Correctly set product list
+            setProductList(res.data);
+        });
+    };
+
+    const getCategories = () => {
+        http.get('/api/category').then((res) => {
+            const categoryMap = res.data.reduce((acc, category) => {
+                acc[category.categoryId] = category.name;
+                return acc;
+            }, {});
+            setCategories(categoryMap);
+        });
+    };
+
+    const getCertifications = () => {
+        http.get('/api/sustainabilitycertification').then((res) => {
+            const certMap = res.data.reduce((acc, cert) => {
+                acc[cert.certId] = cert.name;
+                return acc;
+            }, {});
+            setCertifications(certMap);
         });
     };
 
     const searchProducts = () => {
-        console.log(`Searching for: ${search}`);
         http.get(`/api/product?search=${search}`).then((res) => {
-            console.log("Search results:", res.data);
             setProductList(res.data);
         }).catch((err) => {
             console.error("Search error:", err);
         });
     };
-    
 
     useEffect(() => {
         getProducts();
+        getCategories();
+        getCertifications();
     }, []);
 
-    const onSearchKeyDown = (e) => {
-        if (e.key === "Enter") {
-            console.log("Enter key pressed");
-            searchProducts();
-        }
-    };
-
-    const onClickSearch = () => {
-        searchProducts();
-    }
-
-    const onClickClear = () => {
-        setSearch('');
-        getProducts();
-    };
+    const onSearchChange = (e) => setSearch(e.target.value);
+    const onSearchKeyDown = (e) => { if (e.key === "Enter") searchProducts(); };
+    const onClickSearch = () => searchProducts();
+    const onClickClear = () => { setSearch(''); getProducts(); };
 
     return (
-        <Box>
-            <Typography variant="h5" sx={{ my: 2 }}>
-                Products
+        <Box sx={{ p: 4 }}>
+            <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold' }}>
+                Manage Products
             </Typography>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Input value={search} placeholder="Search"
-                    onChange={onSearchChange}
-                    onKeyDown={onSearchKeyDown} />
-                <IconButton color="primary"
-                    onClick={onClickSearch}>
-                    <Search />
-                </IconButton>
-                <IconButton color="primary"
-                    onClick={onClickClear}>
-                    <Clear />
-                </IconButton>
-                <Box sx={{ flexGrow: 1 }} />
+            {/* Search Bar */}
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
+                <Input value={search} placeholder="Search Products..." onChange={onSearchChange} onKeyDown={onSearchKeyDown} sx={{ flex: 1 }} />
+                <IconButton color="primary" onClick={onClickSearch}><Search /></IconButton>
+                <IconButton color="secondary" onClick={onClickClear}><Clear /></IconButton>
                 <Link to="/addproduct">
-                    <Button variant="contained">Add Product</Button>
+                    <Button variant="contained" color="success">Add Product</Button>
                 </Link>
             </Box>
 
-            <Grid2 container spacing={2}>
-            {productList.map((product, i) => {
-                        return (
-                            <Grid2 size={{xs:12, md:6, lg:4}} key={product.productId}>
-                                <Card>
-                                    {
-                                        product.image && (
-                                            <Box className="aspect-ratio-container">
-                                                <img alt="product"
-                                                    src={`${import.meta.env.VITE_FILE_BASE_URL}${product.image}`}>
-                                                </img>
-                                            </Box>
-                                        )
-                                    }
-                                    <CardContent>
-                                        <Box sx={{ display: 'flex', mb: 1 }}>
-                                            <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                                                {product.name}
-                                            </Typography>
-                                                    <Link to={`/editproduct/${product.productId}`}>
-                                                        <IconButton color="primary" sx={{ padding: '4px' }}>
-                                                            <Edit />
-                                                        </IconButton>
-                                                    </Link>
-                                        </Box>
-                                        <Typography sx={{ color: 'text.secondary', mb: 1 }}>
-                                            {product.price.toFixed(2)}
-                                        </Typography>
-                                        <Typography sx={{ whiteSpace: 'pre-wrap', color: 'text.secondary', mb: 1 }}>
-                                            {product.description}
-                                        </Typography>
-                                        <Typography sx={{ color: 'text.secondary' }}>
-                                            Category ID: {product.categoryId} | Warehouse ID: {product.warehouseId}
-                                        </Typography>
-                                    </CardContent>
-                                </Card>
-                            </Grid2>
-                        );
-                    })
-                }
-            </Grid2>
+            {/* Product List Table */}
+            <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
+                <Table>
+                    <TableHead>
+                        <TableRow sx={{ backgroundColor: 'darkgreen', color: 'white' }}>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Image</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Product Name</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Price</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Category</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Warehouse</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Sustainability Cert</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }} align="right">Actions</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {productList.map((product) => (
+                            <TableRow key={product.productId} hover>
+                                <TableCell>
+                                    {product.image && (
+                                        <img src={`${import.meta.env.VITE_FILE_BASE_URL}${product.image}`} alt={product.name} width="50" height="50" style={{ borderRadius: 8 }} />
+                                    )}
+                                </TableCell>
+                                <TableCell>{product.name}</TableCell>
+                                <TableCell>${product.price.toFixed(2)}</TableCell>
+                                <TableCell>{categories[product.categoryId]}</TableCell>
+                                <TableCell>{product.warehouseId}</TableCell>
+                                <TableCell>{certifications[product.certId] || "None"}</TableCell>
+                                <TableCell align="right">
+                                    <Link to={`/editproduct/${product.productId}`}>
+                                        <IconButton color="primary">
+                                            <Edit />
+                                        </IconButton>
+                                    </Link>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
         </Box>
     );
 }
+
 export default AdminProducts;

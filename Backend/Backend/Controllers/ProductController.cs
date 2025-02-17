@@ -19,22 +19,33 @@ namespace ReCloset.Controllers
 			_context = context;
 		}
 
-		// GET: api/Product
-		[HttpGet]
-		public IActionResult GetAll(string? search)
-		{
-			IQueryable<Product> result = _context.Products;
-			if (search != null)
-			{
-				result = result.Where(x => x.Name.Contains(search)
-				|| x.Description.Contains(search));
-			}
-			var list = result.OrderByDescending(x => x.CreatedAt).ToList();
-			return Ok(list);
-		}
+        // GET: api/Product
+        [HttpGet]
+        public IActionResult GetAll(string? search)
+        {
+            IQueryable<Product> result = _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Warehouse)
+                .Include(p => p.SustainabilityCertification);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                result = result.Where(p =>
+                    p.Name.Contains(search) ||
+                    p.Price.ToString().Contains(search) ||
+                    p.Category.Name.Contains(search) ||
+                    p.Warehouse.WarehouseId.ToString().Contains(search) ||
+                    (p.SustainabilityCertification != null && p.SustainabilityCertification.Name.Contains(search))
+                );
+            }
+
+            var list = result.OrderByDescending(x => x.CreatedAt).ToList();
+            return Ok(list);
+        }
 
 
-		[HttpGet("{id}")]
+
+        [HttpGet("{id}")]
 		public async Task<ActionResult<ProductDetailDto>> GetProduct(int id)
 		{
 			var product = await _context.Products
