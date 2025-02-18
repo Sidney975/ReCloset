@@ -2,7 +2,10 @@ import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
-import { Box, Typography, TextField, Button } from "@mui/material";
+import { 
+  Box, Typography, TextField, Button, InputAdornment, IconButton 
+} from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import UserContext from "../../contexts/UserContext";
 import AdminContext from "../../contexts/AdminContext";
@@ -13,6 +16,11 @@ function Login() {
   const { setUser } = useContext(UserContext);
   const { setAdmin } = useContext(AdminContext);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // 👀 State for toggling password visibility
+
+  const handleTogglePassword = () => {
+    setShowPassword((prev) => !prev);
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -82,7 +90,7 @@ function Login() {
         <TextField
           label="Password"
           name="password"
-          type="password"
+          type={showPassword ? "text" : "password"} // 👀 Toggle between "text" and "password"
           value={formik.values.password}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
@@ -90,6 +98,15 @@ function Login() {
           helperText={formik.touched.password && formik.errors.password}
           fullWidth
           margin="normal"
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={handleTogglePassword} edge="end">
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
         />
         <Button type="submit" variant="contained" color="primary" fullWidth disabled={loading}>
           {loading ? "Logging in..." : "Login"}
