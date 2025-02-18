@@ -198,6 +198,7 @@ function CheckoutPage() {
         await http.put(`/user/update/${user.id}/${pointsEarned}`, {});
         toast.success(`Loyalty points updated! You earned ${pointsEarned} points.`);
       }
+      
       clearCart();
       // Step 1: Fetch each product and format data for update
       const updatePromises = cartItems.map(async (item) => {

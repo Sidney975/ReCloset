@@ -18,8 +18,8 @@ namespace Backend.Controllers
 		private int GetUserId()
 		{
             var Username = User.Claims
-.Where(c => c.Type == ClaimTypes.NameIdentifier)
-.Select(c => c.Value).SingleOrDefault();
+			.Where(c => c.Type == ClaimTypes.NameIdentifier)
+			.Select(c => c.Value).SingleOrDefault();
             int userId = _context.Users.FirstOrDefault(u => u.UserId == Username).Id;
             return userId;
         }
@@ -42,6 +42,7 @@ namespace Backend.Controllers
 
 			// Ensure order is tracked before modifying
 			_context.Orders.Attach(order);
+
 
 			var shipmentRequest = new ShippitShipmentRequest
 			{
@@ -67,7 +68,7 @@ namespace Backend.Controllers
 					},
 					Products = order.OrderItems.Select(item => new ProductDetails
 					{
-						Title = "Unknown Product",
+						Title = item.ProductName ?? "Unknown Product",
 						SKU = "SKU123",
 						Quantity = item.Quantity,
 						Price = (double)item.ItemPrice
