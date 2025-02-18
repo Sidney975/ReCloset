@@ -327,7 +327,7 @@ const CustomerAppBar = () => {
                 >
                   <ListItemAvatar>
                     <Avatar
-                      src={item.image || "/default-product.jpg"}
+                      src={`${import.meta.env.VITE_FILE_BASE_URL}${item.image}` || "/default-product.jpg"}
                       alt={item.name}
                     />
                   </ListItemAvatar>
