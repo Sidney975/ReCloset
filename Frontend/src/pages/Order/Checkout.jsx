@@ -213,16 +213,23 @@ function CheckoutPage() {
   const fetchVouchers = async () => {
     try {
       const claimedResponse = await http.get("/voucher/claimed");
-      console.log(claimedResponse.data)
+      console.log(claimedResponse.data);
+  
+      // Filter vouchers that have not been redeemed
       const activeClaimed = claimedResponse.data.filter(
-        (v) => v.redeemedAt == null
+        (v) => v.redeemedAt == null && v.minimumValue <= total
       );
-      console.log(activeClaimed)
+      console.log(activeClaimed);
       setClaimedVouchers(activeClaimed);
+  
       const allResponse = await http.get("/voucher");
       const allVouchers = allResponse.data;
+  
+      // Remove vouchers that don't meet the minimum value requirement
       const claimedIds = claimedResponse.data.map((v) => v.VoucherId);
-      const avail = allVouchers.filter((v) => !claimedIds.includes(v.VoucherId));
+      const avail = allVouchers.filter(
+        (v) => !claimedIds.includes(v.VoucherId) && v.minimumValue <= total
+      );
       setAvailableVouchers(avail);
     } catch (err) {
       toast.error("Failed to load vouchers.");

@@ -40,8 +40,9 @@ namespace Backend.Controllers
                 .OrderBy(x => x.OrderId)
                 .ToListAsync();
 
+			bool isUpdated = false;
 
-            foreach (var order in orders)
+			foreach (var order in orders)
             {
 				string shipmentStatus = "Pending";
 
@@ -56,9 +57,14 @@ namespace Backend.Controllers
 					try
 					{
 						var trackingInfo = await _shippitService.GetShipmentStatusAsync(delivery.TrackingNumber);
+                        Console.WriteLine($"tracking info:{trackingInfo.Status}");
 						if (Enum.TryParse(trackingInfo.Status, true, out Backend.Models.Jerald.Orders.ShipmentStatus shipmentStatusEnum))
 						{
-							order.ShipmentStatus = shipmentStatusEnum;
+							if (order.ShipmentStatus != shipmentStatusEnum)
+							{
+								order.ShipmentStatus = shipmentStatusEnum;
+								isUpdated = true; // Mark as updated
+							}
 						}
 						else
 						{
@@ -71,7 +77,12 @@ namespace Backend.Controllers
 					}
                     
 				}
+			}
 
+			if (isUpdated) // Save changes only if necessary
+			{
+				await _context.SaveChangesAsync();
+				Console.WriteLine("Updated shipment statuses saved to database.");
 			}
 
 			// Map orders to OrderDTO

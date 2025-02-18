@@ -257,7 +257,7 @@ function AddVoucher() {
                 }
               >
                 <FormControlLabel
-                  value=""
+                  value="true"
                   control={<Radio />}
                   label="Yes"
                 />
