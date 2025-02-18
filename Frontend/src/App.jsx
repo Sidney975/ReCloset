@@ -49,6 +49,7 @@ import Certifications from './pages/Product/Certifications';
 import AddCertification from './pages/Product/AddCertification';
 import AdminProducts from './pages/Product/AdminProduct';
 import UpcyclingRequests from './pages/Product/UpcyclingRequests';
+import ArTryOn from './pages/Product/ARTryOn';
 
 {/* Sidney's Imports */ }
 import Vouchers from './pages/Voucher/Vouchers';
@@ -127,6 +128,7 @@ function App() {
                   <Route path="/upcycling-requests" element={<UpcyclingRequests />} />
                   <Route path="/sustainabilitycertifications" element={<Certifications />} />
                   <Route path="/addcertification" element={<AddCertification />} />
+                  <Route path="/ar-tryon/:productId" element={<ArTryOn />} />
 
                   <Route path="women’s-clothing" element={<Products />} />
 

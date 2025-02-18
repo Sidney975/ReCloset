@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, Typography, Tab, Tabs, Container, Card, CardContent, CardMedia } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { Box, Typography, Tab, Tabs, Container, Card, CardContent, CardMedia, Button } from '@mui/material';
 import http from "../../http";
 
 const ProductDetail = () => {
     const { productId } = useParams();
     const [product, setProduct] = useState(null);
     const [tabValue, setTabValue] = useState(0);
+    const navigate = useNavigate()
 
     useEffect(() => {
         // Fetch product details by ID
@@ -80,7 +82,20 @@ const ProductDetail = () => {
                                 )}
                             </Box>
                         )}
-                        {tabValue === 2 && <Typography>No size and measurement details available.</Typography>}
+                        {tabValue === 2 && (
+                            <>
+                                <Typography>{product.sizingChart || 'No size details available.'}</Typography>
+                            
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={() => navigate(`/ar-tryon/${productId}`)}
+                                >
+                                    Try in AR
+                                </Button>
+
+                            </>
+                        )}
                     </Box>
                 </Box>
             </Box>
