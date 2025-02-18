@@ -129,7 +129,7 @@ const Chatbot = () => {
                                     borderRadius: "10px",
                                     maxWidth: "80%",
                                     alignSelf: msg.sender === "user" ? "flex-end" : "flex-start",
-                                    backgroundColor: msg.sender === "user" ? "#d9bfa2" : "#f1f1f1", // Lighter color for user messages
+                                    backgroundColor: msg.sender === "user" ? "#8d6238" : "#e0e0e0", // Lighter color for user messages
                                     color: msg.sender === "user" ? "white" : "black",
                                 }}
                             >

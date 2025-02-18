@@ -132,7 +132,7 @@ const styles = {
     wordWrap: "break-word",
   },
   botMessage: {
-    background: "#f0f0f0",
+    background: "#e0e0e0",
     color: "#000",
     padding: "12px 15px",
     borderRadius: "18px 18px 18px 0px", // Rounded bubble style
