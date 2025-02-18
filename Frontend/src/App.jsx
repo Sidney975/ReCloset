@@ -124,13 +124,13 @@ function AppContent() {
                 <Route path="/product/men" element={<Products />} />
                 <Route path="/product/women" element={<Products />} />
                 <Route path="/product/:productId" element={<ProductDetail />} />
-                <Route path="/addproduct" element={<AddProduct />} />
-                <Route path="/editproduct/:id" element={<EditProduct />} />
-                <Route path="/upcycling-requests" element={<UpcyclingRequests />} />
-                <Route path="/sustainabilitycertifications" element={<Certifications />} />
-                <Route path="/addcertification" element={<AddCertification />} />
                 <Route path="/ar-tryon/:productId" element={<ArTryOn />} />
                 <Route path="/admin/products" element={<AdminProducts />} />
+                <Route path="/admin/addproduct" element={<AddProduct />} />
+                <Route path="/admin/editproduct/:id" element={<EditProduct />} />
+                <Route path="/admin/upcycling-requests" element={<UpcyclingRequests />} />
+                <Route path="/admin/sustainabilitycertifications" element={<Certifications />} />
+                <Route path="/admin/addcertification" element={<AddCertification />} />
                 
                 {/* Sarah's Routes */}
                 <Route path="/login" element={<Login />} />

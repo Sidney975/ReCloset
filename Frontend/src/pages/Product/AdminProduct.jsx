@@ -66,10 +66,10 @@ function AdminProducts() {
                 <Input value={search} placeholder="Search Products..." onChange={onSearchChange} onKeyDown={onSearchKeyDown} sx={{ flex: 1 }} />
                 <IconButton color="primary" onClick={onClickSearch}><Search /></IconButton>
                 <IconButton color="secondary" onClick={onClickClear}><Clear /></IconButton>
-                <Link to="/addproduct">
+                <Link to="/admin/addproduct">
                     <Button variant="contained" color="success">Add Product</Button>
                 </Link>
-                <Link to="/upcycling-requests">
+                <Link to="/admin/upcycling-requests">
                     <Button variant="contained" color="warning">View Upcycling Requests</Button>
                 </Link>
             </Box>
@@ -104,7 +104,7 @@ function AdminProducts() {
                                 <TableCell>{product.warehouseId}</TableCell>
                                 <TableCell>{certifications[product.certId] || "None"}</TableCell>
                                 <TableCell align="right">
-                                    <Link to={`/editproduct/${product.productId}`}>
+                                    <Link to={`/admin/editproduct/${product.productId}`}>
                                         <IconButton color="primary">
                                             <Edit />
                                         </IconButton>

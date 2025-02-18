@@ -84,7 +84,7 @@ function Certifications() {
                     <Clear />
                 </IconButton>
                 <Box sx={{ flexGrow: 1 }} />
-                <Link to="/addcertification">
+                <Link to="/admin/addcertification">
                     <Button variant="contained">Add Certification</Button>
                 </Link>
             </Box>
