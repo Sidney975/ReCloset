@@ -20,6 +20,7 @@ import ViewOrder from './pages/Order/ViewOrder';
 import OrderDetails from './pages/Order/OrderDetail';
 import AdminOrder from './pages/Order/AdminOrder';
 import FashionConsultant from './pages/FashionAssistantStyly';
+import Chatbot from "./components/Chatbot";
 
 // Sarah's Imports
 import MyForm from "./pages/User/MyForm";
@@ -149,6 +150,7 @@ function AppContent() {
                 {/* Fallback Route */}
                 <Route path="*" element={<p>404 - Page Not Found</p>} />
               </Routes>
+              <Chatbot />
             </Container>
           </ThemeProvider>
         </CartProvider>

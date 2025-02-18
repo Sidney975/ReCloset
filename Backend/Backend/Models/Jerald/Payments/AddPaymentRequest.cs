@@ -5,7 +5,6 @@ namespace Backend.Models.Jerald.Payments
 {
     public class AddPaymentRequestDTO
     {
-        [Required]
         public int UserId { get; set; }
 
         [Required, MaxLength(50)]
@@ -49,8 +48,6 @@ namespace Backend.Models.Jerald.Payments
         [Required, MaxLength(50)]
         public string LastName { get; set; } = string.Empty;
 
-        [Required]
-        public User User { get; set; } = new User(); // User who made the order
     }
 }
 

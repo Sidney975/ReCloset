@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
-namespace Backend.Models.Jerald
+namespace Backend.Controllers
 {
     [Route("FashionAdvice")]
     [ApiController]

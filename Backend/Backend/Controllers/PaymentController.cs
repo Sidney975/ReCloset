@@ -25,9 +25,11 @@ namespace Backend.Controllers
 
         private int GetUserId()
         {
-            return Convert.ToInt32(User.Claims
+            var Username = User.Claims
             .Where(c => c.Type == ClaimTypes.NameIdentifier)
-            .Select(c => c.Value).SingleOrDefault());
+            .Select(c => c.Value).SingleOrDefault();
+            int userId = _context.Users.FirstOrDefault(u => u.UserId == Username).Id;
+            return userId;
         }
 
         // GET all payments
@@ -35,8 +37,8 @@ namespace Backend.Controllers
         [ProducesResponseType(typeof(IEnumerable<PaymentDTO>), StatusCodes.Status200OK)]
         public IActionResult GetAll(string? search)
         {
-            int userId = GetUserId(); // Get the logged-in user's ID
-
+            var userId = GetUserId(); // Get the logged-in user's ID
+            var IdOfUser = _context.Users.FirstOrDefault(u => u.Id == userId);
             // Query the database
             IQueryable<Payment> result = _context.Payments
                 .Include(t => t.User) // Include user details
@@ -73,57 +75,66 @@ namespace Backend.Controllers
         // POST to add a new payment
         [HttpPost, Authorize]
         [ProducesResponseType(typeof(PaymentDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult AddPayment([FromBody] AddPaymentRequestDTO addPaymentRequest)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                var errors = ModelState.SelectMany(kvp => kvp.Value.Errors)
+                                       .Select(e => e.ErrorMessage)
+                                       .ToList();
+                return BadRequest(new { Errors = errors });
             }
 
-            // Extract and store the last four digits for display
-            var lastFourDigits = addPaymentRequest.CardNumber[^4..];
-
-            // Hash sensitive fields
-            var hashedCardNumber = BCrypt.Net.BCrypt.HashPassword(addPaymentRequest.CardNumber);
-            var hashedCVV = BCrypt.Net.BCrypt.HashPassword(addPaymentRequest.CVV);
-
-            var userId = GetUserId();
-            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
-            if (user == null)
+            try
             {
-                return BadRequest("Invalid user.");
+                var userId = GetUserId();
+                var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+
+                if (user == null)
+                {
+                    return BadRequest("User not found.");
+                }
+
+                var lastFourDigits = addPaymentRequest.CardNumber[^4..];
+
+                var payment = new Payment
+                {
+                    PaymentMethod = addPaymentRequest.PaymentMethod,
+                    CardNumber = BCrypt.Net.BCrypt.HashPassword(addPaymentRequest.CardNumber),
+                    CVV = BCrypt.Net.BCrypt.HashPassword(addPaymentRequest.CVV),
+                    LastFourDigits = lastFourDigits,
+                    ExpiryDate = addPaymentRequest.ExpiryDate,
+                    BillingAddress = addPaymentRequest.BillingAddress,
+                    BillingZip = addPaymentRequest.BillingZip,
+                    DefaultPreference = addPaymentRequest.DefaultPreference,
+                    Status = addPaymentRequest.Status,
+                    UserId = userId, // ✅ Assign userId correctly
+                    User = user, // ✅ Assign user manually
+                    Country = addPaymentRequest.Country,
+                    City = addPaymentRequest.City,
+                    MobileNumber = addPaymentRequest.MobileNumber,
+                    FirstName = addPaymentRequest.FirstName,
+                    LastName = addPaymentRequest.LastName
+                };
+
+                _context.Payments.Add(payment);
+                _context.SaveChanges();
+
+                var paymentDto = _mapper.Map<PaymentDTO>(payment);
+
+                return CreatedAtAction(nameof(GetPaymentById), new { id = payment.PaymentId }, paymentDto);
             }
-
-            // Create a Payment entity
-            var payment = new Payment
+            catch (Exception ex)
             {
-                PaymentMethod = addPaymentRequest.PaymentMethod,
-                CardNumber = hashedCardNumber,
-                CVV = hashedCVV,
-                LastFourDigits = lastFourDigits,
-                ExpiryDate = addPaymentRequest.ExpiryDate,
-                BillingAddress = addPaymentRequest.BillingAddress,
-                BillingZip = addPaymentRequest.BillingZip,
-                DefaultPreference = addPaymentRequest.DefaultPreference,
-                Status = addPaymentRequest.Status,
-                UserId = userId,
-                User = user,
-                Country = addPaymentRequest.Country,
-                City = addPaymentRequest.City,
-                MobileNumber = addPaymentRequest.MobileNumber,
-                FirstName = addPaymentRequest.FirstName,
-                LastName = addPaymentRequest.LastName
-            };
-
-            // Add payment to the database
-            _context.Payments.Add(payment);
-            _context.SaveChanges();
-
-            // Map to DTO
-            var paymentDto = _mapper.Map<PaymentDTO>(payment);
-
-            return CreatedAtAction(nameof(GetPaymentById), new { id = payment.PaymentId }, paymentDto);
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while processing your request.");
+            }
         }
+
+
+
 
         [HttpPut("{id}"), Authorize]
         [ProducesResponseType(typeof(PaymentDTO), StatusCodes.Status200OK)]

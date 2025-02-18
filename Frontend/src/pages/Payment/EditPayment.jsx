@@ -12,7 +12,9 @@ import {
     InputAdornment,
     Fab,
     FormControlLabel,
-    Checkbox
+    Checkbox,
+    Grid,
+    Divider
 } from "@mui/material";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -120,15 +122,17 @@ function EditPayment() {
             paymentMethod: yup.string().required("Payment Method is required"),
             firstName: yup.string().trim().max(50).required("First Name is required"), // 🔹 Validation
             lastName: yup.string().trim().max(50).required("Last Name is required"), // 🔹 Validation
-            mobileNumber: yup.string().matches(/^\d{8}$/, "Mobile number must be between 8 digits").required("Mobile number is required"), // 🔹 Validation
+            mobileNumber: yup.string().matches(/^\d{8}$/, "Mobile number must be between 8 digits").required("Mobile number is required").trim(), // 🔹 Validation
             cardNumber: yup
                 .string()
                 .matches(/^\d{16}$/, "Card Number must be 16 digits")
-                .required("Card Number is required"),
+                .required("Card Number is required")
+                .trim(),
             cvv: yup
                 .string()
                 .matches(/^\d{3,4}$/, "CVV must be 3 or 4 digits")
-                .required("CVV is required"),
+                .required("CVV is required")
+                .trim(),
             expiryDate: yup
                 .date()
                 .required("Expiry Date is required")
@@ -138,12 +142,14 @@ function EditPayment() {
             billingAddress: yup
                 .string()
                 .max(200, "Maximum 200 characters")
-                .required("Billing Address is required"),
+                .required("Billing Address is required")
+                .trim(),
             billingZip: yup
                 .string()
                 .matches(/^\d{6}$/, "Billing ZIP must be a valid 6-digit code")
-                .required("Billing ZIP is required"),
-            status: yup.string().required("Status is required"),
+                .required("Billing ZIP is required")
+                .trim(),
+            status: yup.string().trim().required("Status is required"),
             country: yup.string().trim().required("Country is required"),  // 🔹 Added validation
             city: yup.string().trim().required("City is required"),        // 🔹 Added validation
         }),
@@ -214,222 +220,271 @@ function EditPayment() {
     };
 
     return (
-        <Box sx={{ p: 3 }}>
+        <Box sx={{
+            maxWidth: 600,
+            margin: "auto",
+            padding: 4,
+            borderRadius: 2,
+            color: "black",
+          }}>
             <Typography variant="h5" gutterBottom>
                 Edit Payment
             </Typography>
+            <spacer height="20" />
+            <Box sx={{ mt: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                    Payment Information
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+            </Box>
             <Box component="form" onSubmit={formik.handleSubmit}>
-                <TextField
-                    select
-                    fullWidth
-                    margin="dense"
-                    label="Payment Method"
-                    name="paymentMethod"
-                    value={formik.values.paymentMethod}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.touched.paymentMethod && Boolean(formik.errors.paymentMethod)}
-                    helperText={formik.touched.paymentMethod && formik.errors.paymentMethod}
-                >
-                    <MenuItem value="Visa">Visa</MenuItem>
-                    <MenuItem value="MasterCard">Master Card</MenuItem>
-                    <MenuItem value="Credit Card">Credit Card</MenuItem>
-                    <MenuItem value="Debit Card">Debit Card</MenuItem>
-                </TextField>
-                <TextField
-                    fullWidth
-                    margin="dense"
-                    label="Card Number"
-                    name="cardNumber"
-                    type={showCardNumber ? "text" : "password"}
-                    value={formik.values.cardNumber}
-                    onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, ""); // Allow only numbers
-                        if (value.length <= 16) {
-                            formik.setFieldValue("cardNumber", value);
-                        }
-                    }}
-                    onBlur={formik.handleBlur}
-                    error={formik.touched.cardNumber && Boolean(formik.errors.cardNumber)}
-                    helperText={formik.touched.cardNumber && formik.errors.cardNumber}
-                    InputProps={{
-                        endAdornment: (
-                            <InputAdornment position="end">
-                                <IconButton
-                                    aria-label="toggle card number visibility"
-                                    onClick={handleClickShowCardNumber}
-                                    onMouseDown={handleMouseDownCardNumber}
-                                    edge="end"
-                                >
-                                    {showCardNumber ? <VisibilityOff /> : <Visibility />}
-                                </IconButton>
-                            </InputAdornment>
-                        ),
-                        inputRef: cardNumberRef,
-                    }}
-                />
-                <TextField
-                    fullWidth
-                    margin="dense"
-                    label="CVV"
-                    name="cvv"
-                    type={showCVV ? "text" : "password"}
-                    value={formik.values.cvv}
-                    onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, ""); // Allow only numbers
-                        if (value.length <= 4) {
-                            formik.setFieldValue("cvv", value);
-                        }
-                    }}
-                    onBlur={formik.handleBlur}
-                    error={formik.touched.cvv && Boolean(formik.errors.cvv)}
-                    helperText={formik.touched.cvv && formik.errors.cvv}
-                    InputProps={{
-                        endAdornment: (
-                            <InputAdornment position="end">
-                                <IconButton
-                                    aria-label="toggle cvv visibility"
-                                    onClick={handleClickShowCVV}
-                                    onMouseDown={handleMouseDownCVV}
-                                    edge="end"
-                                >
-                                    {showCVV ? <VisibilityOff /> : <Visibility />}
-                                </IconButton>
-                            </InputAdornment>
-                        ),
-                        inputRef: cvvRef,
-                    }}
-                />
+                <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                        <TextField
+                            select
+                            fullWidth
+                            margin="dense"
+                            label="Payment Method"
+                            name="paymentMethod"
+                            value={formik.values.paymentMethod}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.paymentMethod && Boolean(formik.errors.paymentMethod)}
+                            helperText={formik.touched.paymentMethod && formik.errors.paymentMethod}
+                        >
+                            <MenuItem value="Visa">Visa</MenuItem>
+                            <MenuItem value="MasterCard">Master Card</MenuItem>
+                            <MenuItem value="Credit Card">Credit Card</MenuItem>
+                            <MenuItem value="Debit Card">Debit Card</MenuItem>
+                        </TextField>
+                    </Grid>
+                    <Grid item xs={6}>
+                        <TextField
+                            fullWidth
+                            margin="dense"
+                            label="Card Number"
+                            name="cardNumber"
+                            type={showCardNumber ? "text" : "password"}
+                            value={formik.values.cardNumber}
+                            onChange={(e) => {
+                                const value = e.target.value.replace(/\D/g, ""); // Allow only numbers
+                                if (value.length <= 16) {
+                                    formik.setFieldValue("cardNumber", value);
+                                }
+                            }}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.cardNumber && Boolean(formik.errors.cardNumber)}
+                            helperText={formik.touched.cardNumber && formik.errors.cardNumber}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label="toggle card number visibility"
+                                            onClick={handleClickShowCardNumber}
+                                            onMouseDown={handleMouseDownCardNumber}
+                                            edge="end"
+                                        >
+                                            {showCardNumber ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                                inputRef: cardNumberRef,
+                            }}
+                        />
+                    </Grid>
+                </Grid>
+                <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                        <TextField
+                            fullWidth
+                            margin="dense"
+                            label="CVV"
+                            name="cvv"
+                            type={showCVV ? "text" : "password"}
+                            value={formik.values.cvv}
+                            onChange={(e) => {
+                                const value = e.target.value.replace(/\D/g, ""); // Allow only numbers
+                                if (value.length <= 4) {
+                                    formik.setFieldValue("cvv", value);
+                                }
+                            }}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.cvv && Boolean(formik.errors.cvv)}
+                            helperText={formik.touched.cvv && formik.errors.cvv}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label="toggle cvv visibility"
+                                            onClick={handleClickShowCVV}
+                                            onMouseDown={handleMouseDownCVV}
+                                            edge="end"
+                                        >
+                                            {showCVV ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                                inputRef: cvvRef,
+                            }}
+                        />
+                    </Grid>
+                    <Grid item xs={6}>
+                        <TextField
+                            fullWidth
+                            margin="dense"
+                            label="Expiry Date"
+                            type="date"
+                            name="expiryDate"
+                            InputLabelProps={{ shrink: true }}
+                            value={formik.values.expiryDate}
+                            onChange={formik.handleChange}
+                            onBlur={handleExpiryDateBlur}
+                            error={formik.touched.expiryDate && Boolean(formik.errors.expiryDate)}
+                            helperText={formik.touched.expiryDate && formik.errors.expiryDate}
+                        />
+                    </Grid>
+                </Grid>
 
-                <TextField
-                    fullWidth
-                    margin="dense"
-                    label="Expiry Date"
-                    type="date"
-                    name="expiryDate"
-                    InputLabelProps={{ shrink: true }}
-                    value={formik.values.expiryDate}
-                    onChange={formik.handleChange}
-                    onBlur={handleExpiryDateBlur}
-                    error={formik.touched.expiryDate && Boolean(formik.errors.expiryDate)}
-                    helperText={formik.touched.expiryDate && formik.errors.expiryDate}
-                />
+                <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                        <TextField
+                            fullWidth
+                            margin="dense"
+                            label="First Name"
+                            name="firstName"
+                            value={formik.values.firstName}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.firstName && Boolean(formik.errors.firstName)}
+                            helperText={formik.touched.firstName && formik.errors.firstName}
+                            multiline={false}
+                        />
+                    </Grid>
+                    <Grid item xs={6}>
+                        <TextField
+                            fullWidth
+                            margin="dense"
+                            label="Last Name"
+                            name="lastName"
+                            value={formik.values.lastName}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.lastName && Boolean(formik.errors.lastName)}
+                            helperText={formik.touched.lastName && formik.errors.lastName}
+                            multiline={false}
+                        />
+                    </Grid>
+                </Grid>
+                <Box sx={{ mt: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                        Billing Address
+                    </Typography>
+                    <Divider sx={{ mb: 2 }} />
+                </Box>
+                <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                        <TextField
+                            fullWidth
+                            margin="dense"
+                            label="Billing Address"
+                            name="billingAddress"
+                            value={formik.values.billingAddress}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.billingAddress && Boolean(formik.errors.billingAddress)}
+                            helperText={formik.touched.billingAddress && formik.errors.billingAddress}
+                        />
+                    </Grid>
+                    <Grid item xs={6}>
+                        <TextField
+                            fullWidth
+                            margin="dense"
+                            label="Billing ZIP"
+                            name="billingZip"
+                            value={formik.values.billingZip}
+                            onChange={(e) => {
+                                const value = e.target.value.replace(/\D/g, ""); // Allow only numbers
+                                if (value.length <= 6) {
+                                    formik.setFieldValue("billingZip", value);
+                                }
+                            }}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.billingZip && Boolean(formik.errors.billingZip)}
+                            helperText={formik.touched.billingZip && formik.errors.billingZip}
+                        />
+                    </Grid>
+                </Grid>
+                <Grid container spacing={2}>
+                <Grid item xs={6}>
+                        <TextField
+                            fullWidth
+                            margin="dense"
+                            label="Country"
+                            name="country"
+                            value={formik.values.country}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.country && Boolean(formik.errors.country)}
+                            helperText={formik.touched.country && formik.errors.country}
+                        />
+                    </Grid>
+                    <Grid item xs={6}>
+                        <TextField
+                            fullWidth
+                            margin="dense"
+                            label="City"
+                            name="city"
+                            value={formik.values.city}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.city && Boolean(formik.errors.city)}
+                            helperText={formik.touched.city && formik.errors.city}
+                        />
+                    </Grid>
+                </Grid>
+                <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                        <TextField
+                            fullWidth
+                            margin="dense"
+                            label="Mobile Number"
+                            name="mobileNumber"
+                            value={formik.values.mobileNumber}
+                            onChange={(e) => {
+                                const value = e.target.value.replace(/\D/g, ""); // Allow only numbers
+                                if (value.length <= 8) {
+                                    formik.setFieldValue("mobileNumber", value);
+                                }
+                            }}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.mobileNumber && Boolean(formik.errors.mobileNumber)}
+                            helperText={formik.touched.mobileNumber && formik.errors.mobileNumber}
+                        />
+                    </Grid>
+                    <Grid item xs={6}>
+                        <TextField
+                            select
+                            fullWidth
+                            margin="dense"
+                            label="Status"
+                            name="status"
+                            value={formik.values.status}
+                            onChange={handleStatusChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.touched.status && Boolean(formik.errors.status)}
+                            helperText={formik.touched.status && formik.errors.status}
+                        >
+                            <MenuItem value="Inactive">Inactive</MenuItem>
+                            <MenuItem value="Active">Active</MenuItem>
+                        </TextField>
+                    </Grid>
+                </Grid>
 
-                {/* 🔹 First Name */}
-                <TextField
-                    fullWidth
-                    margin="dense"
-                    label="First Name"
-                    name="firstName"
-                    value={formik.values.firstName}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.touched.firstName && Boolean(formik.errors.firstName)}
-                    helperText={formik.touched.firstName && formik.errors.firstName}
-                />
-
-                {/* 🔹 Last Name */}
-                <TextField
-                    fullWidth
-                    margin="dense"
-                    label="Last Name"
-                    name="lastName"
-                    value={formik.values.lastName}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.touched.lastName && Boolean(formik.errors.lastName)}
-                    helperText={formik.touched.lastName && formik.errors.lastName}
-                />
-                
-                <TextField
-                    fullWidth
-                    margin="dense"
-                    label="Billing Address"
-                    name="billingAddress"
-                    value={formik.values.billingAddress}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.touched.billingAddress && Boolean(formik.errors.billingAddress)}
-                    helperText={formik.touched.billingAddress && formik.errors.billingAddress}
-                />
-                <TextField
-                    fullWidth
-                    margin="dense"
-                    label="Billing ZIP"
-                    name="billingZip"
-                    value={formik.values.billingZip}
-                    onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, ""); // Allow only numbers
-                        if (value.length <= 6) {
-                            formik.setFieldValue("billingZip", value);
-                        }
-                    }}
-                    onBlur={formik.handleBlur}
-                    error={formik.touched.billingZip && Boolean(formik.errors.billingZip)}
-                    helperText={formik.touched.billingZip && formik.errors.billingZip}
-                />
-
-                {/* 🔹 City */}
-                <TextField
-                    fullWidth
-                    margin="dense"
-                    label="City"
-                    name="city"
-                    value={formik.values.city}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.touched.city && Boolean(formik.errors.city)}
-                    helperText={formik.touched.city && formik.errors.city}
-                />
-
-                {/* 🔹 Country */}
-                <TextField
-                    fullWidth
-                    margin="dense"
-                    label="Country"
-                    name="country"
-                    value={formik.values.country}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.touched.country && Boolean(formik.errors.country)}
-                    helperText={formik.touched.country && formik.errors.country}
-                />
-
-                {/* 🔹 Mobile Number */}
-                <TextField
-                    fullWidth
-                    margin="dense"
-                    label="Mobile Number"
-                    name="mobileNumber"
-                    value={formik.values.mobileNumber}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.touched.mobileNumber && Boolean(formik.errors.mobileNumber)}
-                    helperText={formik.touched.mobileNumber && formik.errors.mobileNumber}
-                />
-
-                <TextField
-                    select
-                    fullWidth
-                    margin="dense"
-                    label="Status"
-                    name="status"
-                    value={formik.values.status}
-                    onChange={handleStatusChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.touched.status && Boolean(formik.errors.status)}
-                    helperText={formik.touched.status && formik.errors.status}
-                >
-                    <MenuItem value="Inactive">Inactive</MenuItem>
-                    <MenuItem value="Active">Active</MenuItem>
-                </TextField>
-
-                {/* Conditionally render the Default Preference checkbox */}
                 {formik.values.status === "Active" && (!hasDefaultPreference || isCurrentDefault) && (
                     <FormControlLabel
                         control={
                             <Checkbox
-                                checked={!!formik.values.defaultPreference} // Coerce to boolean
+                                checked={!!formik.values.defaultPreference}
                                 onChange={formik.handleChange}
                                 name="defaultPreference"
                             />
@@ -439,11 +494,9 @@ function EditPayment() {
                 )}
 
                 <Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
-                    {/* Back FAB */}
                     <Fab color="primary" aria-label="back" onClick={() => navigate(-1)}>
                         <ArrowBack />
                     </Fab>
-                    {/* Save Changes FAB */}
                     <Fab color="success" aria-label="save" type="submit">
                         <Check />
                     </Fab>

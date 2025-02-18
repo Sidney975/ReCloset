@@ -45,6 +45,7 @@ export const CartProvider = ({ children }) => {
             return [
                 ...prevCart, 
                 {
+                    image: product.image,  // Matches `ItemImage` in `OrderItem`
                     productId: product.productId,  // Product ID (for lookup)
                     productName: product.name,  // Matches `OrderItem`
                     productCategory: categoryName,  // 🔹 Store actual category name

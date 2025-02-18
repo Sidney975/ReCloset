@@ -3,7 +3,9 @@ import axios from "axios";
 import http from "../http";
 
 const FashionConsultant = () => {
-  const [messages, setMessages] = useState([]); // Stores chat messages
+  const [messages, setMessages] = useState([
+    { sender: "bot", text: "Hi! How can I assist you today?" }
+  ]); // Default greeting message
   const [input, setInput] = useState(""); // User input
   const [loading, setLoading] = useState(false); // Loader for API calls
   const [dots, setDots] = useState(""); // Dots animation for typing indicator
@@ -79,7 +81,7 @@ const FashionConsultant = () => {
   );
 };
 
-// Improved styling
+// **Improved Styling for Chat UI**
 const styles = {
   pageContainer: {
     display: "flex",
@@ -102,57 +104,69 @@ const styles = {
     marginBottom: "25px",
   },
   chatContainer: {
-    width: "500px", // Increased width
+    width: "500px",
     background: "#fff",
     padding: "20px",
-    borderRadius: "10px",
+    borderRadius: "15px",
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
   },
   chatBox: {
-    height: "400px", // Increased height
+    height: "400px",
     overflowY: "auto",
     padding: "15px",
     background: "#fafafa",
-    borderRadius: "5px",
-    marginBottom: "20px", // Increased spacing
+    borderRadius: "10px",
+    marginBottom: "15px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
   },
   userMessage: {
-    background: "#007bff",
+    background: "#a67c52", // Keep user message this color
     color: "#fff",
-    padding: "10px",
-    borderRadius: "5px",
+    padding: "12px 15px",
+    borderRadius: "18px 18px 0px 18px", // Rounded bubble style
     textAlign: "right",
-    marginBottom: "8px",
+    alignSelf: "flex-end",
+    maxWidth: "75%",
+    wordWrap: "break-word",
   },
   botMessage: {
-    background: "#ddd",
+    background: "#e0e0e0",
     color: "#000",
-    padding: "10px",
-    borderRadius: "5px",
+    padding: "12px 15px",
+    borderRadius: "18px 18px 18px 0px", // Rounded bubble style
     textAlign: "left",
-    marginBottom: "8px",
+    alignSelf: "flex-start",
+    maxWidth: "75%",
+    wordWrap: "break-word",
   },
   typingIndicator: {
     fontStyle: "italic",
     color: "#888",
     textAlign: "left",
+    alignSelf: "flex-start",
   },
   inputContainer: {
     display: "flex",
-    gap: "15px", // Increased spacing
+    gap: "10px",
     alignItems: "center",
+    paddingBottom: "5px",
+    paddingLeft: "5px", // Ensuring input box has spacing inside the chat container
+    paddingRight: "5px",
   },
   input: {
     flex: 1,
-    padding: "10px",
-    borderRadius: "5px",
+    padding: "12px",
+    borderRadius: "20px",
     border: "1px solid #ccc",
+    marginRight: "10px", // Spacing between input and button
   },
   button: {
     padding: "10px 20px",
-    borderRadius: "5px",
+    borderRadius: "20px",
     border: "none",
-    background: "#007bff",
+    background: "#a67c52",
     color: "#fff",
     cursor: "pointer",
   },

@@ -1,7 +1,7 @@
 import React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 
-const OrderPDF = ({ order, user }) => (
+const OrderPDF = ({ order, user, address }) => (
     <Document>
         <Page size="A4" style={styles.page}>
             {/* Header Section */}
@@ -28,13 +28,14 @@ const OrderPDF = ({ order, user }) => (
             <View style={styles.billingShippingContainer}>
                 <View style={styles.billingShippingBox}>
                     <Text style={styles.boldText}>BILL TO</Text>
-                    <Text>{user.username || "Customer Name"}</Text>
+                    <Text>{user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : address.recipientName || "Customer Name"}</Text>
                     <Text>{user.email || "customer@email.com"}</Text>
                 </View>
                 <View style={styles.billingShippingBox}>
                     <Text style={styles.boldText}>SHIP TO</Text>
-                    <Text>{order.userDetails?.name || "Customer Name"}</Text>
-                    <Text>Customer's Shipping Address</Text>
+                    <Text>{address.recipientName || "Customer Name"}</Text>
+                    <Text>{address.streetAddress}, {address.suburb} - {address.state},
+                         {address.country} {address.postcode}</Text>
                 </View>
             </View>
             {/* Payment Details */}
