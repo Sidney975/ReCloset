@@ -195,7 +195,7 @@ const CustomerAppBar = () => {
           }}
         >
           <Link
-            to="/products"
+            to="/"
             style={{
               textDecoration: "none",
               color: "white",

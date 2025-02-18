@@ -28,7 +28,7 @@ namespace Backend.Controllers
 		{
 			var order = await _context.Orders
 				.Include(o => o.OrderItems)
-				.ThenInclude(oi => oi.Product)
+				//.ThenInclude(oi => oi.Product)
 				.Include(o => o.User)
 				.Include(o => o.Deliveries) // Ensure deliveries are included
 				.FirstOrDefaultAsync(o => o.OrderId == orderId);
@@ -62,11 +62,11 @@ namespace Backend.Controllers
 						Email = order.User?.Email ?? "default@email.com",
 						FirstName = orderAddress.RecipientName ?? "non",
 						//order.User?.First_name ??
-						LastName = order.User?.Last_name ?? "Doe"
+						//LastName = order.User?.Last_name ?? "Doe"
 					},
 					Products = order.OrderItems.Select(item => new ProductDetails
 					{
-						Title = item.Product?.Name ?? "Unknown Product",
+						Title = "Unknown Product",
 						SKU = "SKU123",
 						Quantity = item.Quantity,
 						Price = (double)item.ItemPrice

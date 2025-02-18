@@ -29,7 +29,7 @@ public class EmailService
             throw new Exception("Order not found or user not associated with the order.");
         }
 
-        string customerName = order.User.Username;
+        string customerName = order.User.UserId;
         string toEmail = order.User.Email;
         decimal totalAmount = order.TotalPrice;
 
@@ -87,7 +87,7 @@ public class EmailService
         <body>
             <div class='invoice-container'>
                 <div class='header'>Invoice for Order #{order.OrderId}</div>
-                <p>Hello {order.User.Username},</p>
+                <p>Hello {order.User.UserId},</p>
                 <p>Thank you for shopping with <strong>Recloset</strong>! Here is your order summary:</p>
                 <table class='table-container'>
                     <tr>

@@ -11,7 +11,7 @@ import CustomerAppBar from "./AppBar/CustomerAppBar";
 import AdminAppBar from "./AppBar/AdminAppBar";
 import { CartProvider } from "./contexts/CartContext";
 
-{/* Jerald's Imports */ }
+// Jerald's Imports
 import Checkout from './pages/Order/Checkout';
 import ViewPayments from './pages/Payment/ViewPayment';
 import AddPayment from './pages/Payment/AddPayment';
@@ -21,7 +21,7 @@ import OrderDetails from './pages/Order/OrderDetail';
 import AdminOrder from './pages/Order/AdminOrder';
 import FashionConsultant from './pages/FashionAssistantStyly';
 
-{/* Sarah's Imports */ }
+// Sarah's Imports
 import MyForm from "./pages/User/MyForm";
 import Login from "./pages/User/Login";
 import Register from "./pages/User/Register";
@@ -32,7 +32,7 @@ import http from "./http";
 import UserContext from "./contexts/UserContext";
 import AdminContext from "./contexts/AdminContext";
 
-{/* Admin Components */ }
+// Admin Components
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import ManageUsers from "./pages/Admin/ManageUsers";
 import ManageOrders from "./pages/Admin/ManageOrders";
@@ -40,7 +40,7 @@ import AdminProfile from "./pages/Admin/AdminProfile";
 import EditAdminProfile from "./pages/Admin/EditAdminProfile";
 import ChangeAdminPassword from "./pages/Admin/ChangePasswordAdmin";
 
-{/* Sophie's Imports */ }
+// Sophie's Imports
 import Products from './pages/Product/Products';
 import ProductDetail from './pages/Product/ProductDetail';
 import AddProduct from './pages/Product/AddProduct';
@@ -51,7 +51,7 @@ import AdminProducts from './pages/Product/AdminProduct';
 import UpcyclingRequests from './pages/Product/UpcyclingRequests';
 import ArTryOn from './pages/Product/ARTryOn';
 
-{/* Sidney's Imports */ }
+// Sidney's Imports
 import Vouchers from "./pages/Voucher/Vouchers";
 import AddVoucher from "./pages/Voucher/AddVouchers";
 import EditVoucher from "./pages/Voucher/EditVouchers";
@@ -144,7 +144,6 @@ function AppContent() {
                 <Route path="/admin/edit-profile" element={<EditAdminProfile />} />
                 <Route path="/admin/change-password" element={<ChangeAdminPassword />} />
 
-                <ToastContainer />
                 {/* Fallback Route */}
                 <Route path="*" element={<p>404 - Page Not Found</p>} />
               </Routes>
@@ -155,7 +154,6 @@ function AppContent() {
     </UserContext.Provider>
   );
 }
-
 
 function App() {
   return (
