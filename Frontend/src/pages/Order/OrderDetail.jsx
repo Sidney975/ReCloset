@@ -13,6 +13,7 @@ const OrderDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
+    const [orderAddress, setOrderAddress] = useState(null);
 
     useEffect(() => {
         const fetchOrderDetails = async () => {
@@ -40,6 +41,18 @@ const OrderDetails = () => {
             }
         }
         GetShippingId();
+    }, [orderId]);
+
+    useEffect(() => {
+        const fetchOrderAddress = async () => {
+            try {
+                const response = await http.get(`/checkout/orderAddress?orderId=${orderId}`);
+                setOrderAddress(response.data);
+            } catch (err) {
+                setError("Failed to fetch order address.");
+            }
+        };
+        fetchOrderAddress();
     }, [orderId]);
 
     const handleSort = (key) => {
@@ -176,7 +189,7 @@ const OrderDetails = () => {
 
             {/* PDF Download Button */}
             <div style={styles.buttonContainer}>
-                <PDFDownloadLink document={<OrderPDF order={order} user={user} />} fileName={`Invoice_${order.orderId}.pdf`}>
+                <PDFDownloadLink document={<OrderPDF order={order} user={user} address={orderAddress} />} fileName={`Invoice_${order.orderId}.pdf`}>
                     {({ loading }) => (
                         <button style={styles.button}>
                             {loading ? "Generating PDF..." : "Download PDF"}
