@@ -28,7 +28,7 @@ const OrderPDF = ({ order, user, address }) => (
             <View style={styles.billingShippingContainer}>
                 <View style={styles.billingShippingBox}>
                     <Text style={styles.boldText}>BILL TO</Text>
-                    <Text>{user.username || "Customer Name"}</Text>
+                    <Text>{user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : address.recipientName || "Customer Name"}</Text>
                     <Text>{user.email || "customer@email.com"}</Text>
                 </View>
                 <View style={styles.billingShippingBox}>

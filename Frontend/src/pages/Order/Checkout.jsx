@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Card, CardMedia, CardContent, Grid, Divider
 } from "@mui/material";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -127,7 +128,7 @@ function CheckoutPage() {
       toast.error("Please select a payment method before placing your order.");
       return;
     }
-  
+
     const finalTotal = appliedVoucher ? alteredPrice : total;
     const pointsEarned = Math.floor(total * 10);
     const payload = {
@@ -151,13 +152,13 @@ function CheckoutPage() {
       country,
       deliveryInstructions
     };
-  
+
     try {
       setLoading(true);
-  
+
       // Step 4: Redeem Voucher if Applied
-      const orderResponse = await http.post("/checkout", payload).catch((err) => {console.log(err)});
-      toast.success("Order placed successfully!");
+      const orderResponse = await http.post("/checkout", payload).catch((err) => { console.log(err) });
+
 
       const orderId = orderResponse.data.orderId;
       console.log(" Order created with ID:", orderId);
@@ -186,7 +187,7 @@ function CheckoutPage() {
         await http.post(`/voucher/${appliedVoucher.voucherId}/redeem`);
         toast.success("Voucher redeemed successfully!");
       }
-  
+
       // Step 5: Clear Cart & Redirect
 
       console.log(`points earned: ${pointsEarned}`);
@@ -203,7 +204,7 @@ function CheckoutPage() {
       const updatePromises = cartItems.map(async (item) => {
         try {
           const productResponse = await http.get(`/api/Product/${item.productId}`); // Get full product details
-          
+
           // Format the response into the required ProductDto format
           const formattedProduct = {
             name: productResponse.data.name,
@@ -220,19 +221,19 @@ function CheckoutPage() {
             warehouseId: productResponse.data.warehouseId,
             certId: productResponse.data.certId
           };
-  
+
           // Send update request
           await http.put(`/api/Product/${item.productId}`, formattedProduct);
-          toast.success(`Updated ${item.productName} availability`);
         } catch (error) {
           console.error(`Failed to update product ${item.productId}`, error);
           toast.error(`Failed to update ${item.productName}`);
           throw new Error(`Update failed for ${item.productId}`); // Force promise rejection
         }
       });
-  
+
       // Step 2: Ensure all product updates succeed before proceeding
       await Promise.all(updatePromises);
+      toast.success("Order placed successfully!");
       navigate("/");
     } catch (err) {
       toast.error("Failed to complete checkout. Please try again.");
@@ -240,9 +241,9 @@ function CheckoutPage() {
       setLoading(false);
     }
   };
-  
-  
-  
+
+
+
 
 
   // Voucher fetching function
@@ -250,17 +251,17 @@ function CheckoutPage() {
     try {
       const claimedResponse = await http.get("/voucher/claimed");
       console.log(claimedResponse.data);
-  
+
       // Filter vouchers that have not been redeemed
       const activeClaimed = claimedResponse.data.filter(
         (v) => v.redeemedAt == null && v.minimumValue <= total
       );
       console.log(activeClaimed);
       setClaimedVouchers(activeClaimed);
-  
+
       const allResponse = await http.get("/voucher");
       const allVouchers = allResponse.data;
-  
+
       // Remove vouchers that don't meet the minimum value requirement
       const claimedIds = claimedResponse.data.map((v) => v.VoucherId);
       const avail = allVouchers.filter(
@@ -370,7 +371,7 @@ function CheckoutPage() {
                 <Button variant="outlined" onClick={() => navigate("/")}>
                   Cancel
                 </Button>
-                <Button variant="contained" onClick={() => setStep(step + 1)}>
+                <Button variant="contained" onClick={() => setStep(step + 1)} disabled={recipientName === "" || streetAddress === "" || suburb === "" || state === "" || postcode === "" || country === ""}>
                   Next
                 </Button>
               </Box>
@@ -433,15 +434,52 @@ function CheckoutPage() {
           {/* Review Step */}
           {step === 2 && (
             <Box>
-              <Typography variant="h6">Review Order</Typography>
-              <ul>
-                {cartItems.map((item) => (
-                  <li key={item.productId}>
-                    {item.productName} - ${item.itemPrice.toFixed(2)} x {item.quantity}
-                  </li>
-                ))}
-              </ul>
-              <Typography variant="h6">Subtotal: ${total.toFixed(2)}</Typography>
+              <Box sx={{ maxWidth: 500, margin: "auto", padding: 2 }}>
+                <Typography variant="h6" align="center" gutterBottom>
+                  Review Order
+                </Typography>
+
+                {/* Scrollable Box */}
+                <Paper
+                  elevation={3}
+                  sx={{
+                    maxHeight: 300, // Adjust height as needed
+                    overflowY: "auto",
+                    padding: 2,
+                    borderRadius: 2,
+                    backgroundColor: "#f9f9f9", // Light background for a better look
+                  }}
+                >
+                  <Grid container spacing={2}>
+                    {cartItems.map((item) => (
+                      <Grid item xs={12} key={item.productId}>
+                        <Card sx={{ display: "flex", alignItems: "center", padding: 1 }}>
+                          <CardMedia
+                            component="img"
+                            sx={{ width: 80, height: 80, objectFit: "cover", borderRadius: 1 }}
+                            image={item.image ? `${import.meta.env.VITE_FILE_BASE_URL}${item.image}` : "/default-product.jpg"}
+                            alt={item.productName}
+                          />
+                          <CardContent sx={{ flex: 1 }}>
+                            <Typography variant="body1" fontWeight="bold">
+                              {item.productName}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              ${item.itemPrice.toFixed(2)} x {item.quantity}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Paper>
+
+                <Divider sx={{ my: 2 }} />
+
+                <Typography variant="h6" align="right" sx={{ fontWeight: "bold" }}>
+                  Subtotal: ${total.toFixed(2)}
+                </Typography>
+              </Box>
               {appliedVoucher && (
                 <Box sx={{ mt: 2, p: 1, border: "1px solid #ccc", borderRadius: 1 }}>
                   <Typography variant="subtitle1">
@@ -476,18 +514,48 @@ function CheckoutPage() {
         </Box>
 
         {/* Order Summary Sidebar */}
-        <Paper sx={{ flex: 1, p: 2, height: 300, overflowY: "auto" }}>
-          <Typography variant="h6" align="center">
+        <Paper sx={{ maxWidth: 300, margin: "auto", p: 2 }}>
+          {/* Fixed Title */}
+          <Typography variant="h6" align="center" gutterBottom>
             Order Summary
           </Typography>
-          <ul>
-            {cartItems.map((item) => (
-              <li key={item.productId}>
-                {item.productName} - ${item.itemPrice.toFixed(2)} x {item.quantity}
-              </li>
-            ))}
-          </ul>
-          <Typography variant="h6" align="center">
+
+          {/* Scrollable Items */}
+          <Box
+            sx={{
+              maxHeight: 275, // Adjust height as needed
+              overflowY: "auto",
+              paddingRight: 1, // Prevents scrollbar overlapping content
+            }}
+          >
+            <Grid container spacing={2}>
+              {cartItems.map((item) => (
+                <Grid item xs={12} key={item.productId}>
+                  <Card sx={{ display: "flex", alignItems: "center", padding: 1 }}>
+                    <CardMedia
+                      component="img"
+                      sx={{ width: 80, height: 80, objectFit: "cover", borderRadius: 1 }}
+                      image={item.image ? `${import.meta.env.VITE_FILE_BASE_URL}${item.image}` : "/default-product.jpg"}
+                      alt={item.productName}
+                    />
+                    <CardContent sx={{ flex: 1 }}>
+                      <Typography variant="body1" fontWeight="bold">
+                        {item.productName}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        ${item.itemPrice.toFixed(2)} x {item.quantity}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+
+          <Divider sx={{ my: 2 }} />
+
+          {/* Fixed Subtotal */}
+          <Typography variant="h6" align="center" sx={{ fontWeight: "bold" }}>
             Subtotal: ${total.toFixed(2)}
           </Typography>
           {appliedVoucher && (

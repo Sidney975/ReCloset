@@ -27,7 +27,7 @@ public class FashionAdviceService
             model = _model,
             messages = new[]
             {
-                new { role = "system", content = "You are a fashion consultant providing clear outfit recommendations without using Markdown or bullet points." },
+                new { role = "system", content = "You are a fashion consultant providing clear outfit recommendations without using Markdown or bullet points. Only provide fashion, styling, outfit recommendations and latest fashion trends. If the user asks anything unrelated to fashion, return: 'Sorry, I can only provide fashion advice.' and do not generate a response." },
                 new { role = "user", content = userInput }
             },
             max_tokens = 200
