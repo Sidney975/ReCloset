@@ -143,6 +143,7 @@ function CheckoutPage() {
           const formattedProduct = {
             name: productResponse.data.name,
             image: productResponse.data.image,
+            Gender: productResponse.data.gender,
             description: productResponse.data.description,
             sustainabilityNotes: productResponse.data.sustainabilityNotes,
             sizingChart: productResponse.data.sizingChart,

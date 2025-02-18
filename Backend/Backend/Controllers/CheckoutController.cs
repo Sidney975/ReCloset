@@ -115,6 +115,7 @@ namespace Backend.Controllers
                 OrderId = order.OrderId,
                 ProductName = item.ProductName,
                 ProductCategory = item.ProductCategory,
+                Gender = item.Gender,
                 Quantity = item.Quantity,
                 ItemPrice = item.ItemPrice,
                 TimeBought = DateTime.UtcNow // Stores date and time
@@ -180,6 +181,7 @@ namespace Backend.Controllers
                         item.Value.Quantity = updatedItem.Quantity;
                         item.Value.ItemPrice = updatedItem.ItemPrice;
                         item.Value.ProductName = updatedItem.ProductName;
+                        item.Value.Gender = updatedItem.Gender;
                         item.Value.ProductCategory = updatedItem.ProductCategory;
                         item.Value.TimeBought = updatedItem.TimeBought;
                         updatedOrderItems.Remove(item.Key);
@@ -198,6 +200,7 @@ namespace Backend.Controllers
                         OrderId = order.OrderId,
                         ProductName = newItem.ProductName,
                         ProductCategory = newItem.ProductCategory,
+                        Gender = newItem.Gender,
                         Quantity = newItem.Quantity,
                         ItemPrice = newItem.ItemPrice,
                         TimeBought = newItem.TimeBought
@@ -221,6 +224,7 @@ namespace Backend.Controllers
                     ProductName = item.ProductName,
                     ProductCategory = item.ProductCategory,
                     Quantity = item.Quantity,
+                    Gender = item.Gender,
                     ItemPrice = item.ItemPrice,
                     TimeBought = item.TimeBought
                 }).ToList()

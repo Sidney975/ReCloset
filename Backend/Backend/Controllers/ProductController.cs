@@ -224,7 +224,7 @@ namespace ReCloset.Controllers
 
 			return NoContent();
 		}
-
+		
 		// DELETE: api/Product/5
 		[HttpDelete("{id}")]
 		public async Task<IActionResult> DeleteProduct(int id)

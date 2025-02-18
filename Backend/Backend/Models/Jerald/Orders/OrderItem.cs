@@ -18,6 +18,9 @@ namespace Backend.Models.Jerald.Orders
         public string ProductCategory { get; set; } = string.Empty; // Store product category
 
         [Required]
+        public bool Gender { get; set; } // Price per item at the time of order
+
+        [Required]
         public int Quantity { get; set; } // Number of items ordered
 
         [Required, Column(TypeName = "decimal(18,2)")]

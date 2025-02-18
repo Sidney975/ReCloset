@@ -3,10 +3,11 @@ import { Bar, Pie } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
 import {
     Box, Typography, FormControl, InputLabel, Select, MenuItem, Paper, CircularProgress,
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Input, TablePagination, TableSortLabel
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Input, TablePagination, TableSortLabel, TextField, Snackbar, Alert
 } from '@mui/material';
 import { saveAs } from "file-saver";
 import http from "../../http";
+import SearchIcon from "@mui/icons-material/Search"
 import ClearIcon from "@mui/icons-material/Clear"; // Import Clear Icon
 import IconButton from "@mui/material/IconButton"; // Import IconButton
 
@@ -34,6 +35,8 @@ const OrderItemsGraph = () => {
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [sortColumn, setSortColumn] = useState("id");
     const [sortDirection, setSortDirection] = useState("asc");
+    const [searchQuery, setSearchQuery] = useState(""); // New state for search query
+    const [toastOpen, setToastOpen] = useState(false); // State for toast
     const chartRef = useRef(null);
     const fileInputRef = useRef(null); // Ref for file input
 
@@ -48,55 +51,59 @@ const OrderItemsGraph = () => {
             .then(response => {
                 const data = response.data;
 
-                // Apply filter to the dataset before updating chart
                 const filteredData = data.map(item => ({
-                    label: filterBy === "product" ? item.productName : item.categoryName,
+                    label: filterBy === "gender" ? item.gender :
+                        (filterBy === "product" ? item.productName : item.categoryName),
                     totalQuantity: item.totalQuantity,
                     totalSales: item.totalSales
                 }));
 
                 const colors = generateColors(filteredData.length);
 
-                if (displayType === "quantitySold") {
-                    setChartData({
-                        labels: filteredData.map(item => item.label),
-                        datasets: [
-                            {
-                                label: "Total Quantity Sold",
-                                data: filteredData.map(item => item.totalQuantity),
-                                backgroundColor: colors
-                            }
-                        ]
-                    });
-                } else {
-                    setChartData({
-                        labels: filteredData.map(item => item.label),
-                        datasets: [
-                            {
-                                label: "Total Sales ($)",
-                                data: filteredData.map(item => item.totalSales),
-                                backgroundColor: colors
-                            }
-                        ]
-                    });
-                }
+                setChartData({
+                    labels: filteredData.map(item => item.label), // Ensure labels are correctly set
+                    datasets: [
+                        {
+                            label: displayType === "quantitySold" ? "Total Quantity Sold" : "Total Sales ($)",
+                            data: displayType === "quantitySold" ? filteredData.map(item => item.totalQuantity) : filteredData.map(item => item.totalSales),
+                            backgroundColor: colors
+                        }
+                    ]
+                });
             })
             .catch(error => console.error("Error fetching order items data", error));
     };
-
 
     // Fetch data for the table
     const fetchOrderItemsList = () => {
         http.get("orderitem/list")
             .then(response => {
                 console.log("Total Order Items Retrieved:", response.data.length); // Debugging log
-                const itemsWithIds = response.data.map((item) => ({
-                    id: item.OrderItemId, // Ensure unique ID from DB
+                const itemsWithIds = response.data.map((item, index) => ({
+                    id: index + 1, // Generate a unique ID for each item
                     ...item
                 }));
                 setOrderItems(itemsWithIds);
             })
             .catch(error => console.error("Error fetching order items list", error));
+    };
+
+    // Fetch search results
+    const searchOrderItems = () => {
+        if (!searchQuery.trim()) {
+            setToastOpen(true);
+            return;
+        }
+
+        http.get(`orderitem/search?search=${searchQuery}`)
+            .then(response => {
+                const itemsWithIds = response.data.map((item, index) => ({
+                    id: index + 1, // Generate a unique ID for each item
+                    ...item
+                }));
+                setOrderItems(itemsWithIds);
+            })
+            .catch(error => console.error("Error searching order items", error));
     };
 
     // Handle sorting
@@ -152,6 +159,7 @@ const OrderItemsGraph = () => {
             fileInputRef.current.value = ""; // Reset file input field
         }
     };
+
     // Upload Excel File to Backend
     const importExcel = () => {
         if (!file) {
@@ -168,7 +176,7 @@ const OrderItemsGraph = () => {
                 setFile(null); // Clear file after upload
                 fetchOrderItemsList(); // Refresh table after import
             })
-            .catch(error => alert("Error importing file:", error));
+            .catch(error => console.error(error));
     };
 
     // Download Excel File from Backend
@@ -178,6 +186,22 @@ const OrderItemsGraph = () => {
             .catch(error => alert("Error exporting file:", error));
     };
 
+    // Handle search button click
+    const handleSearchClick = () => {
+        searchOrderItems();
+    };
+
+    // Handle clear button click
+    const handleClearClick = () => {
+        setSearchQuery("");
+        fetchOrderItemsList();
+    };
+
+    // Handle toast close
+    const handleToastClose = () => {
+        setToastOpen(false);
+    };
+
     return (
         <Box sx={{ p: 3 }}>
             <Typography variant="h4" gutterBottom>
@@ -185,13 +209,13 @@ const OrderItemsGraph = () => {
             </Typography>
 
             {/* Dropdown for selecting filter */}
-            {/* <FormControl variant="outlined" sx={{ mb: 3, minWidth: 200 }}>
+            <FormControl variant="outlined" sx={{ mb: 3, minWidth: 200 }}>
                 <InputLabel>Filter By</InputLabel>
                 <Select value={filterBy} onChange={(e) => setFilterBy(e.target.value)} label="Filter By">
-                    <MenuItem value="product">Filter by Product</MenuItem>
                     <MenuItem value="category">Filter by Category</MenuItem>
+                    <MenuItem value="gender">Filter by Gender</MenuItem> {/* New option */}
                 </Select>
-            </FormControl> */}
+            </FormControl>
             {/* Dropdown for selecting display type */}
             <FormControl variant="outlined" sx={{ mb: 3, minWidth: 200, ml: 2 }}>
                 <InputLabel>Display Type</InputLabel>
@@ -204,7 +228,9 @@ const OrderItemsGraph = () => {
             {/* Graph */}
             <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
                 {chartData ? (
-                    displayType === "quantitySold" ? (
+                    filterBy === "gender" ? (
+                        <Pie ref={chartRef} data={chartData} /> // Show Pie Chart for Gender
+                    ) : displayType === "quantitySold" ? (
                         <Pie ref={chartRef} data={chartData} />
                     ) : (
                         <Bar ref={chartRef} data={chartData} />
@@ -235,12 +261,29 @@ const OrderItemsGraph = () => {
             </Box>
 
             {/* Table displaying order items */}
-            <Typography variant="h5" gutterBottom>Order Items List</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="h5">Order Items List</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Input
+                        type="text"
+                        placeholder="Search by category or product name..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        sx={{ padding: 1, width: 325 }}
+                    />
+                    <IconButton color="primary" onClick={handleSearchClick}>
+                        <SearchIcon />
+                    </IconButton>
+                    <IconButton onClick={handleClearClick} color="error">
+                        <ClearIcon />
+                    </IconButton>
+                </Box>
+            </Box>
             <TableContainer component={Paper} sx={{ mb: 3 }}>
                 <Table>
                     <TableHead>
                         <TableRow>
-                            {["id", "productName", "categoryName", "quantityBought", "totalSales", "timeBought"].map((column) => (
+                            {["id", "productName", "gender", "categoryName", "quantityBought", "totalSales", "timeBought"].map((column) => (
                                 <TableCell key={column}>
                                     <TableSortLabel
                                         active={sortColumn === column}
@@ -258,9 +301,10 @@ const OrderItemsGraph = () => {
                             <TableRow key={item.id}>
                                 <TableCell>{item.id}</TableCell>
                                 <TableCell>{item.productName}</TableCell>
+                                <TableCell>{item.gender === 1 ? "Male" : "Female"}</TableCell>
                                 <TableCell>{item.productCategory}</TableCell>
                                 <TableCell>{item.quantityBought}</TableCell>
-                                <TableCell>${item.totalSales.toFixed(2)}</TableCell>
+                                <TableCell>{item.totalSales !== undefined ? `$${item.totalSales.toFixed(2)}` : 'N/A'}</TableCell>
                                 <TableCell>{item.timeBought}</TableCell>
                             </TableRow>
                         ))}
@@ -278,6 +322,13 @@ const OrderItemsGraph = () => {
                 onRowsPerPageChange={handleChangeRowsPerPage}
                 rowsPerPageOptions={[5, 10, 25, 50, { label: "All", value: orderItems.length }]} // Allow viewing all
             />
+
+            {/* Toast Notification */}
+            <Snackbar open={toastOpen} autoHideDuration={6000} onClose={handleToastClose}>
+                <Alert onClose={handleToastClose} severity="warning" sx={{ width: '100%' }}>
+                    Search query is empty!
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };
