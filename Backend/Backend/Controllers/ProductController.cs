@@ -39,6 +39,7 @@ namespace ReCloset.Controllers
                 result = result.Where(p =>
                     p.Name.Contains(search) ||
                     p.Price.ToString().Contains(search) ||
+                    p.Description.Contains(search) ||
                     p.Category.Name.Contains(search) ||
                     p.Warehouse.WarehouseId.ToString().Contains(search) ||
                     (p.SustainabilityCertification != null && p.SustainabilityCertification.Name.Contains(search))
