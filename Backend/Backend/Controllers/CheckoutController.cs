@@ -316,5 +316,16 @@ namespace Backend.Controllers
             // Return 204 No Content as the order has been successfully deleted
             return Ok();
         }
+
+        [HttpGet("orderAddress")]
+        public IActionResult GetOrderAddress(int orderId)
+        {
+            var orderAddress = _context.OrderAddresses.FirstOrDefault(o => o.OrderId == orderId);
+            if (orderAddress == null)
+            {
+                return NotFound("Order address not found.");
+            }
+            return Ok(orderAddress);
+        }
     }
 }

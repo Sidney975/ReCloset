@@ -17,6 +17,7 @@ var configuration = builder.Configuration;
 // Add services
 // Add services to the container.
 builder.Services.AddHttpClient<FashionAdviceService>();
+builder.Services.AddHttpClient<ChatbotService>();
 builder.Services.AddControllers();
 builder.Services.AddScoped<AuthService>();
 

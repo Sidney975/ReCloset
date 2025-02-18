@@ -174,6 +174,7 @@ const OrderItemsGraph = () => {
             .then(() => {
                 alert("Excel file imported successfully!");
                 setFile(null); // Clear file after upload
+                fetchData();
                 fetchOrderItemsList(); // Refresh table after import
             })
             .catch(error => console.error(error));
