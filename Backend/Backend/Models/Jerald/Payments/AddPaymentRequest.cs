@@ -7,6 +7,7 @@ namespace Backend.Models.Jerald.Payments
     {
         [Required]
         public int UserId { get; set; }
+
         [Required, MaxLength(50)]
         public string PaymentMethod { get; set; } = string.Empty;
 
@@ -39,7 +40,18 @@ namespace Backend.Models.Jerald.Payments
         [Required, MaxLength(100)]
         public string City { get; set; } = string.Empty;
 
+        [Required, MaxLength(8), MinLength(8), RegularExpression(@"^\d{8}$", ErrorMessage = "Mobile number must be exactly 8 digits.")]
+        public string MobileNumber { get; set; } = string.Empty;
+
+        [Required, MaxLength(50)]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required, MaxLength(50)]
+        public string LastName { get; set; } = string.Empty;
+
         [Required]
         public User User { get; set; } = new User(); // User who made the order
     }
 }
+
+

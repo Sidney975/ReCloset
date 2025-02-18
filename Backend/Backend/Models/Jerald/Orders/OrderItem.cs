@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using Backend.Models.Sophie;
 
 namespace Backend.Models.Jerald.Orders
 {
@@ -13,7 +12,13 @@ namespace Backend.Models.Jerald.Orders
         public int OrderId { get; set; } // Foreign Key to Order
 
         [Required]
-        public int ProductId { get; set; } // Foreign Key to Product
+        public string ProductName { get; set; } = string.Empty; // Store product name directly
+
+        [Required]
+        public string ProductCategory { get; set; } = string.Empty; // Store product category
+
+        [Required]
+        public bool Gender { get; set; } // Price per item at the time of order
 
         [Required]
         public int Quantity { get; set; } // Number of items ordered
@@ -21,11 +26,10 @@ namespace Backend.Models.Jerald.Orders
         [Required, Column(TypeName = "decimal(18,2)")]
         public decimal ItemPrice { get; set; } // Price per item at the time of order
 
+        [Required, Column(TypeName = "DATETIME")]
+        public DateTime TimeBought { get; set; } = DateTime.UtcNow;
         // Navigation property for Order
         [ForeignKey("OrderId")]
         public Order? Order { get; set; }
-        [ForeignKey("ProductId")]
-        public Product? Product { get; set; }
-
     }
 }

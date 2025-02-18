@@ -1,5 +1,6 @@
 import React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+
 const OrderPDF = ({ order, user }) => (
     <Document>
         <Page size="A4" style={styles.page}>
@@ -60,17 +61,23 @@ const OrderPDF = ({ order, user }) => (
             {/* Order Items Table */}
             <View style={styles.table}>
                 <View style={styles.tableHeader}>
-                    <Text style={styles.tableHeaderText}>Product</Text>
-                    <Text style={styles.tableHeaderText}>Qty</Text>
+                    <Text style={styles.tableHeaderText}>Product Name</Text>
+                    <Text style={styles.tableHeaderText}>Category Name</Text>
+                    <Text style={styles.tableHeaderText}>Gender</Text>
+                    <Text style={styles.tableHeaderText}>Quantity</Text>
                     <Text style={styles.tableHeaderText}>Unit Price</Text>
                     <Text style={styles.tableHeaderText}>Total</Text>
+                    <Text style={styles.tableHeaderText}>Time Bought</Text>
                 </View>
                 {order.orderItems?.map((item, index) => (
                     <View key={index} style={styles.tableRow}>
-                        <Text style={styles.tableCell}>Product ID: {item.productId}</Text>
+                        <Text style={styles.tableCell}>{item.productName}</Text>
+                        <Text style={styles.tableCell}>{item.productCategory}</Text>
+                        <Text style={styles.tableCell}>{item.gender ? "Male" : "Female"}</Text>
                         <Text style={styles.tableCell}>{item.quantity}</Text>
                         <Text style={styles.tableCell}>${item.itemPrice.toFixed(2)}</Text>
                         <Text style={styles.tableCell}>${(item.quantity * item.itemPrice).toFixed(2)}</Text>
+                        <Text style={styles.tableCell}>{new Date(item.timeBought).toLocaleString()}</Text>
                     </View>
                 ))}
             </View>
@@ -84,6 +91,7 @@ const OrderPDF = ({ order, user }) => (
         </Page>
     </Document>
 );
+
 // Styling
 const styles = StyleSheet.create({
     page: {
@@ -179,4 +187,5 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
 });
+
 export default OrderPDF;

@@ -42,8 +42,29 @@ public class MyDbContext : DbContext
         modelBuilder.Entity<User>()
             .HasOne(u => u.ManagedByAdmin)
             .WithMany()
-            .HasForeignKey(u => u.ManagedByAdminId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .HasForeignKey(p => p.CertId);
+
+
+        // Seed data for Warehouses
+        modelBuilder.Entity<Warehouse>().HasData(
+            new Warehouse { WarehouseId = 1, LocationName = "Northeast Warehouse", Street = "38 Ang Mo Kio Ind Park 2", City = "Singapore", State = "SG", PostalCode = "569511", Country = "Singapore", ContactNo = "12345678", Latitude = 1.3765864094476026, Longitude = 103.8659848158459 },
+            new Warehouse { WarehouseId = 2, LocationName = "Central Warehouse", Street = "20 Depot Rd", City = "Singapore", State = "SG", PostalCode = "109677", Country = "Singapore", ContactNo = "87654321", Latitude = 1.281216720946465, Longitude = 103.81405834338983 }
+        );
+
+        // Seed data for Categories
+        modelBuilder.Entity<Category>().HasData(
+            new Category { CategoryId = 1, Name = "Accessory", Description = "Jewelry, bags, belts, etc." },
+            new Category { CategoryId = 2, Name = "Blouse", Description = "Upper garment resembling a shirt, typically with a collar, buttons, and sleeves." },
+            new Category { CategoryId = 3, Name = "Dress", Description = "One-piece garment that covers the body and extends down over the thighs or legs." },
+            new Category { CategoryId = 4, Name = "Jacket", Description = "Outer garment extending either to the waist or the hips, typically having sleeves and a fastening down the front." },
+            new Category { CategoryId = 5, Name = "T-Shirt", Description = "Short-sleeved casual top, generally made of cotton, having the shape of a T when spread out flat." }
+        );
+
+        // Seed data for Sustainability Certifications
+        modelBuilder.Entity<SustainabilityCertification>().HasData(
+            new SustainabilityCertification { CertId = 1, Name = "Fair Trade", Description = "Certified Fair Trade standard for ethical sourcing.", QRCodeUrl = "fairtrade.png" },
+            new SustainabilityCertification { CertId = 2, Name = "Global Organic Textile Standard (GOTS)", Description = "Ensures organic fibers and environmental responsibility.", QRCodeUrl = "gots.png" }
+        );
 
         // 🔹 Orders Relationship (User -> Orders)
         modelBuilder.Entity<Order>()

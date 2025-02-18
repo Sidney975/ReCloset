@@ -85,11 +85,11 @@ function ViewPayments() {
       toast.error("You cannot set this payment method as the default because it is inactive.");
       return;
     }
-
     const updatedDefault = !isCurrentlyDefault;
-
+    console.log("Updating default preference for payment ID:", paymentId, "to", updatedDefault);
     http.put(`/payment/${paymentId}`, { defaultPreference: updatedDefault })
       .then(() => {
+        console.log("Default payment preference updated successfully");
         fetchPayments(); // Refresh data to sync with backend
       })
       .catch((error) => {

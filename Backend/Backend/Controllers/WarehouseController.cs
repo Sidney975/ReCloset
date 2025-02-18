@@ -91,7 +91,7 @@ namespace ReCloset.Controllers
 		[HttpGet("nearest-warehouse")]
 		public async Task<IActionResult> GetNearestWarehouse([FromQuery] string origin)
 		{
-			if (string.IsNullOrEmpty(origin))
+            if (string.IsNullOrEmpty(origin))
 			{
 				return BadRequest("Origin is required");
 			}

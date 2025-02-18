@@ -19,22 +19,58 @@ namespace ReCloset.Controllers
 			_context = context;
 		}
 
-		// GET: api/Product
-		[HttpGet]
-		public IActionResult GetAll(string? search)
-		{
-			IQueryable<Product> result = _context.Products;
-			if (search != null)
-			{
-				result = result.Where(x => x.Name.Contains(search)
-				|| x.Description.Contains(search));
-			}
-			var list = result.OrderByDescending(x => x.CreatedAt).ToList();
-			return Ok(list);
-		}
+        // GET: api/Product
+        [HttpGet("available")]
+        public IActionResult GetAllAvailable(string? search)
+        {
+            IQueryable<Product> result = _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Warehouse)
+                .Include(p => p.SustainabilityCertification)
+                .Where(p => p.Available == true); // Only return available products
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                result = result.Where(p =>
+                    p.Name.Contains(search) ||
+                    p.Price.ToString().Contains(search) ||
+                    p.Category.Name.Contains(search) ||
+                    p.Warehouse.WarehouseId.ToString().Contains(search) ||
+                    (p.SustainabilityCertification != null && p.SustainabilityCertification.Name.Contains(search))
+                );
+            }
+
+            var list = result.OrderByDescending(x => x.CreatedAt).ToList();
+            return Ok(list);
+        }
+
+        // GET: api/Product
+        [HttpGet]
+        public IActionResult GetAll(string? search)
+        {
+			IQueryable<Product> result = _context.Products
+				.Include(p => p.Category)
+				.Include(p => p.Warehouse)
+				.Include(p => p.SustainabilityCertification);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                result = result.Where(p =>
+                    p.Name.Contains(search) ||
+                    p.Price.ToString().Contains(search) ||
+                    p.Category.Name.Contains(search) ||
+                    p.Warehouse.WarehouseId.ToString().Contains(search) ||
+                    (p.SustainabilityCertification != null && p.SustainabilityCertification.Name.Contains(search))
+                );
+            }
+
+            var list = result.OrderByDescending(x => x.CreatedAt).ToList();
+            return Ok(list);
+        }
 
 
-		[HttpGet("{id}")]
+
+        [HttpGet("{id}")]
 		public async Task<ActionResult<ProductDetailDto>> GetProduct(int id)
 		{
 			var product = await _context.Products
@@ -53,6 +89,7 @@ namespace ReCloset.Controllers
 				Name = product.Name,
 				Image = product.Image,
 				Description = product.Description,
+				Gender = product.Gender,
 				SustainabilityNotes = product.SustainabilityNotes,
 				SizingChart = product.SizingChart,
 				Price = product.Price,
@@ -88,12 +125,18 @@ namespace ReCloset.Controllers
 				!_context.SustainabilityCertifications.Any(s => s.CertId == productDto.CertId))
 				return BadRequest("Invalid Sustainability Certification ID");
 
-			// Map DTO to Product
-			var product = new Product
+            if (!productDto.Quality)
+            {
+                productDto.Available = false;
+            }
+
+            // Map DTO to Product
+            var product = new Product
 			{
 				Name = productDto.Name,
 				Image = productDto.Image,
 				Description = productDto.Description,
+				Gender = productDto.Gender,
 				SustainabilityNotes = productDto.SustainabilityNotes,
 				SizingChart = productDto.SizingChart,
 				Price = productDto.Price,
@@ -141,10 +184,16 @@ namespace ReCloset.Controllers
 				!_context.SustainabilityCertifications.Any(s => s.CertId == productDto.CertId))
 				return BadRequest("Invalid Sustainability Certification ID");
 
-			// Map ProductDto to Product
-			existingProduct.Name = productDto.Name;
+            if (!productDto.Quality)
+            {
+                productDto.Available = false;
+            }
+
+            // Map ProductDto to Product
+            existingProduct.Name = productDto.Name;
 			existingProduct.Image = productDto.Image;
 			existingProduct.Description = productDto.Description;
+			existingProduct.Gender = productDto.Gender;
 			existingProduct.SustainabilityNotes = productDto.SustainabilityNotes;
 			existingProduct.SizingChart = productDto.SizingChart;
 			existingProduct.Price = productDto.Price;
@@ -175,7 +224,7 @@ namespace ReCloset.Controllers
 
 			return NoContent();
 		}
-
+		
 		// DELETE: api/Product/5
 		[HttpDelete("{id}")]
 		public async Task<IActionResult> DeleteProduct(int id)
@@ -199,5 +248,40 @@ namespace ReCloset.Controllers
 		{
 			return _context.Products.Any(e => e.ProductId == id);
 		}
-	}
+
+        [HttpGet("upcyclingrequests")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetUpcyclingRequests()
+        {
+            var products = await _context.Products
+                .Where(p => !p.Quality && !p.Available)
+                .ToListAsync();
+
+            return Ok(products);
+        }
+
+        [HttpPost("upcyclingrequests/{id}/approve")]
+        public async Task<IActionResult> ApproveUpcyclingRequest(int id)
+        {
+            var product = await _context.Products.FindAsync(id);
+            if (product == null) return NotFound();
+			
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Product approved successfully" });
+        }
+
+        [HttpPost("upcyclingrequests/{id}/reject")]
+        public async Task<IActionResult> RejectUpcyclingRequest(int id)
+        {
+            var product = await _context.Products.FindAsync(id);
+            if (product == null) return NotFound();
+
+            product.Quality = true;
+            product.Available = true;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Product rejected and re-listed" });
+        }
+
+    }
 }

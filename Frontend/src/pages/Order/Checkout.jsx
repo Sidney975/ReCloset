@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   Box,
   Typography,
@@ -22,12 +22,12 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import useUserIP from "../../hooks/useUserIp"; // Import IP detection hook
 import http from "../../http";
+import CartContext from "../../contexts/CartContext";
 
 function CheckoutPage() {
   const { userIP, userLocation, error: ipError } = useUserIP(); // Get IP & location
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [cartItems, setCartItems] = useState([]);
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [total, setTotal] = useState(0);
@@ -38,6 +38,7 @@ function CheckoutPage() {
   const [isSuspicious, setIsSuspicious] = useState(false); // Flag if IP doesn't match billing address
   const navigate = useNavigate();
   const steps = ["Delivery Address", "Payment Information", "Review Order"];
+  const { cartItems, clearCart } = useContext(CartContext);
 
   // Voucher popup and applied voucher states
   const [voucherPopupOpen, setVoucherPopupOpen] = useState(false);
@@ -49,10 +50,8 @@ function CheckoutPage() {
 
   useEffect(() => {
     // Load cart from localStorage
-    const storedCart = JSON.parse(localStorage.getItem("CartItems")) || [];
-    setCartItems(storedCart);
     setTotal(
-      storedCart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+      cartItems.reduce((sum, item) => sum + item.itemPrice * item.quantity, 0)
     );
 
     // Fetch payment methods
@@ -110,54 +109,89 @@ function CheckoutPage() {
   }, [userLocation, billingCountry]);
 
   const handlePlaceOrder = async () => {
-    if (isSuspicious) {
-      toast.error(
-        "Transaction blocked: Your IP location does not match the billing country of the selected payment method."
-      );
-      return;
-    }
-
     if (!selectedPaymentMethod) {
       toast.error("Please select a payment method before placing your order.");
       return;
     }
-
+  
     const finalTotal = appliedVoucher ? alteredPrice : total;
-
-
+  
     const payload = {
       deliveryOption: 1,
       paymentId: selectedPaymentMethod,
       orderItems: cartItems.map((item) => ({
-        ProductId: item.productId,
-        Quantity: item.quantity,
-        ItemPrice: item.price,
+        productId: item.productId, // Ensure productId is included
+        productName: item.productName,
+        productCategory: item.productCategory,
+        quantity: item.quantity,
+        itemPrice: item.itemPrice,
+        timeBought: new Date().toISOString().split('T')[0], // Send only the date
       })),
       voucherId: appliedVoucher ? appliedVoucher.voucherId : null,
       totalPrice: finalTotal,
-
     };
-
+  
     try {
       setLoading(true);
+  
+      // Step 1: Fetch each product and format data for update
+      const updatePromises = cartItems.map(async (item) => {
+        try {
+          const productResponse = await http.get(`/api/Product/${item.productId}`); // Get full product details
+          
+          // Format the response into the required ProductDto format
+          const formattedProduct = {
+            name: productResponse.data.name,
+            image: productResponse.data.image,
+            Gender: productResponse.data.gender,
+            description: productResponse.data.description,
+            sustainabilityNotes: productResponse.data.sustainabilityNotes,
+            sizingChart: productResponse.data.sizingChart,
+            price: productResponse.data.price,
+            quality: productResponse.data.quality,
+            brand: productResponse.data.brand,
+            available: false, // Mark as unavailable
+            categoryId: productResponse.data.categoryId,
+            warehouseId: productResponse.data.warehouseId,
+            certId: productResponse.data.certId
+          };
+  
+          // Send update request
+          await http.put(`/api/Product/${item.productId}`, formattedProduct);
+          toast.success(`Updated ${item.productName} availability`);
+        } catch (error) {
+          console.error(`Failed to update product ${item.productId}`, error);
+          toast.error(`Failed to update ${item.productName}`);
+          throw new Error(`Update failed for ${item.productId}`); // Force promise rejection
+        }
+      });
+  
+      // Step 2: Ensure all product updates succeed before proceeding
+      await Promise.all(updatePromises);
+  
+      // Step 3: Proceed with Checkout after updates are successful
       await http.post("/checkout", payload);
       toast.success("Order placed successfully!");
-
-       // If a voucher was applied, call the redeem API to mark it as used
-       if (appliedVoucher) {
+  
+      // Step 4: Redeem Voucher if Applied
+      if (appliedVoucher) {
         await http.post(`/voucher/${appliedVoucher.voucherId}/redeem`);
         toast.success("Voucher redeemed successfully!");
       }
-
-
-      localStorage.removeItem("CartItems");
+  
+      // Step 5: Clear Cart & Redirect
+      clearCart();
       navigate("/");
     } catch (err) {
-      toast.error("Failed to place the order.");
+      toast.error("Failed to complete checkout. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+  
+  
+  
+
 
   // Voucher fetching function
   const fetchVouchers = async () => {
@@ -265,7 +299,7 @@ function CheckoutPage() {
           {step === 1 && (
             <Box>
               {isSuspicious && (
-                <Alert severity="warning" sx={{ mt: 2 }}>
+                <Alert severity="error" sx={{ mt: 2 }}>
                   Suspicious activity detected! The selected payment method's billing
                   country ({billingCountry}) does not match your detected IP location (
                   {userLocation?.country}).
@@ -321,7 +355,7 @@ function CheckoutPage() {
               <ul>
                 {cartItems.map((item) => (
                   <li key={item.productId}>
-                    {item.name} - ${item.price.toFixed(2)} x {item.quantity}
+                    {item.productName} - ${item.itemPrice.toFixed(2)} x {item.quantity}
                   </li>
                 ))}
               </ul>
@@ -334,11 +368,11 @@ function CheckoutPage() {
                   <Typography variant="body2">
                     Discount:{" "}
                     {appliedVoucher.VoucherTypeEnum === 0 &&
-                    appliedVoucher.DiscountValue < 1
+                      appliedVoucher.DiscountValue < 1
                       ? `${(appliedVoucher.DiscountValue * 100).toFixed(0)}%`
                       : appliedVoucher.VoucherTypeEnum === 0
-                      ? `$${appliedVoucher.DiscountValue}`
-                      : "Free Shipping"}
+                        ? `$${appliedVoucher.DiscountValue}`
+                        : "Free Shipping"}
                   </Typography>
                   <Typography variant="body2">
                     New Total: ${alteredPrice.toFixed(2)}
@@ -367,7 +401,7 @@ function CheckoutPage() {
           <ul>
             {cartItems.map((item) => (
               <li key={item.productId}>
-                {item.name} - ${item.price.toFixed(2)} x {item.quantity}
+                {item.productName} - ${item.itemPrice.toFixed(2)} x {item.quantity}
               </li>
             ))}
           </ul>
@@ -415,12 +449,12 @@ function CheckoutPage() {
                   <Typography variant="body2">
                     Discount: {voucher.discountValue}{" "}
                     {voucher.voucherTypeEnum === 0 &&
-                    voucher.discountValue < 1
+                      voucher.discountValue < 1
                       ? "(Percentage)"
                       : voucher.voucherTypeEnum === 0 &&
-                      voucher.discountValue >= 1
-                      ? "(Flat)"
-                      : "(Free Shipping)"}
+                        voucher.discountValue >= 1
+                        ? "(Flat)"
+                        : "(Free Shipping)"}
                   </Typography>
                 </Box>
                 <Button

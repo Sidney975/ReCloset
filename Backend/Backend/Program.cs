@@ -15,6 +15,8 @@ var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
 // Add services
+// Add services to the container.
+builder.Services.AddHttpClient<FashionAdviceService>();
 builder.Services.AddControllers();
 builder.Services.AddScoped<AuthService>();
 
@@ -24,6 +26,10 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 );
 
 // AutoMapper
+// Register EmailService so it can be injected
+builder.Services.AddScoped<EmailService>();
+
+// Auto Mapper
 var mappingConfig = new MapperConfiguration(mc =>
 {
     mc.AddProfile(new MappingProfile());

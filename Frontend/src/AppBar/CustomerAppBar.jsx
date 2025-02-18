@@ -56,10 +56,7 @@ const CustomerAppBar = () => {
   );
 
   // Calculate total price
-  const totalPrice = cartItems.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
+  const totalPrice = cartItems.reduce((total, item) => total + item.itemPrice * item.quantity, 0);
 
   return (
     <>
@@ -266,7 +263,7 @@ const CustomerAppBar = () => {
             Voucher
           </Link>
           <Link
-            to="/consultations"
+            to="/FashionConsultant"
             style={{
               textDecoration: "none",
               color: "white",
@@ -280,7 +277,7 @@ const CustomerAppBar = () => {
               (e.target.style.backgroundColor = "transparent")
             }
           >
-            Consultations
+            AI Fashion Consultant
           </Link>
           <Link
             to="/about-us"
@@ -339,21 +336,10 @@ const CustomerAppBar = () => {
                     sx={{ flex: 1, display: "flex", flexDirection: "column" }}
                   >
                     {/* First Row: Title & Price */}
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                        {item.name}
-                      </Typography>
-                      <Typography
-                        variant="body1"
-                        sx={{ fontWeight: "bold", color: "black" }}
-                      >
-                        ${(item.price * item.quantity).toFixed(2)}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="body1" sx={{ fontWeight: 'bold' }}>{item.productName}</Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'black' }}>
+                        ${(item.itemPrice * item.quantity).toFixed(2)}
                       </Typography>
                       <Typography
                         variant="body1"
@@ -371,19 +357,11 @@ const CustomerAppBar = () => {
                       >
                         <RemoveIcon />
                       </IconButton>
-                      <Typography variant="body2" sx={{ mx: 1 }}>
-                        {item.quantity}
-                      </Typography>
-                      <IconButton
-                        onClick={() => updateQuantity(item.productId, 1)}
-                        sx={{ color: "black" }}
-                      >
+                      <Typography variant="body2" sx={{ mx: 1 }}>{item.quantity}</Typography>
+                      {/* <IconButton onClick={() => updateQuantity(item.productId, 1)} sx={{ color: 'black' }}>
                         <AddIcon />
-                      </IconButton>
-                      <IconButton
-                        onClick={() => removeFromCart(item.productId)}
-                        sx={{ color: "red", textAlign: "right", ml: "auto" }}
-                      >
+                      </IconButton> */}
+                      <IconButton onClick={() => removeFromCart(item.productId)} sx={{ color: 'red', textAlign: 'right', ml: 'auto' }}>
                         <DeleteIcon />
                       </IconButton>
                     </Box>
