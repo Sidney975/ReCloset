@@ -90,9 +90,19 @@ function AddPayment() {
     }),
     onSubmit: (data) => {
       const payload = {
-        ...data,
+        paymentMethod: data.paymentMethod,
+        cardNumber: data.cardNumber,
+        cvv: data.cvv,
+        expiryDate: new Date(data.expiryDate).toISOString().split("T")[0],
+        billingAddress: data.billingAddress,
+        defaultPreference: data.defaultPreference,
+        status: data.status === "Active" ? 1 : 0,
+        country: data.country,
+        city: data.city,
+        mobileNumber: data.mobileNumber,
+        firstName: data.firstName,
+        lastName: data.lastName,
         billingZip: parseInt(data.billingZip, 10),
-        status: data.status === "Active" ? 1 : 0
       };
 
       http.post("/payment", payload)

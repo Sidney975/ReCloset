@@ -21,9 +21,11 @@ namespace Backend.Controllers
 
         private int GetUserId()
         {
-            return Convert.ToInt32(User.Claims
+            var Username = User.Claims
             .Where(c => c.Type == ClaimTypes.NameIdentifier)
-            .Select(c => c.Value).SingleOrDefault());
+            .Select(c => c.Value).SingleOrDefault();
+            int userId = _context.Users.FirstOrDefault(u => u.UserId == Username).Id;
+            return userId;
         }
 
         // GET: Get all orders
@@ -145,7 +147,6 @@ namespace Backend.Controllers
                 TotalPrice = createOrderRequest.TotalPrice,
                 VoucherId = createOrderRequest.VoucherId,
                 UserId = userId,
-                User = user
             };
 
             _context.Orders.Add(order);

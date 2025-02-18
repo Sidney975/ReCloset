@@ -17,11 +17,12 @@ namespace Backend.Controllers
 		// Helper method to get the logged-in user id
 		private int GetUserId()
 		{
-			return Convert.ToInt32(User.Claims
-				.Where(c => c.Type == ClaimTypes.NameIdentifier)
-				.Select(c => c.Value)
-				.SingleOrDefault());
-		}
+            var Username = User.Claims
+.Where(c => c.Type == ClaimTypes.NameIdentifier)
+.Select(c => c.Value).SingleOrDefault();
+            int userId = _context.Users.FirstOrDefault(u => u.UserId == Username).Id;
+            return userId;
+        }
 
 		[HttpPost("send/{orderId}")]
 		public async Task<IActionResult> SendOrderToShippit(int orderId)

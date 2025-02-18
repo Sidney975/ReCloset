@@ -155,47 +155,8 @@ function CheckoutPage() {
     try {
       setLoading(true);
   
-      // Step 1: Fetch each product and format data for update
-      const updatePromises = cartItems.map(async (item) => {
-        try {
-          const productResponse = await http.get(`/api/Product/${item.productId}`); // Get full product details
-          
-          // Format the response into the required ProductDto format
-          const formattedProduct = {
-            name: productResponse.data.name,
-            image: productResponse.data.image,
-            Gender: productResponse.data.gender,
-            description: productResponse.data.description,
-            sustainabilityNotes: productResponse.data.sustainabilityNotes,
-            sizingChart: productResponse.data.sizingChart,
-            price: productResponse.data.price,
-            quality: productResponse.data.quality,
-            brand: productResponse.data.brand,
-            available: false, // Mark as unavailable
-            categoryId: productResponse.data.categoryId,
-            warehouseId: productResponse.data.warehouseId,
-            certId: productResponse.data.certId
-          };
-  
-          // Send update request
-          await http.put(`/api/Product/${item.productId}`, formattedProduct);
-          toast.success(`Updated ${item.productName} availability`);
-        } catch (error) {
-          console.error(`Failed to update product ${item.productId}`, error);
-          toast.error(`Failed to update ${item.productName}`);
-          throw new Error(`Update failed for ${item.productId}`); // Force promise rejection
-        }
-      });
-  
-      // Step 2: Ensure all product updates succeed before proceeding
-      await Promise.all(updatePromises);
-  
-      // Step 3: Proceed with Checkout after updates are successful
-      await http.post("/checkout", payload);
-      toast.success("Order placed successfully!");
-  
       // Step 4: Redeem Voucher if Applied
-      const orderResponse = await http.post("/checkout", payload);
+      const orderResponse = await http.post("/checkout", payload).catch((err) => {console.log(err)});
       toast.success("Order placed successfully!");
 
       const orderId = orderResponse.data.orderId;
@@ -238,6 +199,40 @@ function CheckoutPage() {
         toast.success(`Loyalty points updated! You earned ${pointsEarned} points.`);
       }
       clearCart();
+      // Step 1: Fetch each product and format data for update
+      const updatePromises = cartItems.map(async (item) => {
+        try {
+          const productResponse = await http.get(`/api/Product/${item.productId}`); // Get full product details
+          
+          // Format the response into the required ProductDto format
+          const formattedProduct = {
+            name: productResponse.data.name,
+            image: productResponse.data.image,
+            Gender: productResponse.data.gender,
+            description: productResponse.data.description,
+            sustainabilityNotes: productResponse.data.sustainabilityNotes,
+            sizingChart: productResponse.data.sizingChart,
+            price: productResponse.data.price,
+            quality: productResponse.data.quality,
+            brand: productResponse.data.brand,
+            available: false, // Mark as unavailable
+            categoryId: productResponse.data.categoryId,
+            warehouseId: productResponse.data.warehouseId,
+            certId: productResponse.data.certId
+          };
+  
+          // Send update request
+          await http.put(`/api/Product/${item.productId}`, formattedProduct);
+          toast.success(`Updated ${item.productName} availability`);
+        } catch (error) {
+          console.error(`Failed to update product ${item.productId}`, error);
+          toast.error(`Failed to update ${item.productName}`);
+          throw new Error(`Update failed for ${item.productId}`); // Force promise rejection
+        }
+      });
+  
+      // Step 2: Ensure all product updates succeed before proceeding
+      await Promise.all(updatePromises);
       navigate("/");
     } catch (err) {
       toast.error("Failed to complete checkout. Please try again.");
