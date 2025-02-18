@@ -92,8 +92,14 @@ const OrderDetails = () => {
                     <table style={styles.table}>
                         <thead>
                             <tr>
-                                <th style={styles.tableHeader} onClick={() => handleSort("productId")}>
-                                    Product ID {sortConfig.key === "productId" ? (sortConfig.direction === "ascending" ? "↑" : "↓") : ""}
+                                <th style={styles.tableHeader} onClick={() => handleSort("productName")}>
+                                    Product Name {sortConfig.key === "productName" ? (sortConfig.direction === "ascending" ? "↑" : "↓") : ""}
+                                </th>
+                                <th style={styles.tableHeader} onClick={() => handleSort("productCategory")}>
+                                    Category Name {sortConfig.key === "productCategory" ? (sortConfig.direction === "ascending" ? "↑" : "↓") : ""}
+                                </th>
+                                <th style={styles.tableHeader} onClick={() => handleSort("gender")}>
+                                    Gender {sortConfig.key === "gender" ? (sortConfig.direction === "ascending" ? "↑" : "↓") : ""}
                                 </th>
                                 <th style={styles.tableHeader} onClick={() => handleSort("quantity")}>
                                     Quantity {sortConfig.key === "quantity" ? (sortConfig.direction === "ascending" ? "↑" : "↓") : ""}
@@ -104,17 +110,23 @@ const OrderDetails = () => {
                                 <th style={styles.tableHeader} onClick={() => handleSort("totalPrice")}>
                                     Total {sortConfig.key === "totalPrice" ? (sortConfig.direction === "ascending" ? "↑" : "↓") : ""}
                                 </th>
+                                <th style={styles.tableHeader} onClick={() => handleSort("timeBought")}>
+                                    Time Bought {sortConfig.key === "timeBought" ? (sortConfig.direction === "ascending" ? "↑" : "↓") : ""}
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
                             {sortedItems.map((item, index) => (
                                 <tr key={index} style={styles.tableRow}>
-                                    <td style={styles.tableCell}>{item.productId}</td>
+                                    <td style={styles.tableCell}>{item.productName}</td>
+                                    <td style={styles.tableCell}>{item.productCategory}</td>
+                                    <td style={styles.tableCell}>{item.gender ? "Male" : "Female"}</td>
                                     <td style={styles.tableCell}>{item.quantity}</td>
                                     <td style={styles.tableCell}>${item.itemPrice.toFixed(2)}</td>
                                     <td style={styles.tableCell}>
                                         ${(item.quantity * item.itemPrice).toFixed(2)}
                                     </td>
+                                    <td style={styles.tableCell}>{new Date(item.timeBought).toLocaleString()}</td>
                                 </tr>
                             ))}
                         </tbody>

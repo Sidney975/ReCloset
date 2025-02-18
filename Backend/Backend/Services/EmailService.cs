@@ -63,9 +63,12 @@ public class EmailService
             itemRows += $@"
             <tr>
                 <td style='padding: 10px; border-bottom: 1px solid #ddd;'>{item.ProductName}</td>
+                <td style='padding: 10px; border-bottom: 1px solid #ddd;'>{item.ProductCategory}</td>
+                <td style='padding: 10px; border-bottom: 1px solid #ddd;'>{(item.Gender ? "Male" : "Female")}</td>
                 <td style='padding: 10px; border-bottom: 1px solid #ddd;'>{item.Quantity}</td>
                 <td style='padding: 10px; border-bottom: 1px solid #ddd;'>${item.ItemPrice:F2}</td>
                 <td style='padding: 10px; border-bottom: 1px solid #ddd;'>${(item.Quantity * item.ItemPrice):F2}</td>
+                <td style='padding: 10px; border-bottom: 1px solid #ddd;'>{item.TimeBought.ToString("g")}</td>
             </tr>";
         }
 
@@ -88,10 +91,13 @@ public class EmailService
                 <p>Thank you for shopping with <strong>Recloset</strong>! Here is your order summary:</p>
                 <table class='table-container'>
                     <tr>
-                        <th>Product</th>
+                        <th>Product Name</th>
+                        <th>Category Name</th>
+                        <th>Gender</th>
                         <th>Quantity</th>
-                        <th>Price</th>
+                        <th>Unit Price</th>
                         <th>Total</th>
+                        <th>Time Bought</th>
                     </tr>
                     {itemRows}
                 </table>
