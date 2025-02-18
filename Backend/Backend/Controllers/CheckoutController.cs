@@ -4,44 +4,46 @@ using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Mysqlx.Crud;
 using Backend.Models.Jerald.Orders;
+using Shippo.Models.Requests;
 
 namespace Backend.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class CheckoutController : ControllerBase
+    public class CheckoutController(MyDbContext context, IMapper mapper, EmailService emailService) : ControllerBase
     {
-        private readonly MyDbContext _context;
-        private readonly IMapper _mapper;
-
-        public CheckoutController(MyDbContext context, IMapper mapper)
-        {
-            _context = context;
-            _mapper = mapper;
-        }
+        private readonly MyDbContext _context = context;
+        private readonly IMapper _mapper = mapper;
+        private readonly EmailService _emailService = emailService; // Add this line to initialize the email service
 
         private int GetUserId()
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return int.TryParse(userIdClaim, out var userId) ? userId : 0;  // ✅ Always return int, default 0
+            return Convert.ToInt32(User.Claims
+            .Where(c => c.Type == ClaimTypes.NameIdentifier)
+            .Select(c => c.Value).SingleOrDefault());
         }
 
+        // GET: Get all orders
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<OrderDTO>), StatusCodes.Status200OK)]
         public IActionResult GetAllOrders()
         {
-            int userId = GetUserId();
-            if (userId == 0) return Unauthorized("Invalid User ID");
-
             var orders = _context.Orders
-                .Include(o => o.Payment)
-                .Include(o => o.OrderItems)
-                .Include(o => o.User)
-                .Where(o => o.UserId == userId)  // ✅ `UserId` should be stored as `int`
-                .OrderBy(o => o.OrderId)
+                .Include(o => o.Payment) // Include Payment details
+                .Include(o => o.OrderItems) // Include associated OrderItems
+                .Include(t => t.User)
+                .Where(o => o.UserId == GetUserId())
+                .OrderBy(x => x.OrderId)
                 .ToList();
 
+            foreach (var order in orders)
+            {
+                order.User = _context.Users.FirstOrDefault(u => u.Id == order.UserId);
+            }
+
+            // Map orders to OrderDTO
             var orderDtos = orders.Select(_mapper.Map<OrderDTO>);
             return Ok(orderDtos);
         }
@@ -50,81 +52,97 @@ namespace Backend.Controllers
         [ProducesResponseType(typeof(OrderDTO), StatusCodes.Status200OK)]
         public IActionResult GetOrderById(int id)
         {
-            int userId = GetUserId();
-            if (userId == 0) return Unauthorized("Invalid User ID");
-
             var order = _context.Orders
-                .Include(o => o.Payment)
-                .Include(o => o.OrderItems)
-                .Include(o => o.User)
-                .FirstOrDefault(o => o.OrderId == id && o.UserId == userId);  // ✅ Ensure comparison is correct
+                .Include(o => o.Payment) // Include Payment details
+                .Include(o => o.OrderItems) // Include associated OrderItems
+                .Include(t => t.User)
+                .Where(o => o.UserId == GetUserId())
+                .FirstOrDefault(o => o.OrderId == id);
+
+            order.User = _context.Users.FirstOrDefault(u => u.Id == order.UserId);
 
             if (order == null)
             {
                 return NotFound("Order not found.");
             }
 
+            // Map order to OrderDTO
             var orderDto = _mapper.Map<OrderDTO>(order);
             return Ok(orderDto);
         }
 
         [HttpPost, Authorize]
         [ProducesResponseType(typeof(OrderDTO), StatusCodes.Status201Created)]
-        public IActionResult CreateOrder([FromBody] CreateOrderRequestDTO createOrderRequest)
+        public async Task<IActionResult> CreateOrderAsync([FromBody] CreateOrderRequestDTO createOrderRequest)
         {
             if (createOrderRequest == null || createOrderRequest.OrderItems == null || !createOrderRequest.OrderItems.Any())
             {
                 return BadRequest("Order and order items must be provided.");
             }
 
-            int userId = GetUserId();
-            if (userId == 0) return Unauthorized("Invalid User ID");
-
-            var user = _context.Users.FirstOrDefault(u => u.Id == userId);  // ✅ Ensure `UserId` is an `int`
-            if (user == null)
-            {
-                return BadRequest("Invalid user.");
-            }
-
+            // Validate payment method and ensure it's not soft-deleted
             var payment = _context.Payments.FirstOrDefault(p => p.PaymentId == createOrderRequest.PaymentId && !p.IsDeleted);
             if (payment == null)
             {
                 return BadRequest("Invalid or deleted payment method.");
             }
 
-            var order = new Order
+            var userId = GetUserId();
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+            if (user == null)
             {
-                OrderDate = DateTime.UtcNow,
+                return BadRequest("Invalid user.");
+            }
+
+            // Create the Order
+            var order = new Models.Jerald.Orders.Order
+            {
+                OrderDate = DateTime.Now,
                 DeliveryOption = (DeliveryOption)createOrderRequest.DeliveryOption,
                 Payment = payment,
                 TotalPrice = createOrderRequest.TotalPrice,
                 VoucherId = createOrderRequest.VoucherId,
-                UserId = userId  // ✅ Ensure UserId is stored as an `int`
+                UserId = userId,
+                User = user
             };
 
             _context.Orders.Add(order);
-            _context.SaveChanges();
+            _context.SaveChanges(); // Generate OrderId
 
+            // Add OrderItems with TimeBought set to the current date
             var orderItems = createOrderRequest.OrderItems.Select(item => new OrderItem
             {
                 OrderId = order.OrderId,
-                ProductId = item.ProductId,
+                ProductName = item.ProductName,
+                ProductCategory = item.ProductCategory,
+                Gender = item.Gender,
                 Quantity = item.Quantity,
-                ItemPrice = item.ItemPrice
+                ItemPrice = item.ItemPrice,
+                TimeBought = DateTime.UtcNow // Stores date and time
             }).ToList();
 
             _context.OrderItems.AddRange(orderItems);
             _context.SaveChanges();
 
+            // Send invoice email
+            await _emailService.SendInvoiceEmailAsync(order.OrderId);
+
+            // Map to OrderDTO
             var orderDto = _mapper.Map<OrderDTO>(order);
+
             return CreatedAtAction(nameof(GetOrderById), new { id = order.OrderId }, orderDto);
         }
 
-        [HttpDelete("{id}")]
-        public IActionResult DeleteOrder(int id)
+        // PUT: Update an existing order
+        [HttpPut("{id}"), Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult UpdateOrder(int id, [FromBody] UpdateOrderRequestDto updateOrderRequest)
         {
+            int userId = GetUserId();
+
+            // Retrieve the existing order
             var order = _context.Orders
-                .Include(o => o.OrderItems)
+                .Include(o => o.OrderItems) // Include associated OrderItems
                 .FirstOrDefault(o => o.OrderId == id);
 
             if (order == null)
@@ -132,10 +150,113 @@ namespace Backend.Controllers
                 return NotFound("Order not found.");
             }
 
-            _context.OrderItems.RemoveRange(order.OrderItems);
-            _context.Orders.Remove(order);
+            if (order.UserId != userId)
+            {
+                return Forbid();
+            }
+
+            // Update the DeliveryOption if provided
+            if (updateOrderRequest.DeliveryOption.HasValue)
+            {
+                order.DeliveryOption = (DeliveryOption)updateOrderRequest.DeliveryOption.Value;
+            }
+
+            // Update the ShipmentStatus if provided
+            if (updateOrderRequest.ShipmentStatus.HasValue)
+            {
+                order.ShipmentStatus = (ShipmentStatus)updateOrderRequest.ShipmentStatus.Value;
+            }
+
+            if (updateOrderRequest.OrderItems != null && updateOrderRequest.OrderItems.Any())
+            {
+                // Process existing and new order items
+                var updatedOrderItems = updateOrderRequest.OrderItems.ToDictionary(i => i.OrderItemId);
+                var existingOrderItems = order.OrderItems.ToDictionary(i => i.OrderItemId);
+
+                // Update existing items
+                foreach (var item in existingOrderItems)
+                {
+                    if (updatedOrderItems.TryGetValue(item.Key, out var updatedItem))
+                    {
+                        item.Value.Quantity = updatedItem.Quantity;
+                        item.Value.ItemPrice = updatedItem.ItemPrice;
+                        item.Value.ProductName = updatedItem.ProductName;
+                        item.Value.Gender = updatedItem.Gender;
+                        item.Value.ProductCategory = updatedItem.ProductCategory;
+                        item.Value.TimeBought = updatedItem.TimeBought;
+                        updatedOrderItems.Remove(item.Key);
+                    }
+                    else
+                    {
+                        _context.OrderItems.Remove(item.Value);
+                    }
+                }
+
+                // Add new items
+                foreach (var newItem in updatedOrderItems.Values)
+                {
+                    var newOrderItem = new OrderItem
+                    {
+                        OrderId = order.OrderId,
+                        ProductName = newItem.ProductName,
+                        ProductCategory = newItem.ProductCategory,
+                        Gender = newItem.Gender,
+                        Quantity = newItem.Quantity,
+                        ItemPrice = newItem.ItemPrice,
+                        TimeBought = newItem.TimeBought
+                    };
+                    _context.OrderItems.Add(newOrderItem);
+                }
+            }
+
+            // Save changes to the database
             _context.SaveChanges();
 
+            // Prepare response DTO
+            var updatedOrderDto = new OrderDTO
+            {
+                OrderId = order.OrderId,
+                DeliveryMethod = order.DeliveryOption.ToString(),
+                Status = order.ShipmentStatus.ToString(),
+                TotalPrice = order.OrderItems.Sum(item => item.Quantity * item.ItemPrice),
+                OrderItems = order.OrderItems.Select(item => new BasicOrderItemDTO
+                {
+                    ProductName = item.ProductName,
+                    ProductCategory = item.ProductCategory,
+                    Quantity = item.Quantity,
+                    Gender = item.Gender,
+                    ItemPrice = item.ItemPrice,
+                    TimeBought = item.TimeBought
+                }).ToList()
+            };
+
+            return Ok(updatedOrderDto);
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult DeleteOrder(int id)
+        {
+            // Find the order by ID
+            var order = _context.Orders
+                .Include(o => o.OrderItems) // Include related order items
+                .FirstOrDefault(o => o.OrderId == id);
+
+            // If the order is not found, return 404
+            if (order == null)
+            {
+                return NotFound("Order not found.");
+            }
+
+            // Remove associated order items
+            _context.OrderItems.RemoveRange(order.OrderItems);
+
+            // Remove the order itself
+            _context.Orders.Remove(order);
+
+            // Save changes to the database
+            _context.SaveChanges();
+
+            // Return 204 No Content as the order has been successfully deleted
             return Ok();
         }
     }
