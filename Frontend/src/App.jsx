@@ -121,7 +121,8 @@ function App() {
                   <Route path="/admin/change-password" element={<ChangeAdminPassword />} />
 
                   {/* Sophie's Routes */}
-                  <Route path="/products" element={<Products />} />
+                  <Route path="/product/men" element={<Products />} />
+                  <Route path="/product/women" element={<Products />} />
                   <Route path="/product/:productId" element={<ProductDetail />} />
                   <Route path="/addproduct" element={<AddProduct />} />
                   <Route path="/editproduct/:id" element={<EditProduct />} />
@@ -129,8 +130,6 @@ function App() {
                   <Route path="/sustainabilitycertifications" element={<Certifications />} />
                   <Route path="/addcertification" element={<AddCertification />} />
                   <Route path="/ar-tryon/:productId" element={<ArTryOn />} />
-
-                  <Route path="women’s-clothing" element={<Products />} />
 
                   {/* Sidney's Routes */}
                   <Route path="/voucher" element={<Vouchers />} />

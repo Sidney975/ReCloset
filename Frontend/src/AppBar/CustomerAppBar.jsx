@@ -119,7 +119,7 @@ const CustomerAppBar = () => {
             Home
           </Link>
           <Link
-            to="/women’s-clothing"
+            to="/product/women"
             style={{
               textDecoration: 'none',
               color: 'white',
@@ -134,7 +134,7 @@ const CustomerAppBar = () => {
             Women’s Clothing
           </Link>
           <Link
-            to="/men’s-clothing"
+            to="/product/men"
             style={{
               textDecoration: 'none',
               color: 'white',

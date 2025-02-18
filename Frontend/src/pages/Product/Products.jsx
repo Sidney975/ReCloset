@@ -7,10 +7,12 @@ import CartContext from '../../contexts/CartContext';
 import UserContext from '../../contexts/UserContext';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useLocation } from 'react-router-dom';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 function Products() {
+    const location = useLocation();
     const [productList, setProductList] = useState([]);
     const [search, setSearch] = useState('');
     const [warehouses, setWarehouses] = useState([]);
@@ -22,13 +24,17 @@ function Products() {
     const { addToCart } = useContext(CartContext);
     const { user } = useContext(UserContext);
 
+    // Determine gender based on the current route
+    const isMenPage = location.pathname.includes('/men');
+    const genderFilter = isMenPage ? true : false;  // true for men, false for women
+
     useEffect(() => {
         getProducts();
         getWarehouses();
-    }, []);
+    }, [location.pathname]);    // Re-fetch products when the URL changes
 
     const getProducts = () => {
-        http.get('/api/product/available').then((res) => {
+        http.get(`/api/product/available?gender=${genderFilter}`).then((res) => {
             setProductList(res.data);
         }).catch((err) => {
             console.error("Error fetching products:", err);
@@ -45,7 +51,7 @@ function Products() {
     };
 
     const searchProducts = () => {
-        http.get(`/api/product?search=${search}`).then((res) => {
+        http.get(`/api/product/available?search=${search}&gender=${genderFilter}`).then((res) => {
             setProductList(res.data);
         }).catch((err) => {
             console.error("Search error:", err);
@@ -180,7 +186,7 @@ function Products() {
         <Box sx={{ minHeight: '100vh', padding: 4, width: '100%' }}>
             <Container>
                 <Typography variant="h3" sx={{ textAlign: 'center', fontWeight: 'bold', color: '#333', mb: 4 }}>
-                    Explore the Future of Sustainable Fashion
+                    {isMenPage ? "Men’s Clothing" : "Women’s Clothing"}
                 </Typography>
 
                 <Grid container spacing={4}>
@@ -228,7 +234,7 @@ function Products() {
                                                 />
                                             )}
                                         </Link>
-                                        <CardContent sx={{ flexGrow: 1, overflow: 'hidden', paddingBottom: 1}}>
+                                        <CardContent sx={{ flexGrow: 1, overflow: 'hidden', paddingBottom: 1 }}>
                                             <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>
                                                 {product.name}
                                             </Typography>

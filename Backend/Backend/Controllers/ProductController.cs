@@ -21,13 +21,18 @@ namespace ReCloset.Controllers
 
         // GET: api/Product
         [HttpGet("available")]
-        public IActionResult GetAllAvailable(string? search)
+        public IActionResult GetAllAvailable(string? search, bool? gender)
         {
             IQueryable<Product> result = _context.Products
                 .Include(p => p.Category)
                 .Include(p => p.Warehouse)
                 .Include(p => p.SustainabilityCertification)
                 .Where(p => p.Available == true); // Only return available products
+
+            if (gender.HasValue) // Apply gender filter only if provided
+            {
+                result = result.Where(p => p.Gender == gender.Value);
+            }
 
             if (!string.IsNullOrEmpty(search))
             {
