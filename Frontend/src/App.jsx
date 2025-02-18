@@ -49,6 +49,7 @@ import Certifications from './pages/Product/Certifications';
 import AddCertification from './pages/Product/AddCertification';
 import AdminProducts from './pages/Product/AdminProduct';
 import UpcyclingRequests from './pages/Product/UpcyclingRequests';
+import ArTryOn from './pages/Product/ARTryOn';
 
 {/* Sidney's Imports */ }
 import Vouchers from "./pages/Voucher/Vouchers";
