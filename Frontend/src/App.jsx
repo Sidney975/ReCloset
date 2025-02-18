@@ -43,11 +43,12 @@ import ChangeAdminPassword from "./pages/Admin/ChangePasswordAdmin";
 // Sophie's Imports
 import Products from './pages/Product/Products';
 import ProductDetail from './pages/Product/ProductDetail';
+import AdminProducts from './pages/Product/AdminProduct';
 import AddProduct from './pages/Product/AddProduct';
 import EditProduct from './pages/Product/EditProduct';
-import Certifications from './pages/Product/Certifications';
+import AdminCerts from "./pages/Product/Certifications";
 import AddCertification from './pages/Product/AddCertification';
-import AdminProducts from './pages/Product/AdminProduct';
+import EditCertification from './pages/Product/EditCertification';
 import UpcyclingRequests from './pages/Product/UpcyclingRequests';
 import ArTryOn from './pages/Product/ARTryOn';
 
@@ -129,8 +130,9 @@ function AppContent() {
                 <Route path="/admin/addproduct" element={<AddProduct />} />
                 <Route path="/admin/editproduct/:id" element={<EditProduct />} />
                 <Route path="/admin/upcycling-requests" element={<UpcyclingRequests />} />
-                <Route path="/admin/sustainabilitycertifications" element={<Certifications />} />
+                <Route path="/admin/sustainabilitycertifications" element={<AdminCerts />} />
                 <Route path="/admin/addcertification" element={<AddCertification />} />
+                <Route path="/admin/editcertification/:id" element={<EditCertification />} />
                 
                 {/* Sarah's Routes */}
                 <Route path="/login" element={<Login />} />
