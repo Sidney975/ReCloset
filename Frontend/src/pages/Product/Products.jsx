@@ -187,7 +187,7 @@ function Products() {
 
     // Fetch products from the nearest warehouse
     const fetchProductsByWarehouse = (warehouseId) => {
-        http.get(`/api/product?warehouseId=${warehouseId}`).then((res) => {
+        http.get(`/api/product/available?warehouseId=${warehouseId}&gender=${genderFilter}`).then((res) => {
             setProductList(res.data); // Only show products from this warehouse
         }).catch((err) => {
             console.error("Error fetching products from nearest warehouse:", err);
