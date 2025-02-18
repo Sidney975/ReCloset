@@ -150,6 +150,34 @@ namespace ReCloset.Controllers
             return Ok(new { message = "User updated successfully.", user = foundUser });
         }
 
+        // Update the points
+		[HttpPut("update/{id}/{points}"), Authorize]
+		public IActionResult UpdateLoyalyPoints(int id, UpdateUserRequest request, int points)
+		{
+			// Find the user by ID
+			var foundUser = _context.Users.FirstOrDefault(x => x.Id == id);
+			if (foundUser == null)
+			{
+				return NotFound(new { message = "User not found." });
+			}
+
+			// Only allow users to update their own information
+			if (foundUser.Id != id)
+			{
+				return Unauthorized(new { message = "You cannot update another user's information." });
+			}
+
+
+			// Update user fields
+			foundUser.LoyaltyPoints = foundUser.LoyaltyPoints + points;
+			foundUser.UpdatedAt = DateTime.UtcNow;
+
+			// Update the user in the database
+			_context.Users.Update(foundUser);
+			_context.SaveChanges();
+
+			return Ok(new { message = "Points updated successfully." });
+		}
 
         [HttpDelete("soft-delete/{id}"), Authorize(Roles = "Admin")]
         public IActionResult SoftDeleteUser(string id)

@@ -27,6 +27,11 @@ public class MyDbContext : DbContext
     public DbSet<UserVoucher> UserVouchers { get; set; }
     public DbSet<Delivery> Deliveries { get; set; }
 
+
+    public required DbSet<OrderAddress> OrderAddresses { get; set; }
+
+
+    // Configure global query filters
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // 🔹 Apply Soft Delete Filters
@@ -39,10 +44,10 @@ public class MyDbContext : DbContext
             .IsUnique();
 
         // 🔹 Admin-User Relationship
-        modelBuilder.Entity<User>()
-            .HasOne(u => u.ManagedByAdmin)
-            .WithMany()
-            .HasForeignKey(p => p.CertId);
+        // modelBuilder.Entity<User>()
+        //     .HasOne(u => u.ManagedByAdmin)
+        //     .WithMany()
+        //     .HasForeignKey(p => p.CertId);
 
 
         // Seed data for Warehouses
@@ -88,20 +93,20 @@ public class MyDbContext : DbContext
             .HasForeignKey(uv => uv.VoucherId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // 🔹 Delivery Relationship (One-to-One with Order)
-        modelBuilder.Entity<Order>()
-            .HasOne(o => o.Delivery)
-            .WithOne(d => d.Order)
-            .HasForeignKey<Delivery>(d => d.OrderId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // 🔹 Voucher-Category Relationship
         modelBuilder.Entity<Voucher>()
             .HasOne(v => v.Category)
             .WithMany(c => c.Vouchers)
             .HasForeignKey(v => v.CategoryId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<Order>()
+        .HasMany(o => o.Deliveries) // **Fix Here**
+        .WithOne(d => d.Order)
+        .HasForeignKey(d => d.OrderId)
+        .OnDelete(DeleteBehavior.Cascade);
+
+
         base.OnModelCreating(modelBuilder);
+
     }
 }

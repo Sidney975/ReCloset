@@ -17,6 +17,8 @@
         public DateTime? ExpirationDate { get; set; }
 
         public int PointsCost { get; set; }
+
+        public bool Hidden { get; set; }
     }
 
 }

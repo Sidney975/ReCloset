@@ -70,7 +70,7 @@ const AdminAppBar = () => {
           { to: "/admin/dashboard", label: "Dashboard" },
           { to: "/admin/products", label: "Products" },
           { to: "/admin/orders", label: "Orders" },
-          { to: "/admin/vouchers", label: "Vouchers" },
+          { to: "/admin/voucher", label: "Vouchers" },
           // { to: "/admin/delivery", label: "Delivery" },
           { to: "/admin/users", label: "Users" }
         ].map((item, index) => (

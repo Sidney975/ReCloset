@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, Chip } from "react";
 import { useParams } from "react-router-dom";
 import http from "../../http";
 import { PDFDownloadLink } from "@react-pdf/renderer";
@@ -9,6 +9,7 @@ const OrderDetails = () => {
     const { orderId } = useParams();
     const { user } = useContext(UserContext); // Get user data from UserContext
     const [order, setOrder] = useState(null);
+    const [delivery, setDelivery] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
@@ -27,6 +28,20 @@ const OrderDetails = () => {
         fetchOrderDetails();
     }, [orderId]);
 
+    useEffect(() => {
+        const GetShippingId = async () => {
+            try {
+                const response = await http.get(`/api/delivery/${orderId}`);
+                setDelivery(response.data);
+                setLoading(false);
+            } catch (err) {
+                setError("Failed to fetch Delivery details.");
+                setLoading(false);
+            }
+        }
+        GetShippingId();
+    }, [orderId]);
+
     const handleSort = (key) => {
         let direction = "ascending";
         if (sortConfig.key === key && sortConfig.direction === "ascending") {
@@ -34,6 +49,27 @@ const OrderDetails = () => {
         }
         setSortConfig({ key, direction });
     };
+
+    const renderShipmentStatus = (status) => {
+        const statusLabels = {
+            pending: "Pending",
+            order_placed: "Order Placed",
+            despatch_in_progress: "Despatch in Progress",
+            ready_for_pick_up: "Ready for Pickup",
+            in_transit: "In Transit",
+            with_driver: "With Driver",
+            delivered: "Delivered",
+            cancelled: "Cancelled",
+        };
+
+
+        // Convert status to lowercase to ensure consistent key matching
+        const statusKey = status?.toLowerCase().replace(/\s/g, "_");
+
+        return statusLabels[statusKey] || "Unknown";
+    };
+
+
 
     const sortedItems = React.useMemo(() => {
         if (!order || !order.orderItems || !sortConfig.key) {
@@ -69,6 +105,8 @@ const OrderDetails = () => {
                 <h1>Order Details</h1>
                 <p>Order ID: <span style={styles.highlight}>{order.orderId}</span></p>
                 <p>Order Date: <span style={styles.highlight}>{new Date(order.orderDate).toLocaleDateString()}</span></p>
+                <p>Shipping ID: <span style={styles.highlight}>{delivery.shipmentId}</span></p>
+                <p>Tracking Number: <span style={styles.highlight}>{delivery.trackingNumber}</span></p>
             </div>
 
             <div style={styles.summary}>
@@ -76,7 +114,7 @@ const OrderDetails = () => {
                     <h2>Summary</h2>
                     <p>Total Price: <strong>${order.totalPrice?.toFixed(2)}</strong></p>
                     <p>Delivery Method: <strong>{order.deliveryMethod}</strong></p>
-                    <p>Status: <strong>{order.status}</strong></p>
+                    <p>Status: <strong>{renderShipmentStatus(order.status)}</strong></p>
                 </div>
 
                 <div style={styles.section}>
@@ -145,6 +183,16 @@ const OrderDetails = () => {
                         </button>
                     )}
                 </PDFDownloadLink>
+
+
+                {delivery?.trackingNumber && (
+                    <button
+                        style={styles.trackButton}
+                        onClick={() => window.open(`https://app.shippit.com/tracking/${delivery.trackingNumber}`)}
+                    >
+                        Track Package
+                    </button>
+                )}
             </div>
         </div>
     );
@@ -234,7 +282,17 @@ const styles = {
         fontSize: "1.2em",
         color: "#f00",
         marginTop: "50px"
-    }
+    },
+    trackButton: {
+        padding: "10px 20px",
+        backgroundColor: "#28a745", // Green color for tracking
+        color: "#fff",
+        border: "none",
+        borderRadius: "5px",
+        cursor: "pointer",
+        marginLeft: "10px", // Space between buttons
+        textDecoration: "none",
+    },
 };
 
 export default OrderDetails;

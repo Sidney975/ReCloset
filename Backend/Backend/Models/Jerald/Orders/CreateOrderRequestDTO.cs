@@ -24,5 +24,26 @@ namespace Backend.Models.Jerald.Orders
 
 		public int? VoucherId { get; set; } // Make nullable if no voucher is applied
 
+		// New Address Fields for Shippit
+		[Required]
+		public string RecipientName { get; set; } = string.Empty;
+
+		[Required]
+		public string StreetAddress { get; set; } = string.Empty;
+
+		[Required]
+		public string Suburb { get; set; } = string.Empty;
+
+		[Required]
+		public string State { get; set; } = string.Empty;
+
+		[Required]
+		public string Postcode { get; set; } = string.Empty;
+
+		[Required]
+		public string Country { get; set; } = string.Empty;
+
+		public string? DeliveryInstructions { get; set; } // Optional
+
 	}
 }

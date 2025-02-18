@@ -6,13 +6,14 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Mysqlx.Crud;
 using Backend.Models.Jerald.Orders;
-using Shippo.Models.Requests;
+using Backend.Models.Sidney.Delivery;
+using Shippo.Models.Components;
 
 namespace Backend.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class CheckoutController(MyDbContext context, IMapper mapper, EmailService emailService) : ControllerBase
+    public class CheckoutController(MyDbContext context, IMapper mapper, EmailService emailService, ShippitService _shippitService) : ControllerBase
     {
         private readonly MyDbContext _context = context;
         private readonly IMapper _mapper = mapper;
@@ -26,25 +27,66 @@ namespace Backend.Controllers
         }
 
         // GET: Get all orders
-        [HttpGet]
+        [HttpGet, Authorize]
         [ProducesResponseType(typeof(IEnumerable<OrderDTO>), StatusCodes.Status200OK)]
-        public IActionResult GetAllOrders()
+        public async Task<IActionResult> GetAllOrders()
         {
-            var orders = _context.Orders
+            var orders = await _context.Orders
                 .Include(o => o.Payment) // Include Payment details
                 .Include(o => o.OrderItems) // Include associated OrderItems
                 .Include(t => t.User)
-                .Where(o => o.UserId == GetUserId())
+				.Include(o => o.Deliveries)
+				.Where(o => o.UserId == GetUserId())
                 .OrderBy(x => x.OrderId)
-                .ToList();
+                .ToListAsync();
 
-            foreach (var order in orders)
+			bool isUpdated = false;
+
+			foreach (var order in orders)
             {
-                order.User = _context.Users.FirstOrDefault(u => u.Id == order.UserId);
-            }
+				string shipmentStatus = "Pending";
 
-            // Map orders to OrderDTO
-            var orderDtos = orders.Select(_mapper.Map<OrderDTO>);
+				order.User = _context.Users.FirstOrDefault(u => u.Id == order.UserId);
+				var delivery = order.Deliveries.FirstOrDefault();
+
+                Console.WriteLine($"testing:{delivery?.TrackingNumber}");
+
+
+				if (!string.IsNullOrEmpty(delivery?.TrackingNumber))
+				{
+					try
+					{
+						var trackingInfo = await _shippitService.GetShipmentStatusAsync(delivery.TrackingNumber);
+                        Console.WriteLine($"tracking info:{trackingInfo.Status}");
+						if (Enum.TryParse(trackingInfo.Status, true, out Backend.Models.Jerald.Orders.ShipmentStatus shipmentStatusEnum))
+						{
+							if (order.ShipmentStatus != shipmentStatusEnum)
+							{
+								order.ShipmentStatus = shipmentStatusEnum;
+								isUpdated = true; // Mark as updated
+							}
+						}
+						else
+						{
+							order.ShipmentStatus = Backend.Models.Jerald.Orders.ShipmentStatus.Pending; // Default fallback
+						}
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine($"Error fetching tracking info for Order {order.OrderId}: {ex.Message}");
+					}
+                    
+				}
+			}
+
+			if (isUpdated) // Save changes only if necessary
+			{
+				await _context.SaveChangesAsync();
+				Console.WriteLine("Updated shipment statuses saved to database.");
+			}
+
+			// Map orders to OrderDTO
+			var orderDtos = orders.Select(_mapper.Map<OrderDTO>);
             return Ok(orderDtos);
         }
 
@@ -109,8 +151,21 @@ namespace Backend.Controllers
             _context.Orders.Add(order);
             _context.SaveChanges(); // Generate OrderId
 
-            // Add OrderItems with TimeBought set to the current date
-            var orderItems = createOrderRequest.OrderItems.Select(item => new OrderItem
+			var orderAddress = new OrderAddress
+			{
+				OrderId = order.OrderId,
+				RecipientName = createOrderRequest.RecipientName,
+				StreetAddress = createOrderRequest.StreetAddress,
+				Suburb = createOrderRequest.Suburb,
+				State = createOrderRequest.State,
+				Postcode = createOrderRequest.Postcode,
+				Country = createOrderRequest.Country
+			};
+			_context.OrderAddresses.Add(orderAddress);
+			_context.SaveChanges();
+
+			// Add OrderItems
+			var orderItems = createOrderRequest.OrderItems.Select(item => new OrderItem
             {
                 OrderId = order.OrderId,
                 ProductName = item.ProductName,
@@ -132,6 +187,7 @@ namespace Backend.Controllers
 
             return CreatedAtAction(nameof(GetOrderById), new { id = order.OrderId }, orderDto);
         }
+
 
         // PUT: Update an existing order
         [HttpPut("{id}"), Authorize]
@@ -164,7 +220,7 @@ namespace Backend.Controllers
             // Update the ShipmentStatus if provided
             if (updateOrderRequest.ShipmentStatus.HasValue)
             {
-                order.ShipmentStatus = (ShipmentStatus)updateOrderRequest.ShipmentStatus.Value;
+                order.ShipmentStatus = (Models.Jerald.Orders.ShipmentStatus)updateOrderRequest.ShipmentStatus.Value;
             }
 
             if (updateOrderRequest.OrderItems != null && updateOrderRequest.OrderItems.Any())

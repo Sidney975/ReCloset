@@ -14,5 +14,6 @@ namespace Backend.Models.Jerald.Orders
         public User UserDetails { get; set; } = new User(); // User who placed the order
         public BasicPaymentDTO PaymentDetails { get; set; } = new BasicPaymentDTO(); // Payment summary
         public List<BasicOrderItemDTO> OrderItems { get; set; } = new List<BasicOrderItemDTO>(); // List of items
-    }
+        public string? ShippitStatus { get; set; }
+	}
 }

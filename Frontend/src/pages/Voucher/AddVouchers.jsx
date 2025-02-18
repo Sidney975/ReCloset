@@ -1,6 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, TextField, Button, MenuItem, Grid } from '@mui/material';
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  MenuItem,
+  Grid,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormLabel,
+} from '@mui/material';
 import { useFormik } from 'formik';
 import http from '../../http'; // Your HTTP helper (e.g., an axios instance)
 import { ToastContainer, toast } from 'react-toastify';
@@ -36,6 +47,7 @@ function AddVoucher() {
       expirationDate: "",
       // For Free Shipping vouchers:
       categoryId: "",
+      hidden: false
     },
     // No external validation schema is provided.
     onSubmit: (data) => {
@@ -71,14 +83,11 @@ function AddVoucher() {
           }
         }
       }
-
-      // You can add more validations for other fields as needed
-
       // Post the data to the server
       http.post("/voucher", data)
         .then((res) => {
           toast.success("Voucher added successfully!");
-          navigate("/voucher");
+          navigate("/admin/voucher");
         })
         .catch((err) => {
           console.error("Failed to add voucher:", err);
@@ -94,6 +103,8 @@ function AddVoucher() {
       </Typography>
       <Box component="form" onSubmit={formik.handleSubmit}>
         <Grid container spacing={2}>
+          
+
           <Grid item xs={12} md={6}>
             {/* Voucher Name */}
             <TextField
@@ -234,6 +245,29 @@ function AddVoucher() {
             />
           </Grid>
         </Grid>
+        {/* Hidden (Radio Buttons) */}
+        <Box sx={{ mt: 2 }}>
+              <FormLabel component="legend">Hidden?</FormLabel>
+              <RadioGroup
+                row
+                name="hidden"
+                value={formik.values.hidden ? 'true' : 'false'}
+                onChange={(e) =>
+                  formik.setFieldValue('hidden', e.target.value === 'true')
+                }
+              >
+                <FormControlLabel
+                  value="true"
+                  control={<Radio />}
+                  label="Yes"
+                />
+                <FormControlLabel
+                  value="false"
+                  control={<Radio />}
+                  label="No"
+                />
+              </RadioGroup>
+            </Box>
         <Box sx={{ mt: 2 }}>
           <Button variant="contained" type="submit">
             Add

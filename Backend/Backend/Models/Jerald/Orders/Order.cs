@@ -17,11 +17,15 @@ namespace Backend.Models.Jerald.Orders
 
     public enum ShipmentStatus
     {
-        Pending = 0,
-        Shipped = 1,
-        Delivered = 2,
-        Cancelled = 3
-    }
+		Pending = 0, // Default before shipping
+		order_placed = 1, // When the order is placed
+		despatch_in_progress = 2, // Warehouse is processing the order
+		ready_for_pick_up = 3, // Ready for the courier
+		in_transit = 4, // Shipped and in transit
+		with_driver = 5, // Out for delivery
+		delivered = 6, // Successfully delivered
+		cancelled = 7 // Order cancelled
+	}
 
     public class Order
     {
@@ -53,10 +57,16 @@ namespace Backend.Models.Jerald.Orders
         [JsonIgnore]
         public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 
-        public virtual Delivery Delivery { get; set; } // Navigation Property
-        public int? VoucherId { get; set; }
+		[JsonIgnore]
+		public virtual List<Delivery> Deliveries { get; set; } = new List<Delivery>();
+
+		public int? VoucherId { get; set; }
 
         [ForeignKey("VoucherId")]
         public virtual Voucher? Voucher { get; set; }
-    }
+
+		[JsonIgnore]
+		public virtual OrderAddress OrderAddress { get; set; } // Navigation Property
+	}
+
 }

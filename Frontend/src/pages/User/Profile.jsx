@@ -45,6 +45,7 @@ const Profile = () => {
                     <Typography sx={styles.label}><strong>Email:</strong> {user.email}</Typography>
                     <Typography sx={styles.label}><strong>Phone Number:</strong> {user.phoneNumber || "Not provided"}</Typography>
                     <Typography sx={styles.label}><strong>Address:</strong> {user.address || "Not provided"}</Typography>
+                    <Typography sx={styles.label}><strong>Loyality Points:</strong> {user.loyaltyPoints || "Not provided"}</Typography>
                 </Box>
             </Box>
         </Box>

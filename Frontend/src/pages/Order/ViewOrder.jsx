@@ -50,13 +50,37 @@ function ViewOrders() {
 
     const renderShipmentStatus = (status) => {
         const statusColors = {
-            Pending: "warning",
-            Shipped: "info",
-            Delivered: "success",
-            Cancelled: "error",
+            pending: "warning",
+            order_placed: "info",
+            despatch_in_progress: "info",
+            ready_for_pick_up: "info",
+            in_transit: "primary",
+            with_driver: "secondary",
+            delivered: "success",
+            cancelled: "error",
         };
-        return <Chip label={status || "Unknown"} color={statusColors[status] || "default"} />;
+
+        const statusLabels = {
+            pending: "Pending",
+            order_placed: "Order Placed",
+            despatch_in_progress: "Despatch in Progress",
+            ready_for_pick_up: "Ready for Pickup",
+            in_transit: "In Transit",
+            with_driver: "With Driver",
+            delivered: "Delivered",
+            cancelled: "Cancelled",
+        };
+    
+    
+        // Convert status to lowercase to ensure consistent key matching
+        const statusKey = status?.toLowerCase().replace(/\s/g, "_");
+    
+        return <Chip
+        label={statusLabels[statusKey] || "Unknown"}
+        color={statusColors[statusKey] || "default"}
+    />;
     };
+    
 
     const renderDeliveryMethod = (method) => {
         if (method === "Delivery") {
