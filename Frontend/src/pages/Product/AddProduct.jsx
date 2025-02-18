@@ -1,16 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, TextField, Button, Grid } from '@mui/material';
+import { Box, Typography, TextField, Button, Grid, MenuItem, Select, InputLabel, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import http from "../../http";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FormControl, FormLabel, RadioGroup, FormControlLabel, Radio } from '@mui/material';
 
 function AddProduct() {
     const navigate = useNavigate();
     const [image, setImageFile] = useState(null);
+    const [categories, setCategories] = useState([]);
+    const [warehouses, setWarehouses] = useState([]);
+    const [certifications, setCertifications] = useState([]);
+
+    // Fetch categories, warehouses, and certifications on component mount
+    useEffect(() => {
+        http.get("/api/category").then((res) => setCategories(res.data)).catch((err) => console.error(err));
+        http.get("/api/warehouse").then((res) => setWarehouses(res.data)).catch((err) => console.error(err));
+        http.get("/api/sustainabilitycertification").then((res) => setCertifications(res.data)).catch((err) => console.error(err));
+    }, []);
 
     const formik = useFormik({
         initialValues: {
@@ -211,42 +220,60 @@ function AddProduct() {
                             error={formik.touched.brand && Boolean(formik.errors.brand)}
                             helperText={formik.touched.brand && formik.errors.brand}
                         />
-                        <TextField
-                            fullWidth
-                            margin="dense"
-                            label="Category ID"
-                            name="categoryId"
-                            type="number"
-                            value={formik.values.categoryId}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            error={formik.touched.categoryId && Boolean(formik.errors.categoryId)}
-                            helperText={formik.touched.categoryId && formik.errors.categoryId}
-                        />
-                        <TextField
-                            fullWidth
-                            margin="dense"
-                            label="Warehouse ID"
-                            name="warehouseId"
-                            type="number"
-                            value={formik.values.warehouseId}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            error={formik.touched.warehouseId && Boolean(formik.errors.warehouseId)}
-                            helperText={formik.touched.warehouseId && formik.errors.warehouseId}
-                        />
-                        <TextField
-                            fullWidth
-                            margin="dense"
-                            label="Certification ID (Optional)"
-                            name="certId"
-                            type="number"
-                            value={formik.values.certId}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            error={formik.touched.certId && Boolean(formik.errors.certId)}
-                            helperText={formik.touched.certId && formik.errors.certId}
-                        />
+                        {/* CATEGORY DROPDOWN */}
+                        <FormControl fullWidth margin="dense">
+                            <InputLabel>Category</InputLabel>
+                            <Select
+                                name="categoryId"
+                                value={formik.values.categoryId}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.categoryId && Boolean(formik.errors.categoryId)}
+                            >
+                                {categories.map((category) => (
+                                    <MenuItem key={category.categoryId} value={category.categoryId}>
+                                        {category.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        {/* WAREHOUSE DROPDOWN */}
+                        <FormControl fullWidth margin="dense">
+                            <InputLabel>Warehouse</InputLabel>
+                            <Select
+                                name="warehouseId"
+                                value={formik.values.warehouseId}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.warehouseId && Boolean(formik.errors.warehouseId)}
+                            >
+                                {warehouses.map((warehouse) => (
+                                    <MenuItem key={warehouse.warehouseId} value={warehouse.warehouseId}>
+                                        {warehouse.locationName}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        {/* CERTIFICATION DROPDOWN (Optional) */}
+                        <FormControl fullWidth margin="dense">
+                            <InputLabel>Certification (Optional)</InputLabel>
+                            <Select
+                                name="certId"
+                                value={formik.values.certId}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.certId && Boolean(formik.errors.certId)}
+                            >
+                                <MenuItem value="">None</MenuItem>
+                                {certifications.map((cert) => (
+                                    <MenuItem key={cert.certId} value={cert.certId}>
+                                        {cert.name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
                     </Grid>
                     <Grid size={{ xs: 12, md: 6, lg: 4 }}>
                         <Box sx={{ textAlign: 'center', mt: 2 }} >
