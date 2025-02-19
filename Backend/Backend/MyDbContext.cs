@@ -23,6 +23,7 @@ public class MyDbContext : DbContext
     public DbSet<Warehouse> Warehouses { get; set; }
     public DbSet<SustainabilityCertification> SustainabilityCertifications { get; set; }
     public DbSet<UpcyclingRequest> UpcyclingRequests { get; set; }
+    public DbSet<Wishlist> Wishlists { get; set; }
     public DbSet<Voucher> Vouchers { get; set; }
     public DbSet<UserVoucher> UserVouchers { get; set; }
     public DbSet<Delivery> Deliveries { get; set; }

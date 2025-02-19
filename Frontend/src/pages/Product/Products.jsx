@@ -24,7 +24,7 @@ function Products() {
 
     const navigate = useNavigate();
     const { cartItems, addToCart } = useContext(CartContext);
-    const { user } = useContext(UserContext);
+    const { user, setUser } = useContext(UserContext);
 
     // Determine gender based on the current route
     const isMenPage = location.pathname.includes('/men');
@@ -75,6 +75,44 @@ function Products() {
             console.error("Search error:", err);
         });
     };
+
+    const handleWishlistClick = async (e, product) => {
+        // e.preventDefault();
+
+        // // console.log(user);
+        // // if (!user) {
+        // //     navigate("/login");
+        // //     return;
+        // // }
+
+        // try {
+        //     await http.post(`/api/wishlist/${product.productId}`);
+        //     toast.success("Added to wishlist!");
+        // } catch (error) {
+        //     toast.error(error.response?.data || "Error adding to wishlist.");
+        // }
+
+        e.preventDefault(); // Prevent navigating to the product page
+
+        if (!user) {
+            toast.error("You must be logged in to add items to the wishlist.");
+            return;
+        }
+
+        // Check if the product is already in the cart
+        const isItemInCart = cartItems.some(item => item.productId === product.productId);
+
+        if (isItemInCart) {
+            // Show an error toast if the item is already in the cart
+            toast.error("This item is already in your wishlist!");
+            return;
+        }
+
+        // If the item is not in the cart, add it and show a success toast
+        addToCart(product);
+        toast.success("Item added to wishlist!");
+    };
+
 
     const onSearchChange = (e) => {
         setSearch(e.target.value);
@@ -255,11 +293,11 @@ function Products() {
                                     }}>
                                         {/* Warehouse Location */}
                                         <Box sx={{ display: 'flex', alignItems: 'center', color: 'gray', mt: 1 }}>
-                                                <LocationOn fontSize="small" sx={{ mr: 0.5 }} />
-                                                <Typography variant="body2">
-                                                    {warehouses2[product.warehouseId]}
-                                                </Typography>
-                                            </Box>
+                                            <LocationOn fontSize="small" sx={{ mr: 0.5 }} />
+                                            <Typography variant="body2">
+                                                {warehouses2[product.warehouseId]}
+                                            </Typography>
+                                        </Box>
                                         <Link to={`/product/${product.productId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                                             {product.image && (
                                                 <CardMedia
@@ -272,7 +310,7 @@ function Products() {
                                             )}
                                         </Link>
                                         <CardContent sx={{ flexGrow: 1, overflow: 'hidden', paddingBottom: 1 }}>
-                                            
+
                                             <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>
                                                 {product.name}
                                             </Typography>
@@ -280,8 +318,8 @@ function Products() {
                                                 ${product.price.toFixed(2)}
                                             </Typography>
 
-                                            
-                                
+
+
                                             <Typography
                                                 sx={{
                                                     color: 'text.secondary',
@@ -300,11 +338,10 @@ function Products() {
                                             <IconButton color="primary" onClick={(e) => handleCartClick(e, product)}>
                                                 <ShoppingCart />
                                             </IconButton>
-                                            <IconButton color="secondary">
+                                            <IconButton color="secondary" onClick={(e) => handleWishlistClick(e, product)}>
                                                 <FavoriteBorder />
                                             </IconButton>
                                         </Box>
-
                                         
                                     </Card>
                                 </Grid>
