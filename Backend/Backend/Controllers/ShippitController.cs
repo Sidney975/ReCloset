@@ -43,6 +43,7 @@ namespace Backend.Controllers
 			// Ensure order is tracked before modifying
 			_context.Orders.Attach(order);
 
+
 			var shipmentRequest = new ShippitShipmentRequest
 			{
 				Order = new OrderDetails
@@ -67,7 +68,7 @@ namespace Backend.Controllers
 					},
 					Products = order.OrderItems.Select(item => new ProductDetails
 					{
-						Title = "Unknown Product",
+						Title = item.ProductName ?? "Unknown Product",
 						SKU = "SKU123",
 						Quantity = item.Quantity,
 						Price = (double)item.ItemPrice

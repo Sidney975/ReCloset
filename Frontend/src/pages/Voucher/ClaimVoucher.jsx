@@ -16,11 +16,14 @@ import http from "../../http";
 import UserContext from "../../contexts/UserContext";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import SpinWheelGame from "./SpinWheelGame";
 
 function ClaimVoucher() {
   const { user, setUser } = useContext(UserContext);
   const [vouchers, setVouchers] = useState([]);
   const [claimedVouchers, setClaimedVouchers] = useState([]);
+  const [showSpinWheel, setShowSpinWheel] = useState(false); // Show/hide the wheel
+
 
   const fetchVouchers = () => {
     http.get('/voucher')
@@ -97,13 +100,22 @@ function ClaimVoucher() {
           color: '#333',
         }}
       >
-        🎟️ Available Vouchers
+        Available Vouchers
       </Typography>
       {user && (
         <Typography variant="h6" sx={{ textAlign: 'center', mb: 2 }}>
           Your Points: <strong>{user.loyaltyPoints}</strong>
         </Typography>
       )}
+
+      <Box sx={{ textAlign: "center", my: 3 }}>
+        <Button variant="contained" color="secondary" onClick={() => setShowSpinWheel(true)}>
+          🎡 Spin to Earn Points
+        </Button>
+      </Box>
+      {showSpinWheel && <SpinWheelGame onClose={() => setShowSpinWheel(false)} />}
+
+        
       <Grid container spacing={3} justifyContent="center">
         {vouchers.map((voucher) => (
           <Grid item xs={12} sm={6} md={4} key={voucher.voucherId}>
@@ -111,8 +123,8 @@ function ClaimVoucher() {
               sx={{
                 borderRadius: '20px',
                 boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
-                background: voucher.voucherTypeEnum === "Free Shipping" 
-                  ? 'linear-gradient(to right, #34D399, #10B981)' 
+                background: voucher.voucherTypeEnum === "Free Shipping"
+                  ? 'linear-gradient(to right, #34D399, #10B981)'
                   : 'linear-gradient(to right, #F59E0B, #D97706)',
                 position: 'relative',
                 overflow: 'hidden',
