@@ -9,6 +9,7 @@ function AdminProducts() {
     const [search, setSearch] = useState('');
     const [categories, setCategories] = useState({});
     const [certifications, setCertifications] = useState({});
+    const [warehouses, setWarehouses] = useState({});
 
     const getProducts = () => {
         http.get('/api/product').then((res) => {
@@ -25,6 +26,20 @@ function AdminProducts() {
             setCategories(categoryMap);
         });
     };
+
+    const getWarehouses = () => {
+        http.get('/api/warehouse').then((res) => {
+            console.log("Fetched Warehouses:", res.data);
+            const warehouseMap = res.data.reduce((acc, warehouse) => {
+                acc[warehouse.warehouseId] = warehouse.locationName;
+                return acc;
+            }, {});
+            setWarehouses(warehouseMap);
+        }).catch((err) => {
+            console.error("Error fetching warehouses:", err);
+        });
+    };
+    
 
     const getCertifications = () => {
         http.get('/api/sustainabilitycertification').then((res) => {
@@ -48,6 +63,7 @@ function AdminProducts() {
         getProducts();
         getCategories();
         getCertifications();
+        getWarehouses();
     }, []);
 
     const onSearchChange = (e) => setSearch(e.target.value);
@@ -66,10 +82,10 @@ function AdminProducts() {
                 <Input value={search} placeholder="Search Products..." onChange={onSearchChange} onKeyDown={onSearchKeyDown} sx={{ flex: 1 }} />
                 <IconButton color="primary" onClick={onClickSearch}><Search /></IconButton>
                 <IconButton color="secondary" onClick={onClickClear}><Clear /></IconButton>
-                <Link to="/addproduct">
+                <Link to="/admin/addproduct">
                     <Button variant="contained" color="success">Add Product</Button>
                 </Link>
-                <Link to="/upcycling-requests">
+                <Link to="/admin/upcycling-requests">
                     <Button variant="contained" color="warning">View Upcycling Requests</Button>
                 </Link>
             </Box>
@@ -79,10 +95,12 @@ function AdminProducts() {
                 <Table>
                     <TableHead>
                         <TableRow sx={{ backgroundColor: 'darkgreen', color: 'white' }}>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Id</TableCell>
                             <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Image</TableCell>
                             <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Product Name</TableCell>
                             <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Price</TableCell>
                             <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Quality</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Gender</TableCell>
                             <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Category</TableCell>
                             <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Warehouse</TableCell>
                             <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Sustainability Cert</TableCell>
@@ -92,6 +110,7 @@ function AdminProducts() {
                     <TableBody>
                         {productList.map((product) => (
                             <TableRow key={product.productId} hover>
+                                <TableCell>{product.productId}</TableCell>
                                 <TableCell>
                                     {product.image && (
                                         <img src={`${import.meta.env.VITE_FILE_BASE_URL}${product.image}`} alt={product.name} width="50" height="50" style={{ borderRadius: 8 }} />
@@ -100,11 +119,12 @@ function AdminProducts() {
                                 <TableCell>{product.name}</TableCell>
                                 <TableCell>${product.price.toFixed(2)}</TableCell>
                                 <TableCell>{product.quality ? "High" : "Low"}</TableCell>
+                                <TableCell>{product.gender ? "Men" : "Women"}</TableCell>
                                 <TableCell>{categories[product.categoryId]}</TableCell>
-                                <TableCell>{product.warehouseId}</TableCell>
+                                <TableCell>{warehouses[product.warehouseId]}</TableCell>
                                 <TableCell>{certifications[product.certId] || "None"}</TableCell>
                                 <TableCell align="right">
-                                    <Link to={`/editproduct/${product.productId}`}>
+                                    <Link to={`/admin/editproduct/${product.productId}`}>
                                         <IconButton color="primary">
                                             <Edit />
                                         </IconButton>

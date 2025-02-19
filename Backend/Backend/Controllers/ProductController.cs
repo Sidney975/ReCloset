@@ -39,8 +39,9 @@ namespace ReCloset.Controllers
                 result = result.Where(p =>
                     p.Name.Contains(search) ||
                     p.Price.ToString().Contains(search) ||
+                    p.Description.Contains(search) ||
                     p.Category.Name.Contains(search) ||
-                    p.Warehouse.WarehouseId.ToString().Contains(search) ||
+                    (p.Warehouse != null && p.Warehouse.LocationName.Contains(search)) ||
                     (p.SustainabilityCertification != null && p.SustainabilityCertification.Name.Contains(search))
                 );
             }
@@ -61,10 +62,11 @@ namespace ReCloset.Controllers
             if (!string.IsNullOrEmpty(search))
             {
                 result = result.Where(p =>
+					p.ProductId.ToString().Contains(search) ||
                     p.Name.Contains(search) ||
                     p.Price.ToString().Contains(search) ||
                     p.Category.Name.Contains(search) ||
-                    p.Warehouse.WarehouseId.ToString().Contains(search) ||
+                    (p.Warehouse != null && p.Warehouse.LocationName.Contains(search)) ||
                     (p.SustainabilityCertification != null && p.SustainabilityCertification.Name.Contains(search))
                 );
             }

@@ -8,6 +8,7 @@ import UserContext from '../../contexts/UserContext';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useLocation } from 'react-router-dom';
+import { LocationOn } from '@mui/icons-material';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -16,6 +17,7 @@ function Products() {
     const [productList, setProductList] = useState([]);
     const [search, setSearch] = useState('');
     const [warehouses, setWarehouses] = useState([]);
+    const [warehouses2, setWarehouses2] = useState([]);
     const [nearestWarehouse, setNearestWarehouse] = useState(null);
     const [userLocation, setUserLocation] = useState(null);
     const [showMap, setShowMap] = useState(false);
@@ -31,6 +33,7 @@ function Products() {
     useEffect(() => {
         getProducts();
         getWarehouses();
+        getWarehouses2();
     }, [location.pathname]);    // Re-fetch products when the URL changes
 
     const getProducts = () => {
@@ -50,9 +53,24 @@ function Products() {
         }
     };
 
+    const getWarehouses2 = () => {
+        http.get('/api/warehouse').then((res) => {
+            console.log("Fetched Warehouses:", res.data);
+            const warehouseMap = res.data.reduce((acc, warehouse2) => {
+                acc[warehouse2.warehouseId] = warehouse2.locationName;
+                return acc;
+            }, {});
+            setWarehouses2(warehouseMap);
+        }).catch((err) => {
+            console.error("Error fetching warehouses:", err);
+        });
+    };
+
     const searchProducts = () => {
         http.get(`/api/product/available?search=${search}&gender=${genderFilter}`).then((res) => {
             setProductList(res.data);
+            console.log("Fetched Products:", res.data); // Debugging
+            // setProductList(res.data);
         }).catch((err) => {
             console.error("Search error:", err);
         });
@@ -81,21 +99,21 @@ function Products() {
 
     const handleCartClick = (e, product) => {
         e.preventDefault(); // Prevent navigating to the product page
-    
+
         if (!user) {
             toast.error("You must be logged in to add items to the cart.");
             return;
         }
-    
+
         // Check if the product is already in the cart
         const isItemInCart = cartItems.some(item => item.productId === product.productId);
-    
+
         if (isItemInCart) {
             // Show an error toast if the item is already in the cart
             toast.error("This item is already in your cart!");
             return;
         }
-    
+
         // If the item is not in the cart, add it and show a success toast
         addToCart(product);
         toast.success("Item added to cart!");
@@ -187,7 +205,7 @@ function Products() {
 
     // Fetch products from the nearest warehouse
     const fetchProductsByWarehouse = (warehouseId) => {
-        http.get(`/api/product?warehouseId=${warehouseId}`).then((res) => {
+        http.get(`/api/product/available?warehouseId=${warehouseId}&gender=${genderFilter}`).then((res) => {
             setProductList(res.data); // Only show products from this warehouse
         }).catch((err) => {
             console.error("Error fetching products from nearest warehouse:", err);
@@ -235,6 +253,13 @@ function Products() {
                                         transition: '0.3s',
                                         '&:hover': { boxShadow: 8, transform: 'scale(1.02)' }
                                     }}>
+                                        {/* Warehouse Location */}
+                                        <Box sx={{ display: 'flex', alignItems: 'center', color: 'gray', mt: 1 }}>
+                                                <LocationOn fontSize="small" sx={{ mr: 0.5 }} />
+                                                <Typography variant="body2">
+                                                    {warehouses2[product.warehouseId]}
+                                                </Typography>
+                                            </Box>
                                         <Link to={`/product/${product.productId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                                             {product.image && (
                                                 <CardMedia
@@ -247,12 +272,16 @@ function Products() {
                                             )}
                                         </Link>
                                         <CardContent sx={{ flexGrow: 1, overflow: 'hidden', paddingBottom: 1 }}>
+                                            
                                             <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#333' }}>
                                                 {product.name}
                                             </Typography>
                                             <Typography sx={{ color: '#00796b', fontWeight: 'bold', mb: 1 }}>
                                                 ${product.price.toFixed(2)}
                                             </Typography>
+
+                                            
+                                
                                             <Typography
                                                 sx={{
                                                     color: 'text.secondary',
@@ -275,6 +304,8 @@ function Products() {
                                                 <FavoriteBorder />
                                             </IconButton>
                                         </Box>
+
+                                        
                                     </Card>
                                 </Grid>
                             ))}

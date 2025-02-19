@@ -69,6 +69,7 @@ const AdminAppBar = () => {
         {[
           { to: "/admin/dashboard", label: "Dashboard" },
           { to: "/admin/products", label: "Products" },
+          { to: "/admin/sustainabilitycertifications", label: "Certs"},
           { to: "/admin/orders", label: "Orders" },
           { to: "/admin/voucher", label: "Vouchers" },
           // { to: "/admin/delivery", label: "Delivery" },

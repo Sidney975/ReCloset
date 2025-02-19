@@ -1,124 +1,87 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Box, Typography, Grid, Card, CardContent, Input, IconButton, Button } from '@mui/material';
-import { Search, Clear, Edit, Delete } from '@mui/icons-material';
+import { Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Input, IconButton, Button } from '@mui/material';
+import { Search, Clear, Edit } from '@mui/icons-material';
 import http from "../../http";
 
-function Certifications() {
-    const [certificationList, setCertificationList] = useState([]);
+function AdminCerts() {
+    const [certList, setCertList] = useState([]);
     const [search, setSearch] = useState('');
 
-    const onSearchChange = (e) => {
-        setSearch(e.target.value);
+    const getCerts = () => {
+        http.get('/api/sustainabilitycertification').then((res) => {
+            setCertList(res.data);
+        });
     };
 
-    const getCertifications = () => {
-        http.get('/api/sustainabilitycertification')
-            .then((res) => {
-                setCertificationList(res.data);
-            })
-            .catch((error) => {
-                console.error('Error fetching certifications:', error);
-            });
-    };
-
-    const searchCertifications = () => {
-        console.log(`Searching for: ${search}`);
-        http.get(`/api/sustainabilitycertification?search=${search}`)
-            .then((res) => {
-                console.log("Search results:", res.data);
-                setCertificationList(res.data);
-            })
-            .catch((error) => {
-                console.error('Error searching certifications:', error);
-            });
-    };
-
-    const onSearchKeyDown = (e) => {
-        if (e.key === 'Enter') {
-            console.log("Enter key pressed");
-            searchCertifications();
-        }
-    };
-
-    const onClickSearch = () => {
-        searchCertifications();
-    };
-
-    const onClickClear = () => {
-        setSearch('');
-        getCertifications();
-    };
-
-    const handleDeleteCertification = (id) => {
-        http.delete(`/api/sustainabilitycertification/${id}`)
-            .then(() => {
-                getCertifications();
-            })
-            .catch((error) => {
-                console.error('Error deleting certification:', error);
-            });
+    const searchCerts = () => {
+        http.get(`/api/sustainabilitycertification?search=${search}`).then((res) => {
+            setCertList(res.data);
+        }).catch((err) => {
+            console.error("Search error:", err);
+        });
     };
 
     useEffect(() => {
-        getCertifications();
+        getCerts();
     }, []);
 
+    const onSearchChange = (e) => setSearch(e.target.value);
+    const onSearchKeyDown = (e) => { if (e.key === "Enter") searchCerts(); };
+    const onClickSearch = () => searchCerts();
+    const onClickClear = () => { setSearch(''); getCerts(); };
+
     return (
-        <Box>
-            <Typography variant="h5" sx={{ my: 2 }}>
-                Sustainability Certifications
+        <Box sx={{ p: 4 }}>
+            <Typography variant="h4" sx={{ mb: 3, fontWeight: 'bold' }}>
+                Manage Certifications
             </Typography>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Input
-                    value={search}
-                    placeholder="Search"
-                    onChange={onSearchChange}
-                    onKeyDown={onSearchKeyDown}
-                />
-                <IconButton color="primary" onClick={onClickSearch}>
-                    <Search />
-                </IconButton>
-                <IconButton color="primary" onClick={onClickClear}>
-                    <Clear />
-                </IconButton>
-                <Box sx={{ flexGrow: 1 }} />
-                <Link to="/addcertification">
-                    <Button variant="contained">Add Certification</Button>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
+                <Input value={search} placeholder="Search Certifications..." onChange={onSearchChange} onKeyDown={onSearchKeyDown} sx={{ flex: 1 }} />
+                <IconButton color="primary" onClick={onClickSearch}><Search /></IconButton>
+                <IconButton color="secondary" onClick={onClickClear}><Clear /></IconButton>
+                <Link to="/admin/addcertification">
+                    <Button variant="contained" color="success">Add Certification</Button>
                 </Link>
             </Box>
 
-            <Grid container spacing={2}>
-                {certificationList.map((certification) => (
-                    <Grid item key={certification.certId} xs={12} md={6} lg={4}>
-                        <Card>
-                            <CardContent>
-                                <Typography variant="h6">{certification.name}</Typography>
-                                <Typography color="text.secondary" sx={{ mb: 1 }}>
-                                    {certification.description}
-                                </Typography>
-                                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                    <Link to={`/editcertification/${certification.certId}`}>
-                                        <IconButton color="primary" sx={{ padding: '4px' }}>
+            <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
+                <Table>
+                    <TableHead>
+                        <TableRow sx={{ backgroundColor: 'darkgreen', color: 'white' }}>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Id</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Certification Name</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Description</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>QR Code</TableCell>
+                            <TableCell sx={{ color: 'white', fontWeight: 'bold' }} align="right">Actions</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {certList.map((cert) => (
+                            <TableRow key={cert.certId} hover>
+                                <TableCell>{cert.certId}</TableCell>
+                                <TableCell>{cert.name}</TableCell>
+                                <TableCell>{cert.description}</TableCell>
+                                <TableCell>
+                                    {cert.qrCodeUrl && (
+                                        <img src={`${import.meta.env.VITE_FILE_BASE_URL}${cert.qrCodeUrl}`} alt={cert.name} width="50" height="50" style={{ borderRadius: 8 }} />
+                                    )}
+                                </TableCell>
+                                <TableCell align="right">
+                                    <Link to={`/admin/editcertification/${cert.certId}`}>
+                                        <IconButton color="primary">
                                             <Edit />
                                         </IconButton>
                                     </Link>
-                                    <IconButton
-                                        color="error"
-                                        onClick={() => handleDeleteCertification(certification.certId)}
-                                        sx={{ padding: '4px' }}
-                                    >
-                                        <Delete />
-                                    </IconButton>
-                                </Box>
-                            </CardContent>
-                        </Card>
-                    </Grid>
-                ))}
-            </Grid>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
         </Box>
     );
 }
 
-export default Certifications;
+export default AdminCerts;
