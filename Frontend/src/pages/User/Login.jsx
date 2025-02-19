@@ -24,8 +24,8 @@ function Login() {
 
   const formik = useFormik({
     initialValues: {
-      usernameOrEmail: "jeraldliu06@gmail.com",
-      password: "P@ssw0rd",
+      usernameOrEmail: "kai@gmail.com",
+      password: "sophiep4ng!",
     },
     validationSchema: yup.object({
       usernameOrEmail: yup.string().required("Username or Email is required"),

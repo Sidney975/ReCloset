@@ -7,12 +7,12 @@ export default defineConfig({
     port: 5055,
     proxy: {
       '/user': {
-        target: 'https://localhost:53827', // Ensure HTTPS is used
+        target: 'https://localhost:61846', // Ensure HTTPS is used
         changeOrigin: true,
         secure: false, // Accept self-signed SSL in local development
       },
       '/admin': {
-        target: 'https://localhost:53827',
+        target: 'https://localhost:61846',
         changeOrigin: true,
         secure: false,
       },
