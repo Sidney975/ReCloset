@@ -52,6 +52,7 @@ import AddCertification from './pages/Product/AddCertification';
 import EditCertification from './pages/Product/EditCertification';
 import UpcyclingRequests from './pages/Product/UpcyclingRequests';
 import ArTryOn from './pages/Product/ARTryOn';
+import Wishlist from "./pages/Product/Wishlist";
 
 // Sidney's Imports
 import Vouchers from "./pages/Voucher/Vouchers";
@@ -60,6 +61,7 @@ import EditVoucher from "./pages/Voucher/EditVouchers";
 import ClaimVoucher from "./pages/Voucher/ClaimVoucher";
 import UseVoucher from "./pages/Voucher/UseVouchers";
 import DeliveryAdmin from "./pages/Delivery/Delivery";
+
 
 function AppContent() {
   const [user, setUser] = useState(null);
@@ -127,6 +129,7 @@ function AppContent() {
                 <Route path="/product/women" element={<Products />} />
                 <Route path="/product/:productId" element={<ProductDetail />} />
                 <Route path="/ar-tryon/:productId" element={<ArTryOn />} />
+                <Route path="/wishlist" element={<Wishlist />} />
                 <Route path="/admin/products" element={<AdminProducts />} />
                 <Route path="/admin/addproduct" element={<AddProduct />} />
                 <Route path="/admin/editproduct/:id" element={<EditProduct />} />
