@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Tab, Tabs, Container, Card, CardContent, CardMedia, Button } from '@mui/material';
+import { Box, Typography, Tab, Tabs, Container, Card, CardContent, CardMedia, Button, Fade } from '@mui/material';
 import http from "../../http";
+import DescriptionIcon from '@mui/icons-material/Description';
+// import EcoIcon from '@mui/icons-material/Eco';
+import StraightenIcon from '@mui/icons-material/Straighten';
+
 
 const ProductDetail = () => {
     const { productId } = useParams();
@@ -49,20 +53,50 @@ const ProductDetail = () => {
                     </CardContent>
                 </Card>
 
+                {/* Tabs with Better UI */}
                 <Box sx={{ mt: 4 }}>
                     <Tabs
                         value={tabValue}
                         onChange={handleTabChange}
                         aria-label="Product Detail Tabs"
-                        sx={{ mb: 2 }}
+                        sx={{
+                            mb: 2,
+                            bgcolor: '#f7f7f7',
+                            borderRadius: 2,
+                            p: 1,
+                            '.MuiTabs-indicator': {
+                                height: '4px',
+                                borderRadius: 2
+                            }
+                        }}
+                        TabIndicatorProps={{ style: { backgroundColor: '#00796b' } }}
                     >
-                        <Tab label="Description" />
-                        <Tab label="Sustainability Details" />
-                        <Tab label="Size & Measurements" />
+                        <Tab 
+                            label="Description" 
+                            icon={<DescriptionIcon />} 
+                            iconPosition="start" 
+                            sx={{ textTransform: 'none', fontWeight: 'bold' }} 
+                        />
+                        <Tab 
+                            label="Sustainability" 
+                            icon={<DescriptionIcon />} 
+                            iconPosition="start" 
+                            sx={{ textTransform: 'none', fontWeight: 'bold' }} 
+                        />
+                        <Tab 
+                            label="Size & Fit" 
+                            icon={<StraightenIcon />} 
+                            iconPosition="start" 
+                            sx={{ textTransform: 'none', fontWeight: 'bold' }} 
+                        />
                     </Tabs>
-                    <Box sx={{ p: 2, border: '1px solid #ddd', borderRadius: 3 }}>
-                        {tabValue === 0 && <Typography>{product.description}</Typography>}
-                        {tabValue === 1 && (
+
+                    {/* Tab Content with Animation */}
+                    <Box sx={{ p: 3, border: '1px solid #ddd', borderRadius: 2, boxShadow: 2, bgcolor: '#ffffff' }}>
+                        <Fade in={tabValue === 0} timeout={300} unmountOnExit>
+                            <Typography>{product.description}</Typography>
+                        </Fade>
+                        <Fade in={tabValue === 1} timeout={300} unmountOnExit>
                             <Box>
                                 <Typography sx={{ mb: 1 }}>
                                     {product.sustainabilityNotes || 'No sustainability notes available.'}
@@ -81,21 +115,25 @@ const ProductDetail = () => {
                                     </Box>
                                 )}
                             </Box>
-                        )}
-                        {tabValue === 2 && (
-                            <>
+                        </Fade>
+                        <Fade in={tabValue === 2} timeout={300} unmountOnExit>
+                            <Box>
                                 <Typography>{product.sizingChart || 'No size details available.'}</Typography>
-                            
                                 <Button
                                     variant="contained"
                                     color="primary"
+                                    sx={{
+                                        mt: 2,
+                                        textTransform: 'none',
+                                        bgcolor: '#00796b',
+                                        '&:hover': { bgcolor: '#005f56' }
+                                    }}
                                     onClick={() => navigate(`/ar-tryon/${productId}`)}
                                 >
                                     Try in AR
                                 </Button>
-
-                            </>
-                        )}
+                            </Box>
+                        </Fade>
                     </Box>
                 </Box>
             </Box>
