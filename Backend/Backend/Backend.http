@@ -1,5 +1,5 @@
-@Backend_HostAddress = https://localhost:53827
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIxIiwidW5pcXVlX25hbWUiOiJhZG1pbk9uZSIsImVtYWlsIjoiZW1haWxAZW1haWwuY29tIiwibmJmIjoxNzM5MTc0ODE0LCJleHAiOjE3NDE3NjY4MTQsImlhdCI6MTczOTE3NDgxNH0.M0rAY3iC-iqC2crVVJKCHZEQg8qik2fBeyQXMt48ePg
+@Backend_HostAddress = https://localhost:53800
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IlNTaWRuZXkiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJzaWRuZXlsZWUyMDE4QGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkN1c3RvbWVyIiwiZXhwIjoxNzQwNDg1NjY5LCJpc3MiOiJSZUNsb3NldElzc3VlciIsImF1ZCI6IlJlQ2xvc2V0VXNlcnMifQ.CoRNLe-XawKvBokjzd35--LGNDiRl8dyOLPqfQAeHxc
 ###
 
 GET {{Backend_HostAddress}}/checkout
@@ -183,8 +183,8 @@ POST {{Backend_HostAddress}}/user/login
 Content-Type: application/json
 
 {
-  "Email":"jeraldliu@gmail.com",
-  "Password":"P@ssw0rd!"
+  "UsernameOrEmail":"sidneylee2018@gmail.com",
+  "Password":"password1!"
 }
 
 ###
@@ -210,7 +210,7 @@ POST {{Backend_HostAddress}}/user/register
 Content-Type: application/json
 
 {
-    "Email":"jeraldliu@gmail.com",
+  "Email":"jeraldliu@gmail.com",
   "Username":"Jerald",
   "Password":"P@ssw0rd!"
 }
@@ -234,9 +234,6 @@ Content-Type: application/json
     "Available": true,
     "CategoryId": 2,
     "WarehouseId": 1
-  
- 
- 
 
 }
 
@@ -259,3 +256,27 @@ Authorization: Bearer {{token}}
 }
 
 ###
+
+POST {{Backend_HostAddress}}/voucher/1/claim
+Content-Type: application/json
+Authorization: Bearer {{token}}
+{
+}
+
+###
+
+PUT {{Backend_HostAddress}}/user/update/2/123
+Content-Type: application/json
+Authorization: Bearer {{token}}
+{
+
+}
+
+###
+
+GET {{Backend_HostAddress}}/voucher/claimed
+Content-Type: application/json
+Authorization: Bearer {{token}}
+{
+
+}

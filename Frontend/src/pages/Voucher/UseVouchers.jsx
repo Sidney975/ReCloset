@@ -7,7 +7,7 @@ import {
   CardContent,
   Chip,
   Stack,
-  Button
+  Divider
 } from "@mui/material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -33,22 +33,7 @@ function UseVoucher() {
         setClaimedVouchers(vouchers);
       })
       .catch((err) => {
-        console.error("Failed to fetch claimed vouchers:", err);
         toast.error("Failed to fetch claimed vouchers.");
-      });
-  };
-
-  const redeemVoucher = (voucherId) => {
-    http.post(`/voucher/${voucherId}/redeem`)
-      .then((res) => {
-        toast.success(res.data.message);
-        fetchClaimedVouchers();
-      })
-      .catch((err) => {
-        console.error("Failed to redeem voucher:", err);
-        toast.error(
-          err.response?.data?.message || "Failed to redeem voucher."
-        );
       });
   };
 
@@ -77,52 +62,47 @@ function UseVoucher() {
         <Grid container spacing={3} sx={styles.gridContainer}>
           {claimedVouchers.map((voucher) => (
             <Grid item xs={12} sm={6} key={voucher.voucherId}>
-              <Card sx={styles.card}>
+              <Card sx={styles.voucherCard}>
+                {/* Left side with details */}
                 <CardContent sx={styles.cardContent}>
-                  <Typography variant="h6" fontWeight={600} gutterBottom>
+                  <Typography variant="h6" fontWeight={700} gutterBottom>
                     {voucher.voucherName}
                   </Typography>
-                  <Chip
-                    label={voucher.voucherTypeEnum}
-                    color={
-                      voucher.voucherTypeEnum === "Free Shipping"
-                        ? "success"
-                        : "info"
-                    }
-                    size="small"
-                  />
-                  <Typography
-                    variant="body2"
-                    sx={{ mt: 1, color: "text.secondary" }}
-                  >
+                  <Divider sx={styles.divider} />
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Chip
+                      label={voucher.voucherTypeEnum}
+                      color={voucher.voucherTypeEnum === "Free Shipping" ? "success" : "warning"}
+                      size="small"
+                      sx={{ fontWeight: 600 }}
+                    />
+                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                      {voucher.voucherTypeEnum === "Price Deduction"
+                        ? `${voucher.discountValue < 1 ? voucher.discountValue * 100 + "%" : "$" + voucher.discountValue}`
+                        : "Free Shipping"}
+                    </Typography>
+                  </Stack>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
                     Cost: <strong>{voucher.pointsCost} points</strong>
                   </Typography>
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    Collected At:{" "}
-                    {new Date(voucher.collectedAt).toLocaleDateString()}
+                  <Typography variant="body2">
+                    Minimum Cost: $<strong>{voucher.minimumValue}</strong>
                   </Typography>
-                  {voucher.redeemedAt && (
-                    <Chip label="Redeemed" color="success" sx={{ mt: 1 }} />
-                  )}
+                  <Typography variant="body2">
+                    Collected At: {new Date(voucher.collectedAt).toLocaleDateString()}
+                  </Typography>
                 </CardContent>
 
-                {/* Redeem Button (only if not redeemed) */}
-                {!voucher.redeemedAt && (
-                  <Stack sx={styles.stackRight}>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => redeemVoucher(voucher.voucherId)}
-                      sx={{
-                        transform: "rotate(-90deg)",
-                        borderRadius: "8px",
-                        px: 2,
-                      }}
-                    >
-                      Redeem
-                    </Button>
-                  </Stack>
-                )}
+                {/* Right side for aesthetics and status */}
+                <Box sx={styles.rightSection}>
+                  {voucher.redeemedAt ? (
+                    <Chip label="Redeemed" color="success" sx={styles.redeemedChip} />
+                  ) : (
+                    <Typography variant="h6" sx={styles.validLabel}>
+                      ✅ Valid
+                    </Typography>
+                  )}
+                </Box>
               </Card>
             </Grid>
           ))}
@@ -133,17 +113,17 @@ function UseVoucher() {
   );
 }
 
-/** Inline Styles */
+/** Styled Components */
 const styles = {
   container: {
     display: "flex",
     height: "100vh",
-    backgroundColor: "#f4f4f4", // Similar to your profile page background
+    backgroundColor: "#f4f4f4",
   },
   mainContent: {
     flex: 1,
     padding: "50px",
-    overflowY: "auto", // If you need scrolling
+    overflowY: "auto",
   },
   pageTitle: {
     fontSize: "22px",
@@ -152,28 +132,47 @@ const styles = {
     color: "#333",
   },
   gridContainer: {
-    // Additional styling if needed
+    display: "flex",
+    justifyContent: "center",
   },
-  card: {
-    borderRadius: "16px",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-    transition: "transform 0.3s",
+  voucherCard: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderRadius: "20px",
+    boxShadow: "0 5px 15px rgba(0, 0, 0, 0.1)",
+    padding: "16px",
+    background: "linear-gradient(to right, #f59e0b, #d97706)",
+    color: "#fff",
+    position: "relative",
+    overflow: "hidden",
     "&:hover": {
       transform: "scale(1.02)",
+      boxShadow: "0 8px 20px rgba(0, 0, 0, 0.2)",
     },
-    display: "flex",
-    flexDirection: "row",
   },
   cardContent: {
     flex: 1,
   },
-  stackRight: {
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#f0f0f0",
-    borderTopRightRadius: "16px",
-    borderBottomRightRadius: "16px",
-    px: 2,
+  rightSection: {
+    width: "100px",
+    textAlign: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    borderRadius: "10px",
+    padding: "10px",
+  },
+  validLabel: {
+    fontWeight: "bold",
+    color: "#fff",
+  },
+  redeemedChip: {
+    fontWeight: "bold",
+    fontSize: "14px",
+    padding: "5px 10px",
+  },
+  divider: {
+    borderColor: "rgba(255, 255, 255, 0.5)",
+    my: 1,
   },
 };
 
