@@ -8,10 +8,16 @@ namespace Backend.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class OrderItemController(MyDbContext context) : ControllerBase
+    public class OrderItemController : ControllerBase
     {
-        private readonly MyDbContext _context = context;
 
+        private readonly MyDbContext _context;
+
+        public OrderItemController(MyDbContext context)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // ✅ Set license context inside the constructor
+            _context = context;
+        }
         // GET: Get all order items
         [HttpGet]
         public IActionResult GetAllOrderItems(int? search)
