@@ -5,6 +5,23 @@ import { usePose } from './PoseContext';
 import { useParams, useLocation } from 'react-router-dom';
 import http from "../../http";
 
+// Helper function to convert image to Base64
+const convertToBase64 = async (imageUrl: string) => {
+    try {
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        return new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    } catch (error) {
+        console.error("❌ Error converting image to Base64:", error);
+        return null;
+    }
+};
+
 const ClothingOverlay: React.FC = () => {
   const { currentPose } = usePose();
   const [clothingImage, setClothingImage] = useState<string | null>(null); // Base64 string for clothing image
@@ -12,7 +29,7 @@ const ClothingOverlay: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const { productId } = useParams<{ productId: string }>();
 
-  // Fetch clothing image from backend (MongoDB via API)
+  // Fetch clothing image and process it for background removal
   useEffect(() => {
     const fetchClothingImage = async () => {
       try {
@@ -30,6 +47,26 @@ const ClothingOverlay: React.FC = () => {
         console.log("Constructed Image URL:", imageUrl);
 
         setClothingImage(imageUrl);
+
+        // Convert image to Base64 before sending to backend
+        const base64Image = await convertToBase64(imageUrl);
+        if (!base64Image) {
+            console.warn("⚠️ Failed to convert image to Base64, using original.");
+            setClothingImage(imageUrl);
+            return;
+        }
+        console.log("🔵 Sending to backend:", { imageUrl: base64Image });
+        // Send image to the backend for background removal
+        const removeBgResponse = await http.post('/api/removebackground', { imageUrl: base64Image });
+
+        if (removeBgResponse.data.image) {
+          console.log("✅ Background removed successfully.");
+          setClothingImage(removeBgResponse.data.image); // Use processed image for AR
+        } else {
+          console.warn("⚠️ Using original image as background removal failed.");
+          setClothingImage(imageUrl);
+        }
+
       } catch (error) {
         setClothingImage(null);
         console.error('Error fetching product image:', error);
@@ -52,19 +89,19 @@ const ClothingOverlay: React.FC = () => {
       console.warn("⚠️ No Pose Detected!");
       return;
     }
-  
+
     if (!clothingImage) {
       console.warn("⚠️ No Clothing Image Loaded!");
       return;
     }
-  
+
     if (!canvasRef.current) {
       console.warn("⚠️ Canvas Not Found!");
       return;
     }
-  
+
     console.log("🎯 Drawing clothing image...");
-  
+
     const ctx = canvasRef.current.getContext('2d');
     if (!ctx) {
       console.error("❌ Failed to get canvas context.");

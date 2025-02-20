@@ -8,6 +8,7 @@ using AutoMapper;
 using Backend;
 using Microsoft.EntityFrameworkCore;
 using Backend.Services;
+using Backend.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,7 @@ builder.Services.AddHttpClient<FashionAdviceService>();
 builder.Services.AddHttpClient<ChatbotService>();
 builder.Services.AddControllers();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddHttpClient<RemoveBackgroundController>();
 
 // Correct MySQL Configuration
 builder.Services.AddDbContext<MyDbContext>(options =>
@@ -141,6 +143,7 @@ app.UseExceptionHandler(errorApp =>
 
 // Apply Middleware
 app.UseCors("AllowAll");
+app.UseRouting();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAuthentication();
